@@ -1,0 +1,66 @@
+<include src="layout.html">
+  <template name="head">
+    <title th:text="|瞬间 - ${site.title}|">瞬间</title>
+  </template>
+
+  <section class="hydro-list-hero">
+    <div class="hydro-container">
+      <p>Moments</p>
+      <h1>瞬间</h1>
+      <span>记录生活中的碎片，那些值得被留住的片刻。</span>
+    </div>
+  </section>
+
+  <section class="hydro-moments-section">
+    <div class="hydro-container">
+      <div class="hydro-moments-feed" th:if="${not #lists.isEmpty(moments.items)}">
+        <article class="hydro-moment" th:each="moment : ${moments.items}" data-moment>
+          <div class="hydro-moment__timeline">
+            <div class="hydro-moment__dot"></div>
+            <div class="hydro-moment__line"></div>
+          </div>
+          <div class="hydro-moment__card">
+            <time class="hydro-moment__time" th:text="${#dates.format(moment.spec.releaseTime, 'yyyy.MM.dd HH:mm')}"
+              >2024.01.15 12:00</time
+            >
+            <div class="hydro-moment__content hydro-prose" th:utext="${moment.spec.content.html}"></div>
+            <!-- 图片附件 -->
+            <div class="hydro-moment__images" th:if="${not #lists.isEmpty(moment.spec.content.medium)}">
+              <div
+                class="hydro-moment__images-grid"
+                th:classappend="${#lists.size(moment.spec.content.medium) == 1 ? 'is-single' : (
+                  #lists.size(moment.spec.content.medium) == 2 ? 'is-double' : '')}"
+              >
+                <button
+                  class="hydro-moment__img-btn"
+                  th:each="media : ${moment.spec.content.medium}"
+                  th:if="${media.type == 'PHOTO'}"
+                  th:attr="data-src=${media.url},data-alt=${media.originName}"
+                  data-lightbox-trigger
+                >
+                  <img th:src="${media.url}" th:alt="${media.originName}" loading="lazy" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <div th:if="${#lists.isEmpty(moments.items)}" class="hydro-empty">暂无瞬间。</div>
+
+      <nav class="hydro-pagination" th:if="${moments.hasPrevious || moments.hasNext}">
+        <a th:if="${moments.hasPrevious}" th:href="@{${moments.prevUrl}}">上一页</a>
+        <span th:text="|${moments.page} / ${moments.totalPages}|">1 / 1</span>
+        <a th:if="${moments.hasNext}" th:href="@{${moments.nextUrl}}">下一页</a>
+      </nav>
+    </div>
+  </section>
+
+  <!-- 灯箱 -->
+  <div class="hydro-lightbox" data-lightbox aria-hidden="true">
+    <button class="hydro-lightbox__close" data-lightbox-close aria-label="关闭">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+    </button>
+    <img class="hydro-lightbox__img" data-lightbox-img src="" alt="" />
+  </div>
+</include>

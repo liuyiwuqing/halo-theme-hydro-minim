@@ -261,6 +261,30 @@ function initNavigation() {
       document.body.classList.remove("hydro-menu-lock");
     });
   });
+
+  // Desktop dropdowns
+  document.querySelectorAll<HTMLElement>("[data-hydro-dropdown]").forEach((dropdown) => {
+    const menu = dropdown.querySelector<HTMLElement>(".hydro-dropdown__menu");
+    if (!menu) return;
+
+    let hideTimer: number | undefined;
+
+    const show = () => {
+      if (hideTimer) window.clearTimeout(hideTimer);
+      menu.classList.add("is-visible");
+    };
+
+    const hide = () => {
+      hideTimer = window.setTimeout(() => {
+        menu.classList.remove("is-visible");
+      }, 150);
+    };
+
+    dropdown.addEventListener("mouseenter", show);
+    dropdown.addEventListener("mouseleave", hide);
+    menu.addEventListener("mouseenter", show);
+    menu.addEventListener("mouseleave", hide);
+  });
 }
 
 function initScrambleLinks() {
@@ -529,3 +553,101 @@ initTiltCards();
 initCategoryCursor();
 initScrollTilt();
 initFooterMarquee();
+
+function initLinkCards() {
+  if (!motionEnabled) return;
+  document.querySelectorAll<HTMLElement>("[data-link-card]").forEach((card) => {
+    card.addEventListener("mousemove", (event) => {
+      const rect = card.getBoundingClientRect();
+      const x = ((event.clientX - rect.left) / rect.width - 0.5) * 8;
+      const y = ((event.clientY - rect.top) / rect.height - 0.5) * 8;
+      gsap.to(card, { duration: 0.3, ease: "power2.out", rotateX: -y, rotateY: x });
+    });
+    card.addEventListener("mouseleave", () => {
+      gsap.to(card, { duration: 0.5, ease: "expo.out", rotateX: 0, rotateY: 0 });
+    });
+  });
+}
+
+function initMomentsReveal() {
+  document.querySelectorAll<HTMLElement>("[data-moment]").forEach((moment, index) => {
+    if (!motionEnabled) {
+      moment.classList.add("is-visible");
+      return;
+    }
+    ScrollTrigger.create({
+      trigger: moment,
+      start: "top 88%",
+      onEnter: () => {
+        gsap.to(moment, {
+          opacity: 1,
+          y: 0,
+          duration: 0.6,
+          ease: "expo.out",
+          delay: (index % 5) * 0.05,
+          onStart: () => moment.classList.add("is-visible"),
+        });
+      },
+    });
+  });
+}
+
+function initLightbox() {
+  const lightbox = document.querySelector<HTMLElement>("[data-lightbox]");
+  if (!lightbox) return;
+
+  const img = lightbox.querySelector<HTMLImageElement>("[data-lightbox-img]");
+  const closeBtn = lightbox.querySelector<HTMLButtonElement>("[data-lightbox-close]");
+  const prevBtn = lightbox.querySelector<HTMLButtonElement>("[data-lightbox-prev]");
+  const nextBtn = lightbox.querySelector<HTMLButtonElement>("[data-lightbox-next]");
+  const counter = lightbox.querySelector<HTMLElement>("[data-lightbox-counter]");
+
+  const triggers = Array.from(document.querySelectorAll<HTMLElement>("[data-lightbox-trigger]"));
+  let currentIndex = 0;
+
+  const open = (index: number) => {
+    currentIndex = index;
+    const src = triggers[index].dataset.src ?? "";
+    const alt = triggers[index].dataset.alt ?? "";
+    if (!img) return;
+    img.classList.add("is-loading");
+    img.src = src;
+    img.alt = alt;
+    img.onload = () => img.classList.remove("is-loading");
+    lightbox.classList.add("is-open");
+    lightbox.setAttribute("aria-hidden", "false");
+    document.body.classList.add("hydro-menu-lock");
+    if (counter) counter.textContent = `${index + 1} / ${triggers.length}`;
+    if (prevBtn) prevBtn.style.display = triggers.length > 1 ? "" : "none";
+    if (nextBtn) nextBtn.style.display = triggers.length > 1 ? "" : "none";
+  };
+
+  const close = () => {
+    lightbox.classList.remove("is-open");
+    lightbox.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("hydro-menu-lock");
+  };
+
+  triggers.forEach((trigger, index) => {
+    trigger.addEventListener("click", () => open(index));
+  });
+
+  closeBtn?.addEventListener("click", close);
+  prevBtn?.addEventListener("click", () => open((currentIndex - 1 + triggers.length) % triggers.length));
+  nextBtn?.addEventListener("click", () => open((currentIndex + 1) % triggers.length));
+
+  lightbox.addEventListener("click", (e) => {
+    if (e.target === lightbox) close();
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (!lightbox.classList.contains("is-open")) return;
+    if (e.key === "Escape") close();
+    if (e.key === "ArrowLeft") prevBtn?.click();
+    if (e.key === "ArrowRight") nextBtn?.click();
+  });
+}
+
+initLinkCards();
+initMomentsReveal();
+initLightbox();

@@ -1,0 +1,74 @@
+<include src="layout.html">
+  <template name="head">
+    <title th:text="|图库 - ${site.title}|">图库</title>
+  </template>
+
+  <section class="hydro-list-hero">
+    <div class="hydro-container">
+      <p>Gallery</p>
+      <h1>图库</h1>
+      <span>用镜头定格光影，每一帧都是时间的切片。</span>
+    </div>
+  </section>
+
+  <section class="hydro-photos-section">
+    <div class="hydro-container">
+      <!-- 分组 Tab 导航 -->
+      <nav class="hydro-photos-tabs" th:with="photoGroups=${photoFinder.groupBy()}">
+        <a
+          th:href="@{/photos}"
+          class="hydro-photos-tab"
+          th:classappend="${#lists.isEmpty(param.group)} ? ' is-active' : ''"
+          >全部</a
+        >
+        <a
+          th:each="group : ${photoGroups}"
+          th:href="@{|/photos?group=${group.metadata.name}|}"
+          class="hydro-photos-tab"
+          th:classappend="${#lists.contains(param.group, group.metadata.name)} ? ' is-active' : ''"
+          th:text="${group.spec.displayName}"
+        ></a>
+      </nav>
+
+      <!-- 瀑布流图片 -->
+      <div class="hydro-photos-masonry" th:if="${not #lists.isEmpty(photos.items)}">
+        <button
+          class="hydro-photo-item"
+          th:each="photo : ${photos.items}"
+          th:attr="data-src=${photo.spec.url},data-alt=${photo.spec.displayName}"
+          data-lightbox-trigger
+        >
+          <img th:src="${photo.spec.url}" th:alt="${photo.spec.displayName}" loading="lazy" />
+          <div class="hydro-photo-item__overlay">
+            <span th:if="${not #strings.isEmpty(photo.spec.displayName)}" th:text="${photo.spec.displayName}"
+              >图片名称</span
+            >
+          </div>
+        </button>
+      </div>
+
+      <div th:if="${#lists.isEmpty(photos.items)}" class="hydro-empty">暂无图片。</div>
+
+      <nav class="hydro-pagination" th:if="${photos.hasPrevious() || photos.hasNext()}">
+        <a th:if="${photos.hasPrevious()}" th:href="@{${photos.prevUrl}}">上一页</a>
+        <span th:text="|${photos.page} / ${photos.totalPages}|">1 / 1</span>
+        <a th:if="${photos.hasNext()}" th:href="@{${photos.nextUrl}}">下一页</a>
+      </nav>
+    </div>
+  </section>
+
+  <!-- 灯箱 -->
+  <div class="hydro-lightbox" data-lightbox aria-hidden="true">
+    <button class="hydro-lightbox__close" data-lightbox-close aria-label="关闭">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+    </button>
+    <button class="hydro-lightbox__prev" data-lightbox-prev aria-label="上一张">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18 9 12l6-6"></path></svg>
+    </button>
+    <img class="hydro-lightbox__img" data-lightbox-img src="" alt="" />
+    <button class="hydro-lightbox__next" data-lightbox-next aria-label="下一张">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"></path></svg>
+    </button>
+    <div class="hydro-lightbox__counter" data-lightbox-counter></div>
+  </div>
+</include>

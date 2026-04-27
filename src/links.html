@@ -1,0 +1,78 @@
+<include src="layout.html">
+  <template name="head">
+    <title th:text="|友链 - ${site.title}|">友链</title>
+  </template>
+
+  <section class="hydro-list-hero">
+    <div class="hydro-container">
+      <p>Links</p>
+      <h1>友链</h1>
+      <span>与志同道合的创作者相互连接，共同构建开放的网络。</span>
+    </div>
+  </section>
+
+  <section class="hydro-links-section">
+    <div class="hydro-container">
+      <th:block th:if="${not #lists.isEmpty(groups)}">
+        <div class="hydro-links-group" th:each="group : ${groups}">
+          <div class="hydro-links-group__header">
+            <div class="hydro-links-group__line"></div>
+            <h2 th:text="${group.spec.displayName}">分组名称</h2>
+            <span class="hydro-links-group__count" th:text="|${#lists.size(group.links)} 个链接|">0 个链接</span>
+          </div>
+          <div class="hydro-links-grid">
+            <a
+              class="hydro-link-card"
+              th:each="link : ${group.links}"
+              th:href="${link.spec.url}"
+              target="_blank"
+              rel="noreferrer noopener"
+              data-link-card
+            >
+              <div class="hydro-link-card__header">
+                <div class="hydro-link-card__avatar">
+                  <img
+                    th:if="${not #strings.isEmpty(link.spec.logo)}"
+                    th:src="${link.spec.logo}"
+                    th:alt="${link.spec.displayName}"
+                  />
+                  <span th:if="${#strings.isEmpty(link.spec.logo)}" th:text="${#strings.substring(link.spec.displayName,0,1)}">A</span>
+                </div>
+                <svg class="hydro-link-card__icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M7 17 17 7M8 7h9v9"></path>
+                </svg>
+              </div>
+              <div class="hydro-link-card__body">
+                <strong th:text="${link.spec.displayName}">站点名称</strong>
+                <p th:text="${link.spec.description}">站点描述</p>
+              </div>
+            </a>
+          </div>
+        </div>
+      </th:block>
+
+      <div th:if="${#lists.isEmpty(groups)}" class="hydro-empty">暂无友链。</div>
+    </div>
+  </section>
+
+  <section class="hydro-links-apply" th:if="${not #strings.isEmpty(singlePage.content.content)}">
+    <div class="hydro-container">
+      <div class="hydro-links-apply__inner">
+        <div class="hydro-links-apply__header">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 2v20M2 12h20"></path>
+          </svg>
+          <h2>申请友链</h2>
+        </div>
+        <div class="hydro-prose" th:utext="${singlePage.content.content}"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="comment" class="hydro-links-comments" th:if="${haloCommentEnabled}">
+    <div class="hydro-container">
+      <h2>评论</h2>
+      <halo:comment group="plugin.halo.run" kind="Plugin" th:attr="name=${pluginName}" />
+    </div>
+  </section>
+</include>

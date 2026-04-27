@@ -326,6 +326,66 @@ input {
   font-size: 0.875rem;
 }
 
+.hydro-dropdown {
+  position: relative;
+}
+
+.hydro-dropdown > a {
+  color: rgb(var(--hydro-ink-rgb) / 70%);
+  font-size: 0.875rem;
+  font-weight: 700;
+  transition: color 0.3s ease;
+}
+
+.hydro-dropdown > a:hover {
+  color: var(--hydro-solid);
+}
+
+.hydro-dropdown__menu {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  z-index: 60;
+  min-width: 10rem;
+  margin: 0;
+  padding: 0.5rem 0;
+  list-style: none;
+  opacity: 0;
+  transform: translateY(-0.5rem) scale(0.96);
+  pointer-events: none;
+  border: 1px solid rgb(var(--hydro-ink-rgb) / 5%);
+  border-radius: 1rem;
+  background: rgb(var(--hydro-paper-rgb) / 90%);
+  box-shadow: 0 16px 40px rgb(var(--hydro-shadow-rgb) / 10%);
+  backdrop-filter: blur(22px);
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+.hydro-dropdown__menu.is-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.hydro-dropdown__menu li a {
+  display: block;
+  padding: 0.5rem 1rem;
+  color: rgb(var(--hydro-ink-rgb) / 70%);
+  font-size: 0.875rem;
+  font-weight: 700;
+  white-space: nowrap;
+  transition:
+    color 0.2s ease,
+    background 0.2s ease;
+}
+
+.hydro-dropdown__menu li a:hover {
+  color: var(--hydro-solid);
+  background: rgb(var(--hydro-ink-rgb) / 5%);
+}
+
 .hydro-mobile-menu {
   position: fixed;
   inset: 0;
@@ -348,6 +408,26 @@ input {
   flex-direction: column;
   align-items: center;
   gap: 2rem;
+}
+
+.hydro-mobile-menu__group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.hydro-mobile-submenu {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.hydro-mobile-submenu a {
+  color: rgb(var(--hydro-ink-rgb) / 50%);
+  font-size: clamp(1.2rem, 6vw, 2.5rem);
+  font-weight: 700;
 }
 
 .hydro-mobile-menu a {
@@ -1702,4 +1782,689 @@ html.lenis body {
   .hydro-list-hero {
     padding-top: 8rem;
   }
+}
+
+/* ============================================================
+   友链页 Links
+   ============================================================ */
+
+.hydro-links-section {
+  padding: 0 0 7rem;
+}
+
+.hydro-links-group {
+  margin-bottom: 5rem;
+}
+
+.hydro-links-group:last-child {
+  margin-bottom: 0;
+}
+
+.hydro-links-group__header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2.5rem;
+  padding-bottom: 1.25rem;
+}
+
+.hydro-links-group__line {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    var(--hydro-solid),
+    rgb(var(--hydro-ink-rgb) / 10%) 20%,
+    rgb(var(--hydro-ink-rgb) / 10%) 80%,
+    transparent
+  );
+}
+
+.hydro-links-group__header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.hydro-links-group__count {
+  margin-left: auto;
+  color: rgb(var(--hydro-ink-rgb) / 40%);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.hydro-links-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  gap: 1.25rem;
+}
+
+.hydro-link-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 10rem;
+  padding: 1.5rem;
+  border: 1px solid rgb(var(--hydro-ink-rgb) / 8%);
+  border-radius: 0.75rem;
+  background: rgb(var(--hydro-paper-rgb) / 40%);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.hydro-link-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgb(var(--hydro-ink-rgb) / 3%), transparent 50%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.hydro-link-card:hover {
+  border-color: var(--hydro-solid);
+  background: rgb(var(--hydro-paper-rgb) / 70%);
+  transform: translateY(-0.25rem);
+  box-shadow: 0 8px 24px rgb(var(--hydro-shadow-rgb) / 8%);
+}
+
+.hydro-link-card:hover::before {
+  opacity: 1;
+}
+
+.hydro-link-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  position: relative;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.hydro-link-card__avatar {
+  flex-shrink: 0;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  border: 1px solid rgb(var(--hydro-ink-rgb) / 8%);
+  display: grid;
+  place-items: center;
+  background: rgb(var(--hydro-ink-rgb) / 3%);
+  font-size: 1.5rem;
+  font-weight: 700;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+
+.hydro-link-card:hover .hydro-link-card__avatar {
+  transform: scale(1.08) rotate(-3deg);
+}
+
+.hydro-link-card__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hydro-link-card__icon {
+  flex-shrink: 0;
+  width: 1.25rem;
+  height: 1.25rem;
+  fill: none;
+  stroke: rgb(var(--hydro-ink-rgb) / 30%);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+  opacity: 0;
+  transform: translate(-0.5rem, 0.5rem);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hydro-link-card:hover .hydro-link-card__icon {
+  opacity: 1;
+  transform: translate(0, 0);
+  stroke: var(--hydro-solid);
+}
+
+.hydro-link-card__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  position: relative;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.hydro-link-card__body strong {
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  transition: color 0.3s ease;
+}
+
+.hydro-link-card:hover .hydro-link-card__body strong {
+  color: var(--hydro-coral);
+}
+
+.hydro-link-card__body p {
+  margin: 0;
+  color: var(--hydro-muted);
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.hydro-links-apply {
+  padding: 6rem 0;
+  background: linear-gradient(to bottom, transparent, rgb(var(--hydro-ink-rgb) / 2%), transparent);
+}
+
+.hydro-links-apply__inner {
+  max-width: 52rem;
+  margin: 0 auto;
+  padding: 3rem;
+  border: 1px solid rgb(var(--hydro-ink-rgb) / 10%);
+  border-radius: 1rem;
+  background: rgb(var(--hydro-paper-rgb) / 60%);
+  backdrop-filter: blur(8px);
+}
+
+.hydro-links-apply__header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgb(var(--hydro-ink-rgb) / 10%);
+}
+
+.hydro-links-apply__header svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  fill: none;
+  stroke: var(--hydro-coral);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+.hydro-links-apply__header h2 {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+
+.hydro-links-comments {
+  padding: 4rem 0 7rem;
+}
+
+.hydro-links-comments h2 {
+  margin: 0 0 2rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+@media (max-width: 64rem) {
+  .hydro-links-grid {
+    grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  }
+}
+
+@media (max-width: 40rem) {
+  .hydro-links-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .hydro-links-apply__inner {
+    padding: 2rem 1.5rem;
+  }
+}
+
+/* ============================================================
+   瞬间页 Moments
+   ============================================================ */
+
+.hydro-moments-section {
+  padding: 0 0 7rem;
+}
+
+.hydro-moments-feed {
+  max-width: 44rem;
+  margin: 0 auto;
+}
+
+.hydro-moment {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr);
+  gap: 0 1.5rem;
+  opacity: 0;
+  transform: translateY(2rem);
+}
+
+.hydro-moment.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hydro-moment__timeline {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 0.25rem;
+}
+
+.hydro-moment__dot {
+  flex-shrink: 0;
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 999px;
+  background: var(--hydro-solid);
+  border: 2px solid var(--hydro-bg);
+  outline: 1px solid rgb(var(--hydro-ink-rgb) / 20%);
+  transition: background 0.3s ease;
+}
+
+.hydro-moment:hover .hydro-moment__dot {
+  background: var(--hydro-coral);
+}
+
+.hydro-moment__line {
+  flex: 1;
+  width: 1px;
+  background: rgb(var(--hydro-ink-rgb) / 10%);
+  margin-top: 0.5rem;
+  min-height: 2rem;
+}
+
+.hydro-moment:last-child .hydro-moment__line {
+  display: none;
+}
+
+.hydro-moment__card {
+  padding-bottom: 2.5rem;
+}
+
+.hydro-moment__time {
+  display: block;
+  margin-bottom: 0.75rem;
+  color: rgb(var(--hydro-ink-rgb) / 40%);
+  font-size: 0.8125rem;
+}
+
+.hydro-moment__content {
+  font-size: 0.9375rem;
+  line-height: 1.8;
+  color: rgb(var(--hydro-ink-rgb) / 80%);
+}
+
+.hydro-moment__content p {
+  margin: 0 0 0.75rem;
+}
+
+.hydro-moment__content p:last-child {
+  margin-bottom: 0;
+}
+
+.hydro-moment__images {
+  margin-top: 1rem;
+}
+
+.hydro-moment__images-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.375rem;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.hydro-moment__images-grid.is-single {
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 20rem;
+}
+
+.hydro-moment__images-grid.is-double {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  max-width: 24rem;
+}
+
+.hydro-moment__img-btn {
+  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: zoom-in;
+  aspect-ratio: 1;
+  overflow: hidden;
+}
+
+.hydro-moment__img-btn img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hydro-moment__img-btn:hover img {
+  transform: scale(1.06);
+}
+
+/* ============================================================
+   图库页 Photos
+   ============================================================ */
+
+.hydro-photos-section {
+  padding: 0 0 7rem;
+}
+
+.hydro-albums-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+
+.hydro-album-card {
+  display: block;
+  transform-style: preserve-3d;
+  perspective: 1000px;
+}
+
+.hydro-album-card__cover {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background: rgb(var(--hydro-ink-rgb) / 5%);
+  margin-bottom: 0.875rem;
+}
+
+.hydro-album-card__cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hydro-album-card:hover .hydro-album-card__cover img {
+  transform: scale(1.08);
+}
+
+.hydro-album-card__shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgb(0 0 0 / 60%), transparent 50%);
+}
+
+.hydro-album-card__info {
+  position: absolute;
+  bottom: 1rem;
+  left: 1rem;
+  right: 1rem;
+  color: var(--hydro-image-text);
+}
+
+.hydro-album-card__info strong {
+  display: block;
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.hydro-album-card__info span {
+  font-size: 0.8125rem;
+  opacity: 0.75;
+}
+
+.hydro-album-card > p {
+  margin: 0;
+  color: var(--hydro-muted);
+  font-size: 0.875rem;
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+/* 瀑布流 */
+.hydro-photos-masonry {
+  columns: 3;
+  column-gap: 0.75rem;
+}
+
+.hydro-photo-item {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: zoom-in;
+  break-inside: avoid;
+  margin-bottom: 0.75rem;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  position: relative;
+}
+
+.hydro-photo-item img {
+  width: 100%;
+  height: auto;
+  display: block;
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hydro-photo-item:hover img {
+  transform: scale(1.04);
+}
+
+.hydro-photo-item__overlay {
+  position: absolute;
+  inset: 0;
+  background: var(--hydro-image-shade);
+  display: flex;
+  align-items: flex-end;
+  padding: 0.75rem;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.hydro-photo-item:hover .hydro-photo-item__overlay {
+  opacity: 1;
+}
+
+.hydro-photo-item__overlay span {
+  color: var(--hydro-image-text);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+/* ============================================================
+   灯箱 Lightbox（moments + photos 共用）
+   ============================================================ */
+
+.hydro-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(0 0 0 / 90%);
+  backdrop-filter: blur(8px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.hydro-lightbox.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.hydro-lightbox__img {
+  max-width: min(90vw, 80rem);
+  max-height: 88vh;
+  object-fit: contain;
+  border-radius: 0.5rem;
+  transition: opacity 0.2s ease;
+}
+
+.hydro-lightbox__img.is-loading {
+  opacity: 0;
+}
+
+.hydro-lightbox__close,
+.hydro-lightbox__prev,
+.hydro-lightbox__next {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgb(255 255 255 / 20%);
+  border-radius: 999px;
+  background: rgb(0 0 0 / 40%);
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.hydro-lightbox__close {
+  top: 1.5rem;
+  right: 1.5rem;
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+.hydro-lightbox__prev,
+.hydro-lightbox__next {
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3rem;
+  height: 3rem;
+}
+
+.hydro-lightbox__prev {
+  left: 1.5rem;
+}
+
+.hydro-lightbox__next {
+  right: 1.5rem;
+}
+
+.hydro-lightbox__close:hover,
+.hydro-lightbox__prev:hover,
+.hydro-lightbox__next:hover {
+  background: rgb(0 0 0 / 70%);
+}
+
+.hydro-lightbox__close svg,
+.hydro-lightbox__prev svg,
+.hydro-lightbox__next svg {
+  width: 1.125rem;
+  height: 1.125rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+.hydro-lightbox__counter {
+  position: absolute;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgb(255 255 255 / 60%);
+  font-size: 0.8125rem;
+}
+
+/* ============================================================
+   响应式
+   ============================================================ */
+
+@media (max-width: 64rem) {
+  .hydro-links-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .hydro-albums-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .hydro-photos-masonry {
+    columns: 2;
+  }
+}
+
+@media (max-width: 40rem) {
+  .hydro-links-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .hydro-albums-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .hydro-photos-masonry {
+    columns: 2;
+  }
+
+  .hydro-moment {
+    grid-template-columns: 1.5rem minmax(0, 1fr);
+    gap: 0 1rem;
+  }
+
+  .hydro-lightbox__prev {
+    left: 0.75rem;
+  }
+
+  .hydro-lightbox__next {
+    right: 0.75rem;
+  }
+}
+
+/* 图库分组 Tab */
+.hydro-photos-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 2.5rem;
+}
+
+.hydro-photos-tab {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1.1rem;
+  border: 1px solid rgb(var(--hydro-ink-rgb) / 12%);
+  border-radius: 999px;
+  background: rgb(var(--hydro-paper-rgb) / 35%);
+  font-size: 0.875rem;
+  font-weight: 700;
+  transition: all 0.25s ease;
+}
+
+.hydro-photos-tab:hover,
+.hydro-photos-tab.is-active {
+  border-color: var(--hydro-solid);
+  background: var(--hydro-solid);
+  color: var(--hydro-solid-contrast);
 }

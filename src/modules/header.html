@@ -4,13 +4,32 @@
 
     <nav class="hydro-nav__links" aria-label="Primary">
       <th:block th:if="${menu != null} and ${not #lists.isEmpty(menu.menuItems)}">
-        <a
-          th:each="item : ${menu.menuItems}"
-          th:href="@{${item.status.href}}"
-          th:text="${item.status.displayName}"
-          th:target="${item.spec.target?.value}"
-          data-scramble
-        ></a>
+        <th:block th:each="item : ${menu.menuItems}">
+          <a
+            th:if="${#lists.isEmpty(item.children)}"
+            th:href="@{${item.status.href}}"
+            th:text="${item.status.displayName}"
+            th:target="${item.spec.target?.value}"
+            data-scramble
+          ></a>
+          <div th:unless="${#lists.isEmpty(item.children)}" class="hydro-dropdown" data-hydro-dropdown>
+            <a
+              th:href="@{${item.status.href}}"
+              th:text="${item.status.displayName}"
+              th:target="${item.spec.target?.value}"
+              data-scramble
+            ></a>
+            <ul class="hydro-dropdown__menu">
+              <li th:each="child : ${item.children}">
+                <a
+                  th:href="@{${child.status.href}}"
+                  th:text="${child.status.displayName}"
+                  th:target="${child.spec.target?.value}"
+                ></a>
+              </li>
+            </ul>
+          </div>
+        </th:block>
       </th:block>
       <th:block th:unless="${menu != null} and ${not #lists.isEmpty(menu.menuItems)}">
         <a href="#articles" data-scramble>文章</a>
@@ -80,12 +99,29 @@
 <div class="hydro-mobile-menu" data-hydro-mobile-menu th:with="menu = ${menuFinder.getPrimary()}">
   <nav aria-label="Mobile">
     <th:block th:if="${menu != null} and ${not #lists.isEmpty(menu.menuItems)}">
-      <a
-        th:each="item : ${menu.menuItems}"
-        th:href="@{${item.status.href}}"
-        th:text="${item.status.displayName}"
-        th:target="${item.spec.target?.value}"
-      ></a>
+      <th:block th:each="item : ${menu.menuItems}">
+        <a
+          th:if="${#lists.isEmpty(item.children)}"
+          th:href="@{${item.status.href}}"
+          th:text="${item.status.displayName}"
+          th:target="${item.spec.target?.value}"
+        ></a>
+        <div th:unless="${#lists.isEmpty(item.children)}" class="hydro-mobile-menu__group">
+          <a
+            th:href="@{${item.status.href}}"
+            th:text="${item.status.displayName}"
+            th:target="${item.spec.target?.value}"
+          ></a>
+          <div class="hydro-mobile-submenu">
+            <a
+              th:each="child : ${item.children}"
+              th:href="@{${child.status.href}}"
+              th:text="${child.status.displayName}"
+              th:target="${child.spec.target?.value}"
+            ></a>
+          </div>
+        </div>
+      </th:block>
     </th:block>
     <th:block th:unless="${menu != null} and ${not #lists.isEmpty(menu.menuItems)}">
       <a href="#articles">文章</a>
