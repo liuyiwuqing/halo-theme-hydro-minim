@@ -177,6 +177,10 @@ function initNavigation() {
   const mobileMenu = document.querySelector<HTMLElement>("[data-hydro-mobile-menu]");
   let navMode: "top" | "pill" = window.scrollY > 100 ? "pill" : "top";
   let navTimers: number[] = [];
+  let lastScrollY = window.scrollY;
+  let lastTime = performance.now();
+  let scrollVelocity = 0;
+  let rafId: number | null = null;
 
   const clearNavTimers = () => {
     navTimers.forEach((timer) => window.clearTimeout(timer));
@@ -197,26 +201,54 @@ function initNavigation() {
     nav?.classList.add("is-scrolled");
   }
 
-  const syncNav = () => {
-    if (!nav) {
-      return;
+  const updateVelocity = () => {
+    const currentTime = performance.now();
+    const currentScrollY = window.scrollY;
+    const deltaTime = currentTime - lastTime;
+    const deltaY = Math.abs(currentScrollY - lastScrollY);
+    
+    if (deltaTime > 0) {
+      // 像素/毫秒，然后平滑处理
+      const instantVelocity = deltaY / deltaTime;
+      scrollVelocity = scrollVelocity * 0.6 + instantVelocity * 0.4;
     }
+    
+    lastScrollY = currentScrollY;
+    lastTime = currentTime;
+  };
 
+  const syncNav = () => {
+    if (!nav) return;
+
+    updateVelocity();
+    
     const shouldBePill = window.scrollY > 100;
+    
+    // 速度越快，倍数越小；速度越慢，倍数越大
+    // scrollVelocity: 0 px/ms (很慢) → 倍数 5.0
+    // scrollVelocity: 2.5 px/ms (快) → 倍数 0.2
+    const speedMultiplier = Math.max(0.2, Math.min(5.0, 5.0 - scrollVelocity * 1.92));
 
     if (shouldBePill && navMode !== "pill") {
       clearNavTimers();
       resetNavTransitionClasses();
       navMode = "pill";
+      
+      const exitDuration = Math.round(70 * speedMultiplier);
+      const enterDuration = Math.round(600 * speedMultiplier);
+      
+      nav.style.setProperty("--nav-exit-duration", `${exitDuration}ms`);
+      nav.style.setProperty("--nav-enter-duration", `${enterDuration}ms`);
+      
       nav.classList.add("is-nav-transitioning", "is-exiting-top");
       navTimers.push(
         window.setTimeout(() => {
           nav.classList.remove("is-exiting-top");
           nav.classList.add("is-scrolled", "is-entering-pill");
-        }, 150),
+        }, exitDuration),
         window.setTimeout(() => {
           nav.classList.remove("is-entering-pill", "is-nav-transitioning");
-        }, 760),
+        }, exitDuration + enterDuration),
       );
       return;
     }
@@ -225,21 +257,36 @@ function initNavigation() {
       clearNavTimers();
       resetNavTransitionClasses();
       navMode = "top";
+      
+      const exitDuration = Math.round(160 * speedMultiplier);
+      const enterDuration = Math.round(100 * speedMultiplier);
+      
+      nav.style.setProperty("--nav-exit-duration", `${exitDuration}ms`);
+      nav.style.setProperty("--nav-enter-duration", `${enterDuration}ms`);
+      
       nav.classList.add("is-nav-transitioning", "is-leaving-pill");
       navTimers.push(
         window.setTimeout(() => {
           nav.classList.remove("is-scrolled", "is-leaving-pill");
           nav.classList.add("is-entering-top");
-        }, 320),
+        }, exitDuration),
         window.setTimeout(() => {
           nav.classList.remove("is-entering-top", "is-nav-transitioning");
-        }, 760),
+        }, exitDuration + enterDuration),
       );
     }
   };
 
+  const onScroll = () => {
+    if (rafId) return;
+    rafId = requestAnimationFrame(() => {
+      syncNav();
+      rafId = null;
+    });
+  };
+
   syncNav();
-  window.addEventListener("scroll", syncNav, { passive: true });
+  window.addEventListener("scroll", onScroll, { passive: true });
 
   searchToggle?.addEventListener("click", () => {
     const isOpen = searchPanel?.classList.toggle("is-open");

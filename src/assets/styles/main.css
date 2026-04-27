@@ -157,8 +157,10 @@ input {
   z-index: 50;
   padding: 1.5rem 2rem;
   opacity: 1;
+  --nav-exit-duration: 150ms;
+  --nav-enter-duration: 620ms;
   transition:
-    opacity 0.22s ease,
+    opacity calc(var(--nav-exit-duration) * 1.5) ease,
     transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   will-change: opacity, transform;
 }
@@ -167,7 +169,6 @@ input {
   top: 1rem;
   right: clamp(1rem, 10.5vw, 14rem);
   left: auto;
-  /*width: min(calc(100% - 2rem), 50rem);*/
   padding: 0.75rem 1.5rem;
   transform: none;
   border: 1px solid rgb(var(--hydro-ink-rgb) / 5%);
@@ -184,18 +185,21 @@ input {
 .hydro-nav.is-exiting-top {
   opacity: 0;
   transform: translateY(-1.25rem);
+  transition: 
+    opacity var(--nav-exit-duration) ease,
+    transform var(--nav-exit-duration) ease;
 }
 
 .hydro-nav.is-entering-pill {
-  animation: hydro-pill-enter 0.62s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: hydro-pill-enter var(--nav-enter-duration) cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .hydro-nav.is-leaving-pill {
-  animation: hydro-pill-leave 0.32s cubic-bezier(0.7, 0, 0.84, 0) both;
+  animation: hydro-pill-leave var(--nav-exit-duration) cubic-bezier(0.7, 0, 0.84, 0) both;
 }
 
 .hydro-nav.is-entering-top {
-  animation: hydro-top-enter 0.44s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: hydro-top-enter var(--nav-enter-duration) cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .hydro-nav__inner {
