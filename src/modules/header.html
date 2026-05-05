@@ -3,15 +3,52 @@
   data-hydro-nav
   th:with="
     menu = ${menuFinder.getPrimary()},
-    logoSrc = ${theme.config.brand == null || #strings.isEmpty(theme.config.brand.logo) ? #theme.assets('/brand/hydro-minim-mark.svg') : theme.config.brand.logo},
-    darkLogoSrc = ${theme.config.brand == null || #strings.isEmpty(theme.config.brand.dark_logo) ? logoSrc : theme.config.brand.dark_logo},
-    logoAlt = ${theme.config.brand == null || #strings.isEmpty(theme.config.brand.logo_alt) ? '氢·简 Hydro-Minim' : theme.config.brand.logo_alt}
+    logoMode = ${theme.config.brand == null || #strings.isEmpty(theme.config.brand.logo_display) ? 'logo' : theme.config.brand.logo_display},
+    markLogoSrc = ${theme.config.brand == null || #strings.isEmpty(theme.config.brand.logo) ? #theme.assets('/brand/hydro-minim-mark.svg') : theme.config.brand.logo},
+    darkMarkLogoSrc = ${theme.config.brand == null || #strings.isEmpty(theme.config.brand.dark_logo) ? markLogoSrc : theme.config.brand.dark_logo},
+    navLogoSrc = ${theme.config.brand == null || #strings.isEmpty(theme.config.brand.nav_logo) ? #theme.assets('/brand/hydro-minim-lockup.svg') : theme.config.brand.nav_logo},
+    darkNavLogoSrc = ${theme.config.brand == null || #strings.isEmpty(theme.config.brand.dark_nav_logo) ? #theme.assets('/brand/hydro-minim-lockup-dark.svg') : theme.config.brand.dark_nav_logo},
+    logoAlt = ${theme.config.brand == null || #strings.isEmpty(theme.config.brand.logo_alt) ? site.title : theme.config.brand.logo_alt}
   "
 >
   <div class="hydro-nav__inner">
-    <a class="hydro-logo" th:href="@{/}" th:attr="aria-label=${logoAlt}">
-      <img class="hydro-logo__mark hydro-logo__mark--light" th:src="${logoSrc}" alt="" aria-hidden="true" />
-      <img class="hydro-logo__mark hydro-logo__mark--dark" th:src="${darkLogoSrc}" alt="" aria-hidden="true" />
+    <a
+      class="hydro-logo"
+      th:classappend="${logoMode == 'name'} ? ' hydro-logo--name' : ' hydro-logo--image'"
+      th:href="@{/}"
+      th:attr="aria-label=${logoAlt}"
+    >
+      <span
+        th:if="${logoMode == 'name'}"
+        class="hydro-logo__text"
+        th:text="${#strings.isEmpty(site.title) ? logoAlt : site.title}"
+      ></span>
+      <th:block th:unless="${logoMode == 'name'}">
+        <img
+          class="hydro-logo__image hydro-logo__image--lockup hydro-logo__image--light"
+          th:src="${navLogoSrc}"
+          alt=""
+          aria-hidden="true"
+        />
+        <img
+          class="hydro-logo__image hydro-logo__image--lockup hydro-logo__image--dark"
+          th:src="${darkNavLogoSrc}"
+          alt=""
+          aria-hidden="true"
+        />
+        <img
+          class="hydro-logo__image hydro-logo__image--mark hydro-logo__image--light"
+          th:src="${markLogoSrc}"
+          alt=""
+          aria-hidden="true"
+        />
+        <img
+          class="hydro-logo__image hydro-logo__image--mark hydro-logo__image--dark"
+          th:src="${darkMarkLogoSrc}"
+          alt=""
+          aria-hidden="true"
+        />
+      </th:block>
     </a>
 
     <nav class="hydro-nav__links" aria-label="Primary">

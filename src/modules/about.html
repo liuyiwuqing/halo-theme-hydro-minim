@@ -1,17 +1,20 @@
 <section id="about" class="hydro-section hydro-about" data-about-section>
   <div class="hydro-container">
     <div class="hydro-about__grid" th:with="categories = ${categoryFinder.listAsTree()}">
-      <div>
+      <div class="hydro-about__intro">
+        <span class="hydro-about__eyebrow about-text-line">About</span>
         <h2 class="hydro-about__title">
           <span class="about-text-line" th:text="${theme.config.about.title ?: '关于'}">关于</span>
           <span class="about-text-line" th:text="${theme.config.about.subtitle ?: '艺术的生活家'}">艺术的生活家</span>
         </h2>
+        <p class="hydro-about__lead about-text-line" th:text="${theme.config.about.paragraph_1}"></p>
       </div>
 
       <div class="hydro-about__content">
-        <p class="about-text-line" th:text="${theme.config.about.paragraph_1}"></p>
-        <p class="about-text-line" th:text="${theme.config.about.paragraph_2}"></p>
-        <p class="about-text-line" th:text="${theme.config.about.paragraph_3}"></p>
+        <div class="hydro-about__statement about-text-line">
+          <p th:text="${theme.config.about.paragraph_2}"></p>
+          <p th:text="${theme.config.about.paragraph_3}"></p>
+        </div>
 
         <div class="hydro-about__stats about-text-line">
           <div>

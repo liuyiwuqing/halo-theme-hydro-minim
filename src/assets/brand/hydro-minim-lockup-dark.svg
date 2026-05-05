@@ -1,0 +1,53 @@
+<svg width="520" height="160" viewBox="0 0 520 160" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">氢·简 Hydro-Minim logo</title>
+  <desc id="desc">Horizontal logo lockup for the Hydro-Minim theme in dark mode.</desc>
+  <style>
+    :root {
+      color: #f5f3ef;
+    }
+
+    .soft {
+      stroke: currentColor;
+      opacity: 0.2;
+    }
+
+    .ink {
+      stroke: currentColor;
+    }
+
+    .accent {
+      fill: #7dded6;
+    }
+
+    .cn {
+      fill: currentColor;
+      font-family: "Space Mono", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: 46px;
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+
+    .en {
+      fill: currentColor;
+      font-family: "Space Mono", "Inter", ui-monospace, monospace;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      opacity: 0.64;
+      text-transform: uppercase;
+    }
+  </style>
+  <g transform="translate(24 24)">
+    <circle class="soft" cx="56" cy="56" r="45" stroke-width="2" />
+    <path class="soft" d="M25 70C36 90 71 90 87 68" stroke-width="9" stroke-linecap="round" />
+    <path class="ink" d="M38 34V78" stroke-width="8" stroke-linecap="round" />
+    <path class="ink" d="M74 34V78" stroke-width="8" stroke-linecap="round" />
+    <path class="ink" d="M38 58C48 52 64 52 74 58" stroke-width="8" stroke-linecap="round" />
+    <path class="ink" d="M29 31C22 40 21 50 26 59" stroke-width="4" stroke-linecap="round" />
+    <circle class="accent" cx="83" cy="30" r="5" />
+    <circle class="ink" cx="83" cy="30" r="9" stroke-width="2" opacity="0.28" />
+  </g>
+  <path class="soft" d="M160 80H194" stroke-width="2" stroke-linecap="round" />
+  <text class="cn" x="218" y="75">氢·简</text>
+  <text class="en" x="220" y="108">HYDRO-MINIM</text>
+</svg>

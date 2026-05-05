@@ -7,14 +7,31 @@ spec:
     - group: brand
       label: 品牌
       formSchema:
+        - $formkit: radio
+          name: logo_display
+          label: 顶部品牌展示
+          value: logo
+          options:
+            - label: 展示 Logo
+              value: logo
+            - label: 展示站点名称
+              value: name
         - $formkit: attachment
           name: logo
-          label: 浅色模式 Logo
+          label: 方形标识（胶囊菜单）
           value: /themes/halo-theme-hydro-minim/assets/brand/hydro-minim-mark.svg
         - $formkit: attachment
           name: dark_logo
-          label: 深色模式 Logo
+          label: 深色方形标识（胶囊菜单）
           value: /themes/halo-theme-hydro-minim/assets/brand/hydro-minim-mark-dark.svg
+        - $formkit: attachment
+          name: nav_logo
+          label: 长方形 Logo（顶部菜单）
+          value: /themes/halo-theme-hydro-minim/assets/brand/hydro-minim-lockup.svg
+        - $formkit: attachment
+          name: dark_nav_logo
+          label: 深色长方形 Logo（顶部菜单）
+          value: /themes/halo-theme-hydro-minim/assets/brand/hydro-minim-lockup-dark.svg
         - $formkit: text
           name: logo_alt
           label: Logo 替代文本

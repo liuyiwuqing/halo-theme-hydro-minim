@@ -220,6 +220,7 @@ input {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  min-width: 0;
   font-size: 1.25rem;
   font-weight: 700;
   line-height: 1;
@@ -230,23 +231,70 @@ input {
   transform: scale(1.05);
 }
 
-.hydro-logo__mark {
+.hydro-logo__image {
   display: block;
-  width: 1.8rem;
-  height: 1.8rem;
   object-fit: contain;
 }
 
-.hydro-logo__mark--dark {
+.hydro-logo__image--lockup {
+  width: clamp(8.5rem, 13vw, 11.25rem);
+  height: 2.75rem;
+}
+
+.hydro-logo__image--mark {
+  display: none;
+  width: 2.35rem;
+  height: 2.35rem;
+}
+
+.hydro-logo__image--dark {
   display: none;
 }
 
-:root[data-hydro-theme="dark"] .hydro-logo__mark--light {
+:root[data-hydro-theme="dark"] .hydro-logo__image--light {
   display: none;
 }
 
-:root[data-hydro-theme="dark"] .hydro-logo__mark--dark {
+:root[data-hydro-theme="dark"] .hydro-logo__image--dark {
   display: block;
+}
+
+:root[data-hydro-theme="dark"] .hydro-logo__image--mark.hydro-logo__image--dark {
+  display: none;
+}
+
+.hydro-nav.is-scrolled .hydro-logo__image--lockup {
+  display: none;
+}
+
+.hydro-nav.is-scrolled .hydro-logo__image--mark.hydro-logo__image--light {
+  display: block;
+}
+
+:root[data-hydro-theme="dark"] .hydro-nav.is-scrolled .hydro-logo__image--mark.hydro-logo__image--light {
+  display: none;
+}
+
+:root[data-hydro-theme="dark"] .hydro-nav.is-scrolled .hydro-logo__image--mark.hydro-logo__image--dark {
+  display: block;
+}
+
+.hydro-logo__text {
+  display: block;
+  max-width: min(18rem, 32vw);
+  overflow: hidden;
+  color: rgb(var(--hydro-ink-rgb) / 88%);
+  font-size: clamp(1rem, 1.4vw, 1.35rem);
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hydro-nav.is-scrolled .hydro-logo__text {
+  max-width: 7.5rem;
+  font-size: 0.92rem;
 }
 
 .hydro-nav__links {
@@ -1019,16 +1067,67 @@ input {
   transform: translate(-50%, -50%) scale(1);
 }
 
+.hydro-about {
+  position: relative;
+  overflow: hidden;
+  border-block: 1px solid rgb(var(--hydro-ink-rgb) / 7%);
+  background:
+    linear-gradient(90deg, rgb(var(--hydro-ink-rgb) / 6%) 1px, transparent 1px) 0 0 / min(18vw, 14rem) 100%,
+    linear-gradient(180deg, rgb(var(--hydro-paper-rgb) / 42%), rgb(var(--hydro-paper-rgb) / 8%));
+}
+
+.hydro-about::before {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 12% 24%, rgb(var(--hydro-teal-rgb) / 18%), transparent 26rem),
+    linear-gradient(120deg, transparent 0 56%, rgb(var(--hydro-ink-rgb) / 3%) 56% 56.5%, transparent 56.5%);
+  content: "";
+}
+
+.hydro-about .hydro-container {
+  position: relative;
+}
+
 .hydro-about__grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(24rem, 1fr);
-  gap: clamp(4rem, 8vw, 6rem);
+  grid-template-columns: minmax(0, 0.95fr) minmax(24rem, 1.05fr);
+  gap: clamp(3rem, 7vw, 6rem);
+  align-items: start;
+}
+
+.hydro-about__intro {
+  position: sticky;
+  top: 7rem;
+  display: grid;
+  gap: clamp(1.25rem, 2vw, 2rem);
+}
+
+.hydro-about__eyebrow {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 0.75rem;
+  color: rgb(var(--hydro-ink-rgb) / 44%);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.hydro-about__eyebrow::before {
+  content: "";
+  width: 2.5rem;
+  height: 1px;
+  background: currentColor;
 }
 
 .hydro-about__title {
+  max-width: 11ch;
   margin: 0;
-  font-size: clamp(2.5rem, 6vw, 4rem);
-  line-height: 1.1;
+  font-size: clamp(3rem, 8vw, 6.75rem);
+  line-height: 0.96;
 }
 
 .hydro-about__title span {
@@ -1036,39 +1135,69 @@ input {
 }
 
 .hydro-about__title span + span {
-  color: rgb(var(--hydro-ink-rgb) / 30%);
+  margin-top: 0.14em;
+  color: transparent;
+  -webkit-text-stroke: 1px rgb(var(--hydro-ink-rgb) / 36%);
+}
+
+.hydro-about__lead {
+  max-width: 31rem;
+  margin: 0;
+  color: rgb(var(--hydro-ink-rgb) / 72%);
+  font-size: clamp(1.05rem, 1.55vw, 1.35rem);
+  line-height: 1.8;
 }
 
 .hydro-about__content {
   display: grid;
-  gap: 2rem;
+  gap: clamp(1.5rem, 3vw, 2.25rem);
+  padding-top: 0.5rem;
 }
 
+.hydro-about__statement {
+  display: grid;
+  gap: 1.25rem;
+  padding-left: clamp(1.25rem, 3vw, 2.5rem);
+  border-left: 1px solid rgb(var(--hydro-ink-rgb) / 14%);
+}
+
+.hydro-about__statement p,
 .hydro-about__content p {
   margin: 0;
-  color: rgb(var(--hydro-ink-rgb) / 70%);
-  font-size: 1.125rem;
-  line-height: 1.8;
+  color: rgb(var(--hydro-ink-rgb) / 66%);
+  font-size: clamp(1rem, 1.25vw, 1.15rem);
+  line-height: 1.9;
 }
 
 .hydro-about__stats {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 2rem;
-  padding-top: 2rem;
-  border-top: 1px solid rgb(var(--hydro-ink-rgb) / 10%);
+  gap: 0;
+  border-top: 1px solid rgb(var(--hydro-ink-rgb) / 12%);
+  border-bottom: 1px solid rgb(var(--hydro-ink-rgb) / 12%);
+}
+
+.hydro-about__stats div {
+  min-width: 0;
+  padding: clamp(1.1rem, 2.4vw, 1.65rem) clamp(0.75rem, 1.8vw, 1.25rem);
+  border-right: 1px solid rgb(var(--hydro-ink-rgb) / 10%);
+}
+
+.hydro-about__stats div:last-child {
+  border-right: 0;
 }
 
 .hydro-about__stats strong {
   display: block;
-  margin-bottom: 0.25rem;
-  font-size: 2rem;
-  line-height: 1;
+  margin-bottom: 0.45rem;
+  font-size: clamp(2rem, 4.6vw, 4rem);
+  line-height: 0.92;
+  letter-spacing: 0;
 }
 
 .hydro-about__stats span {
-  color: rgb(var(--hydro-ink-rgb) / 40%);
-  font-size: 0.875rem;
+  color: rgb(var(--hydro-ink-rgb) / 42%);
+  font-size: 0.82rem;
 }
 
 .hydro-socials {
@@ -3185,7 +3314,7 @@ html.lenis body {
 
   .hydro-logo {
     display: inline-grid;
-    min-width: 2.75rem;
+    min-width: 0;
     min-height: 2.75rem;
     place-items: center;
     border: 1px solid rgb(var(--hydro-ink-rgb) / 8%);
@@ -3195,9 +3324,9 @@ html.lenis body {
     backdrop-filter: blur(18px);
   }
 
-  .hydro-logo__mark {
-    width: 1.75rem;
-    height: 1.75rem;
+  .hydro-logo__image--lockup {
+    width: clamp(7.75rem, 34vw, 10rem);
+    height: 2.75rem;
   }
 
   .hydro-nav.is-scrolled .hydro-logo {
@@ -3207,9 +3336,22 @@ html.lenis body {
     background: transparent;
   }
 
-  .hydro-nav.is-scrolled .hydro-logo__mark {
+  .hydro-logo__image--mark,
+  .hydro-nav.is-scrolled .hydro-logo__image--mark {
     width: 1.55rem;
     height: 1.55rem;
+  }
+
+  .hydro-logo__text {
+    max-width: 9.5rem;
+    padding-inline: 0.75rem;
+    font-size: 1rem;
+  }
+
+  .hydro-nav.is-scrolled .hydro-logo__text {
+    max-width: 6rem;
+    padding-inline: 0;
+    font-size: 0.84rem;
   }
 
   .hydro-nav__actions {
@@ -3523,12 +3665,26 @@ html.lenis body {
     gap: 2rem;
   }
 
+  .hydro-about__intro {
+    position: static;
+  }
+
   .hydro-about__title {
     font-size: clamp(2.2rem, 12vw, 3.2rem);
   }
 
+  .hydro-about__lead {
+    font-size: 1rem;
+    line-height: 1.75;
+  }
+
   .hydro-about__content {
     gap: 1.35rem;
+  }
+
+  .hydro-about__statement {
+    gap: 1rem;
+    padding-left: 1rem;
   }
 
   .hydro-about__content p {
@@ -4229,9 +4385,9 @@ html.lenis body {
   }
 
   .hydro-about {
-    border-top: 1px solid rgb(var(--hydro-ink-rgb) / 6%);
-    border-bottom: 1px solid rgb(var(--hydro-ink-rgb) / 6%);
-    background: linear-gradient(180deg, rgb(var(--hydro-paper-rgb) / 18%), rgb(var(--hydro-paper-rgb) / 4%));
+    background:
+      linear-gradient(90deg, rgb(var(--hydro-ink-rgb) / 6%) 1px, transparent 1px) 0 0 / min(18vw, 14rem) 100%,
+      linear-gradient(180deg, rgb(var(--hydro-paper-rgb) / 42%), rgb(var(--hydro-paper-rgb) / 8%));
   }
 
   .hydro-about__grid {
@@ -4242,13 +4398,8 @@ html.lenis body {
     padding-top: 0.35rem;
   }
 
-  .hydro-about__stats {
-    gap: 1rem;
-  }
-
   .hydro-about__stats div {
-    padding: 1rem 0;
-    border-top: 1px solid rgb(var(--hydro-ink-rgb) / 8%);
+    padding: clamp(1.1rem, 2.4vw, 1.65rem) clamp(0.75rem, 1.8vw, 1.25rem);
   }
 
   .hydro-list-hero {
