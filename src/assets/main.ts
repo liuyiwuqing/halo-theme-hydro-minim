@@ -10,6 +10,7 @@ const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)
 const motionEnabled = document.body.dataset.enableMotion !== "false";
 const colorSchemeStorageKey = "hydro-color-scheme";
 const momentUpvoteStorageKey = "halo.upvoted.moment.names";
+const postUpvoteStorageKey = "halo.upvoted.post.names";
 type ColorSchemeMode = "auto" | "dark" | "light";
 type HydroLenis = {
   scrollTo?: (target: number) => void;
@@ -57,6 +58,28 @@ function writeJsonArray(key: string, value: string[]) {
 
 function getHydroLenis() {
   return (window as unknown as { __lenis?: HydroLenis }).__lenis;
+}
+
+function readBooleanData(value: string | undefined, fallback = true) {
+  if (value == null || value === "") {
+    return fallback;
+  }
+  return value !== "false";
+}
+
+function scrollToPosition(top: number) {
+  const safeTop = Math.max(0, top);
+  const lenis = getHydroLenis();
+  if (lenis?.scrollTo) {
+    lenis.scrollTo(safeTop);
+    return;
+  }
+  window.scrollTo({ top: safeTop, behavior: "smooth" });
+}
+
+function scrollToElement(element: HTMLElement, offset = -92) {
+  const top = window.scrollY + element.getBoundingClientRect().top + offset;
+  scrollToPosition(top);
 }
 
 function escapeHtml(value: string) {
@@ -736,6 +759,380 @@ function initFooterMarquee() {
   });
 }
 
+function initAuthorPage() {
+  const page = document.querySelector<HTMLElement>(".hydro-author-page");
+  if (!page) {
+    return;
+  }
+
+  const hero = page.querySelector<HTMLElement>("[data-hydro-author-hero]");
+  const portrait = page.querySelector<HTMLElement>("[data-hydro-author-portrait]");
+  const work = page.querySelector<HTMLElement>("[data-hydro-author-work]");
+  const rail = page.querySelector<HTMLElement>(".hydro-author-hero__rail");
+  const intro = page.querySelector<HTMLElement>(".hydro-author-hero__copy");
+  const card = page.querySelector<HTMLElement>(".hydro-author-card");
+  const pieces = Array.from(page.querySelectorAll<HTMLElement>(".hydro-author-piece"));
+
+  page.classList.add("is-author-ready");
+
+  if (!motionEnabled || prefersReducedMotion.matches) {
+    return;
+  }
+
+  const entranceTargets = [rail, intro, card].filter(Boolean);
+  gsap.fromTo(
+    entranceTargets,
+    { autoAlpha: 0, y: 28, filter: "blur(8px)" },
+    {
+      autoAlpha: 1,
+      duration: 0.8,
+      ease: "expo.out",
+      filter: "blur(0px)",
+      stagger: 0.08,
+      y: 0,
+    },
+  );
+
+  if (hero && portrait) {
+    gsap.to(portrait, {
+      ease: "none",
+      rotate: 1.4,
+      scrollTrigger: {
+        trigger: hero,
+        start: "top top",
+        end: "bottom top",
+        scrub: true,
+      },
+      yPercent: -5,
+    });
+  }
+
+  if (work && pieces.length > 0) {
+    gsap.fromTo(
+      pieces,
+      { autoAlpha: 0, x: -18 },
+      {
+        autoAlpha: 1,
+        duration: 0.72,
+        ease: "expo.out",
+        scrollTrigger: {
+          trigger: work,
+          start: "top 82%",
+          once: true,
+        },
+        stagger: 0.06,
+        x: 0,
+      },
+    );
+  }
+}
+
+function slugifyHeading(text: string, index: number) {
+  const base = text
+    .toLowerCase()
+    .trim()
+    .replace(/[^\u4e00-\u9fa5\w\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+
+  return base ? `post-${base}` : `post-section-${index + 1}`;
+}
+
+function initPostToc() {
+  const page = document.querySelector<HTMLElement>(".hydro-post-page");
+  if (!page || !readBooleanData(page.dataset.postEnableToc)) {
+    return;
+  }
+
+  const content = page.querySelector<HTMLElement>("#post-content");
+  const tocPanel = page.querySelector<HTMLElement>("[data-post-toc-panel]");
+  const tocContainer = page.querySelector<HTMLElement>("[data-post-toc]");
+  const tocState = page.querySelector<HTMLElement>("[data-post-toc-state]");
+  if (!content || !tocPanel || !tocContainer || !tocState) {
+    return;
+  }
+
+  const headings = Array.from(content.querySelectorAll<HTMLElement>("h1, h2, h3, h4")).filter((heading) => {
+    return (heading.textContent ?? "").trim().length > 0;
+  });
+
+  if (headings.length === 0) {
+    tocPanel.classList.add("is-empty");
+    tocState.textContent = "无目录";
+    return;
+  }
+
+  tocContainer.innerHTML = "";
+  tocState.textContent = `${headings.length} 节`;
+
+  const usedIds = new Set<string>();
+  const linkMap = new Map<string, HTMLAnchorElement>();
+
+  headings.forEach((heading, index) => {
+    const fallbackId = slugifyHeading(heading.textContent ?? "", index);
+    const seed = heading.id || fallbackId;
+    let resolvedId = seed;
+    let suffix = 2;
+
+    while (usedIds.has(resolvedId)) {
+      resolvedId = `${seed}-${suffix}`;
+      suffix += 1;
+    }
+
+    usedIds.add(resolvedId);
+    heading.id = resolvedId;
+
+    const link = document.createElement("a");
+    link.className = "hydro-post-toc__link";
+    link.href = `#${resolvedId}`;
+    link.dataset.depth = heading.tagName.replace("H", "");
+    link.textContent = (heading.textContent ?? "").trim();
+    link.addEventListener("click", (event) => {
+      event.preventDefault();
+      scrollToElement(heading);
+    });
+
+    tocContainer.append(link);
+    linkMap.set(resolvedId, link);
+  });
+
+  const activateLink = (id: string) => {
+    linkMap.forEach((link, key) => {
+      link.classList.toggle("is-active", key === id);
+    });
+  };
+
+  const firstId = headings[0].id;
+  if (firstId) {
+    activateLink(firstId);
+  }
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      const visible = entries
+        .filter((entry) => entry.isIntersecting)
+        .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+      const activeTarget = visible[0]?.target as HTMLElement | undefined;
+      const activeId = activeTarget?.id;
+      if (activeId) {
+        activateLink(activeId);
+      }
+    },
+    {
+      rootMargin: "-18% 0px -62% 0px",
+      threshold: [0, 1],
+    },
+  );
+
+  headings.forEach((heading) => observer.observe(heading));
+}
+
+function initPostReadingProgress() {
+  const page = document.querySelector<HTMLElement>(".hydro-post-page");
+  if (!page || !readBooleanData(page.dataset.postEnableReadingProgress)) {
+    return;
+  }
+
+  const progressBar = page.querySelector<HTMLElement>("[data-post-reading-progress]");
+  const content = page.querySelector<HTMLElement>("#post-content");
+  if (!progressBar || !content) {
+    return;
+  }
+
+  const updateProgress = () => {
+    const rect = content.getBoundingClientRect();
+    const viewportHeight = Math.max(window.innerHeight, 1);
+    const total = rect.height + viewportHeight * 0.35;
+    const passed = Math.max(0, Math.min(total, viewportHeight * 0.35 - rect.top));
+    const progress = total <= 0 ? 0 : (passed / total) * 100;
+    progressBar.style.width = `${Math.max(0, Math.min(100, progress)).toFixed(2)}%`;
+  };
+
+  updateProgress();
+  window.addEventListener("scroll", updateProgress, { passive: true });
+  window.addEventListener("resize", updateProgress);
+}
+
+function initPostShare() {
+  const page = document.querySelector<HTMLElement>(".hydro-post-page");
+  if (!page || !readBooleanData(page.dataset.postEnableShare)) {
+    return;
+  }
+
+  const shareButtons = Array.from(page.querySelectorAll<HTMLButtonElement>("[data-post-action='share']"));
+  if (shareButtons.length === 0) {
+    return;
+  }
+
+  const postTitle = (page.querySelector("h1")?.textContent ?? document.title).trim();
+  const postExcerpt = (page.querySelector(".hydro-post-hero p")?.textContent ?? "").trim();
+
+  const copyLink = async (button: HTMLButtonElement, url: string) => {
+    try {
+      await navigator.clipboard.writeText(url);
+      button.classList.add("is-copied");
+      const originalLabel = button.querySelector("strong");
+      const previous = originalLabel?.textContent;
+      if (originalLabel) {
+        originalLabel.textContent = "已复制";
+      }
+      window.setTimeout(() => {
+        button.classList.remove("is-copied");
+        if (originalLabel && previous) {
+          originalLabel.textContent = previous;
+        }
+      }, 1200);
+    } catch {
+      window.prompt("复制链接", url);
+    }
+  };
+
+  shareButtons.forEach((button) => {
+    button.addEventListener("click", async () => {
+      const url = window.location.href;
+      if (typeof navigator.share === "function") {
+        try {
+          await navigator.share({
+            title: postTitle,
+            text: postExcerpt || undefined,
+            url,
+          });
+          return;
+        } catch (error) {
+          if ((error as DOMException).name === "AbortError") {
+            return;
+          }
+        }
+      }
+      await copyLink(button, url);
+    });
+  });
+}
+
+function initPostUpvote() {
+  const page = document.querySelector<HTMLElement>(".hydro-post-page");
+  if (!page || !readBooleanData(page.dataset.postEnableUpvote)) {
+    return;
+  }
+
+  const postName = page.dataset.postName;
+  if (!postName) {
+    return;
+  }
+
+  const upvoteButtons = Array.from(page.querySelectorAll<HTMLButtonElement>("[data-post-action='upvote']"));
+  const upvoteCount = page.querySelector<HTMLElement>("[data-post-upvote-count]");
+  if (upvoteButtons.length === 0 || !upvoteCount) {
+    return;
+  }
+
+  const upvotedNames = new Set(readJsonArray(postUpvoteStorageKey));
+
+  const syncState = () => {
+    const active = upvotedNames.has(postName);
+    upvoteButtons.forEach((button) => {
+      button.classList.toggle("is-upvoted", active);
+      button.disabled = active;
+    });
+  };
+
+  syncState();
+
+  upvoteButtons.forEach((button) => {
+    button.addEventListener("click", async () => {
+      if (button.disabled || upvotedNames.has(postName)) {
+        return;
+      }
+
+      button.disabled = true;
+      try {
+        const response = await window.fetch("/apis/api.halo.run/v1alpha1/trackers/upvote", {
+          body: JSON.stringify({ group: "content.halo.run", name: postName, plural: "posts" }),
+          headers: { "Content-Type": "application/json" },
+          method: "POST",
+        });
+        if (!response.ok) {
+          throw new Error(`Post upvote failed with ${response.status}`);
+        }
+
+        upvotedNames.add(postName);
+        writeJsonArray(postUpvoteStorageKey, Array.from(upvotedNames));
+        const countValue = Number.parseInt(upvoteCount.textContent || "0", 10);
+        upvoteCount.textContent = String(Number.isNaN(countValue) ? 1 : countValue + 1);
+        syncState();
+      } catch {
+        button.disabled = false;
+        window.alert("点赞失败，请稍后再试");
+      }
+    });
+  });
+}
+
+function initPostActions() {
+  const page = document.querySelector<HTMLElement>(".hydro-post-page");
+  if (!page || !readBooleanData(page.dataset.postEnableActionRail)) {
+    return;
+  }
+
+  const topButtons = Array.from(page.querySelectorAll<HTMLButtonElement>("[data-post-action='top']"));
+  const commentButtons = Array.from(page.querySelectorAll<HTMLButtonElement>("[data-post-action='comment']"));
+  const commentSection = page.querySelector<HTMLElement>("#comment");
+
+  topButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      scrollToPosition(0);
+    });
+  });
+
+  commentButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      if (!commentSection) {
+        return;
+      }
+      scrollToElement(commentSection);
+    });
+  });
+}
+
+function initPostRelatedCards() {
+  const page = document.querySelector<HTMLElement>(".hydro-post-page");
+  if (!page) {
+    return;
+  }
+
+  const grid = page.querySelector<HTMLElement>(".hydro-post-related__grid");
+  if (!grid) {
+    return;
+  }
+
+  const limit = Number.parseInt(grid.dataset.relatedLimit || "0", 10);
+  const cards = Array.from(grid.querySelectorAll<HTMLElement>(".hydro-post-related-card"));
+  const seenPermalinks = new Set<string>();
+  let visibleCount = 0;
+
+  cards.forEach((card) => {
+    const link = card.querySelector<HTMLAnchorElement>("a");
+    const permalink = link?.getAttribute("href") || "";
+    const duplicated = permalink.length > 0 && seenPermalinks.has(permalink);
+    const overLimit = limit > 0 && visibleCount >= limit;
+
+    if (!link || duplicated || overLimit) {
+      card.remove();
+      return;
+    }
+
+    if (permalink.length > 0) {
+      seenPermalinks.add(permalink);
+    }
+    visibleCount += 1;
+  });
+
+  if (visibleCount === 0) {
+    grid.closest<HTMLElement>(".hydro-post-related")?.remove();
+  }
+}
+
 initColorScheme();
 initNavigation();
 initScrambleLinks();
@@ -747,6 +1144,13 @@ initTiltCards();
 initCategoryCursor();
 initScrollTilt();
 initFooterMarquee();
+initAuthorPage();
+initPostToc();
+initPostActions();
+initPostUpvote();
+initPostShare();
+initPostReadingProgress();
+initPostRelatedCards();
 
 function initLinkCards() {
   if (!motionEnabled) {
@@ -968,12 +1372,7 @@ function initBackToTop() {
   window.addEventListener("scroll", sync, { passive: true });
 
   btn.addEventListener("click", () => {
-    const lenis = getHydroLenis();
-    if (lenis?.scrollTo) {
-      lenis.scrollTo(0);
-    } else {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
+    scrollToPosition(0);
   });
 }
 

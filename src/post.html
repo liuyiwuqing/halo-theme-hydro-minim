@@ -3,54 +3,215 @@
     <title th:text="|${post.spec.title} - ${site.title}|">文章</title>
   </template>
 
-  <article class="hydro-content-page">
+  <article
+    class="hydro-post-page"
+    th:with="
+      postConfig=${theme.config.post},
+      enableToc=${postConfig == null or postConfig.enable_toc != false},
+      enableActionRail=${postConfig == null or postConfig.enable_action_rail != false},
+      enableUpvote=${postConfig == null or postConfig.enable_upvote != false},
+      enableShare=${postConfig == null or postConfig.enable_share != false},
+      enableReadingProgress=${postConfig == null or postConfig.enable_reading_progress != false},
+      enableRelatedPosts=${postConfig == null or postConfig.enable_related_posts != false},
+      relatedSize=${postConfig == null or postConfig.related_posts_size == null ? 3 : postConfig.related_posts_size},
+      relatedFallbackSize=${postConfig == null or postConfig.related_fallback_latest_size == null ? 8 : postConfig.related_fallback_latest_size},
+      postCursor=${postFinder.cursor(post.metadata.name)},
+      hasCategory=${not #lists.isEmpty(post.categories)},
+      primaryCategory=${hasCategory ? post.categories[0] : null},
+      relatedPool=${hasCategory ? postFinder.list({page: 1, size: relatedFallbackSize, categoryName: primaryCategory.metadata.name, sort: {'spec.publishTime,desc'}}).items : #lists.list()},
+      relatedByCategory=${relatedPool.?[metadata.name != #ctx.getVariable('post').metadata.name]},
+      relatedPrimaryCount=${#lists.size(relatedByCategory)},
+      relatedPrimaryTake=${relatedPrimaryCount > relatedSize ? relatedSize : relatedPrimaryCount},
+      relatedNeedCount=${relatedSize - relatedPrimaryTake},
+      fallbackPool=${postFinder.list({page: 1, size: relatedFallbackSize, sort: {'spec.publishTime,desc'}}).items},
+      fallbackRelated=${fallbackPool.?[metadata.name != #ctx.getVariable('post').metadata.name]}
+    "
+    th:attr="
+      data-post-name=${post.metadata.name},
+      data-post-enable-toc=${enableToc},
+      data-post-enable-action-rail=${enableActionRail},
+      data-post-enable-upvote=${enableUpvote},
+      data-post-enable-share=${enableShare},
+      data-post-enable-reading-progress=${enableReadingProgress}
+    "
+  >
     <header
-      class="hydro-content-cover"
+      class="hydro-post-hero hydro-post-hero--cover"
       th:if="${not #strings.isEmpty(post.spec.cover)}"
       th:style="|background-image: url('${post.spec.cover}')|"
     >
-      <div>
-        <span>Post</span>
+      <div class="hydro-post-hero__shade"></div>
+      <div class="hydro-post-hero__inner">
+        <p class="hydro-post-hero__eyebrow">Post</p>
         <h1 th:text="${post.spec.title}">文章标题</h1>
+        <p th:if="${not #strings.isEmpty(post.status.excerpt)}" th:text="${post.status.excerpt}">文章摘要</p>
+        <div class="hydro-post-hero__meta">
+          <time th:text="${#dates.format(post.spec.publishTime, 'yyyy.MM.dd')}">2024.01.15</time>
+          <a
+            th:if="${hasCategory}"
+            th:href="@{${primaryCategory.status.permalink}}"
+            th:text="${primaryCategory.spec.displayName}"
+          >
+            分类
+          </a>
+          <span th:text="|阅读 ${post.stats.visit ?: 0}|">阅读 0</span>
+          <span th:text="|点赞 ${post.stats.upvote ?: 0}|">点赞 0</span>
+          <span th:text="|评论 ${post.stats.comment ?: 0}|">评论 0</span>
+        </div>
       </div>
     </header>
 
-    <div class="hydro-content-shell">
-      <header class="hydro-content-header">
-        <div class="hydro-content-kicker">
+    <header class="hydro-post-hero hydro-post-hero--plain" th:if="${#strings.isEmpty(post.spec.cover)}">
+      <div class="hydro-container hydro-post-hero__plain-inner">
+        <p class="hydro-post-hero__eyebrow">Post</p>
+        <h1 th:text="${post.spec.title}">文章标题</h1>
+        <p th:if="${not #strings.isEmpty(post.status.excerpt)}" th:text="${post.status.excerpt}">文章摘要</p>
+        <div class="hydro-post-hero__meta">
           <time th:text="${#dates.format(post.spec.publishTime, 'yyyy.MM.dd')}">2024.01.15</time>
-          <span th:if="${not #lists.isEmpty(post.categories)}">
-            /
-            <a th:href="@{${post.categories[0].status.permalink}}" th:text="${post.categories[0].spec.displayName}"></a>
-          </span>
+          <a
+            th:if="${hasCategory}"
+            th:href="@{${primaryCategory.status.permalink}}"
+            th:text="${primaryCategory.spec.displayName}"
+          >
+            分类
+          </a>
+          <span th:text="|阅读 ${post.stats.visit ?: 0}|">阅读 0</span>
+          <span th:text="|点赞 ${post.stats.upvote ?: 0}|">点赞 0</span>
+          <span th:text="|评论 ${post.stats.comment ?: 0}|">评论 0</span>
         </div>
-        <h1 th:if="${#strings.isEmpty(post.spec.cover)}" th:text="${post.spec.title}">文章标题</h1>
-        <p th:text="${post.status.excerpt}">文章摘要</p>
-      </header>
-
-      <div class="hydro-prose" th:utext="${post.content.content}"></div>
-
-      <div class="hydro-content-tags" th:if="${not #lists.isEmpty(post.tags)}">
-        <a th:each="tag : ${post.tags}" th:href="@{${tag.status.permalink}}" th:text="|#${tag.spec.displayName}|"
-          >#tag</a
-        >
       </div>
+    </header>
 
-      <nav class="hydro-post-nav" th:with="cursor = ${postFinder.cursor(post.metadata.name)}">
-        <a th:if="${cursor.hasPrevious()}" th:href="@{${cursor.previous.status.permalink}}">
-          <span>上一篇</span>
-          <strong th:text="${cursor.previous.spec.title}">Previous</strong>
-        </a>
-        <a th:if="${cursor.hasNext()}" th:href="@{${cursor.next.status.permalink}}">
-          <span>下一篇</span>
-          <strong th:text="${cursor.next.spec.title}">Next</strong>
-        </a>
-      </nav>
+    <div class="hydro-container hydro-post-body">
+      <section class="hydro-post-main">
+        <article id="post-content" class="hydro-post-prose" th:utext="${post.content.content}"></article>
 
-      <section id="comment" class="hydro-comments" th:if="${haloCommentEnabled}">
-        <h2>评论</h2>
-        <halo:comment group="content.halo.run" kind="Post" th:attr="name=${post.metadata.name}" />
+        <section class="hydro-post-tags" th:if="${not #lists.isEmpty(post.tags)}">
+          <a th:each="tag : ${post.tags}" th:href="@{${tag.status.permalink}}" th:text="|#${tag.spec.displayName}|"
+            >#tag</a
+          >
+        </section>
+
+        <section class="hydro-post-author" th:if="${post.owner != null}">
+          <div class="hydro-post-author__avatar">
+            <img
+              th:if="${not #strings.isEmpty(post.owner.avatar)}"
+              th:src="${post.owner.avatar}"
+              th:alt="${post.owner.displayName ?: post.owner.name}"
+              loading="lazy"
+            />
+            <span th:if="${#strings.isEmpty(post.owner.avatar)}" th:text="${post.owner.displayName ?: post.owner.name}"
+              >A</span
+            >
+          </div>
+          <div class="hydro-post-author__body">
+            <p>作者</p>
+            <a th:href="@{${post.owner.permalink}}" th:text="${post.owner.displayName ?: post.owner.name}">作者名</a>
+            <span th:if="${not #strings.isEmpty(post.owner.bio)}" th:text="${post.owner.bio}">作者简介</span>
+            <span th:if="${#lists.size(post.contributors) > 1}" th:text="|协作 ${#lists.size(post.contributors)} 人|">
+              协作 1 人
+            </span>
+          </div>
+        </section>
+
+        <nav class="hydro-post-neighbors">
+          <a th:if="${postCursor.hasPrevious()}" th:href="@{${postCursor.previous.status.permalink}}">
+            <span>上一篇</span>
+            <strong th:text="${postCursor.previous.spec.title}">Previous</strong>
+          </a>
+          <a th:if="${postCursor.hasNext()}" th:href="@{${postCursor.next.status.permalink}}">
+            <span>下一篇</span>
+            <strong th:text="${postCursor.next.spec.title}">Next</strong>
+          </a>
+        </nav>
+
+        <section class="hydro-post-related" th:if="${enableRelatedPosts}">
+          <header class="hydro-post-related__head">
+            <h2>继续阅读</h2>
+            <a th:href="@{/archives}">全部归档</a>
+          </header>
+          <div class="hydro-post-related__grid" th:attr="data-related-limit=${relatedSize}">
+            <article
+              class="hydro-post-related-card"
+              th:each="item,stat : ${relatedByCategory}"
+              th:if="${stat.index < relatedPrimaryTake}"
+              th:with="
+                fallbackCover=${stat.index % 3 == 0 ? theme.config.assets.article_cover_1 : (stat.index % 3 == 1 ? theme.config.assets.article_cover_2 : theme.config.assets.article_cover_3)},
+                cover=${#strings.isEmpty(item.spec.cover) ? fallbackCover : item.spec.cover}
+              "
+            >
+              <a th:href="@{${item.status.permalink}}">
+                <img th:src="${cover}" th:alt="${item.spec.title}" loading="lazy" />
+                <div>
+                  <time th:text="${#dates.format(item.spec.publishTime, 'yyyy.MM.dd')}">2024.01.15</time>
+                  <strong th:text="${item.spec.title}">文章标题</strong>
+                  <p th:text="${item.status.excerpt}">文章摘要</p>
+                </div>
+              </a>
+            </article>
+
+            <article
+              class="hydro-post-related-card"
+              th:each="item,stat : ${fallbackRelated}"
+              th:if="${relatedNeedCount > 0 and stat.index < relatedNeedCount}"
+              th:with="
+                fallbackCover=${stat.index % 3 == 0 ? theme.config.assets.article_cover_1 : (stat.index % 3 == 1 ? theme.config.assets.article_cover_2 : theme.config.assets.article_cover_3)},
+                cover=${#strings.isEmpty(item.spec.cover) ? fallbackCover : item.spec.cover}
+              "
+            >
+              <a th:href="@{${item.status.permalink}}">
+                <img th:src="${cover}" th:alt="${item.spec.title}" loading="lazy" />
+                <div>
+                  <time th:text="${#dates.format(item.spec.publishTime, 'yyyy.MM.dd')}">2024.01.15</time>
+                  <strong th:text="${item.spec.title}">文章标题</strong>
+                  <p th:text="${item.status.excerpt}">文章摘要</p>
+                </div>
+              </a>
+            </article>
+          </div>
+        </section>
+
+        <section id="comment" class="hydro-post-comments" th:if="${haloCommentEnabled}">
+          <h2>评论</h2>
+          <halo:comment group="content.halo.run" kind="Post" th:attr="name=${post.metadata.name}" />
+        </section>
       </section>
+
+      <aside class="hydro-post-aside" th:if="${enableToc or enableActionRail or enableReadingProgress}">
+        <section class="hydro-post-panel hydro-post-panel--progress" th:if="${enableReadingProgress}">
+          <p>阅读进度</p>
+          <div class="hydro-post-progress">
+            <span data-post-reading-progress style="width: 0%"></span>
+          </div>
+        </section>
+
+        <section class="hydro-post-panel hydro-post-panel--toc" data-post-toc-panel th:if="${enableToc}">
+          <div class="hydro-post-panel__head">
+            <h2>目录</h2>
+            <span data-post-toc-state>加载中</span>
+          </div>
+          <nav class="hydro-post-toc" data-post-toc></nav>
+        </section>
+
+        <section class="hydro-post-panel hydro-post-panel--actions" th:if="${enableActionRail}">
+          <button type="button" class="hydro-post-action" data-post-action="comment" th:if="${haloCommentEnabled}">
+            <span>评论</span>
+            <strong th:text="${post.stats.comment ?: 0}">0</strong>
+          </button>
+          <button type="button" class="hydro-post-action" data-post-action="upvote" th:if="${enableUpvote}">
+            <span>点赞</span>
+            <strong data-post-upvote-count th:text="${post.stats.upvote ?: 0}">0</strong>
+          </button>
+          <button type="button" class="hydro-post-action" data-post-action="share" th:if="${enableShare}">
+            <span>分享</span>
+            <strong>Link</strong>
+          </button>
+          <button type="button" class="hydro-post-action" data-post-action="top">
+            <span>回到顶部</span>
+            <strong>↑</strong>
+          </button>
+        </section>
+      </aside>
     </div>
   </article>
 </include>

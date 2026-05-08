@@ -110,6 +110,49 @@ spec:
           name: cover
           label: 首屏封面
           value: /themes/halo-theme-hydro-minim/assets/images/hero-featured.jpg
+    - group: post
+      label: 文章页
+      formSchema:
+        - $formkit: checkbox
+          name: enable_toc
+          label: 启用目录
+          value: true
+        - $formkit: checkbox
+          name: enable_action_rail
+          label: 启用右侧操作栏
+          value: true
+        - $formkit: checkbox
+          name: enable_upvote
+          label: 启用点赞按钮
+          value: true
+        - $formkit: checkbox
+          name: enable_share
+          label: 启用分享按钮
+          value: true
+        - $formkit: checkbox
+          name: enable_reading_progress
+          label: 启用阅读进度
+          value: true
+        - $formkit: checkbox
+          name: enable_related_posts
+          label: 启用继续阅读
+          value: true
+        - $formkit: number
+          if: $get(enable_related_posts).value === true
+          name: related_posts_size
+          label: 继续阅读展示数量
+          value: 3
+          min: 1
+          max: 6
+          step: 1
+        - $formkit: number
+          if: $get(enable_related_posts).value === true
+          name: related_fallback_latest_size
+          label: 继续阅读回退池数量
+          value: 8
+          min: 3
+          max: 20
+          step: 1
     - group: about
       label: 关于
       formSchema:
