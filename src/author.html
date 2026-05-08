@@ -3,17 +3,82 @@
     <title th:text="|${author.spec.displayName} - ${site.title}|">作者</title>
   </template>
 
-  <th:block
-    th:with="eyebrow='Author', title=${author.spec.displayName}, description=${author.spec.bio}"
-    th:replace="~{modules/list-hero}"
-  />
-
-  <section class="hydro-list-section">
+  <section class="hydro-author-page">
     <div class="hydro-container">
-      <div class="hydro-list-grid" th:if="${posts.total gt 0}">
-        <th:block th:each="post,stat : ${posts.items}">
-          <th:block th:replace="~{modules/post-card :: post-card(${post},${stat.index})}" />
-        </th:block>
+      <header class="hydro-author-hero">
+        <div class="hydro-author-hero__copy">
+          <p>Hydro-Minim / Author</p>
+          <h1 th:text="${author.spec.displayName}">作者名</h1>
+          <span th:if="${not #strings.isEmpty(author.spec.bio)}" th:text="${author.spec.bio}">个人简介</span>
+        </div>
+        <dl class="hydro-author-hero__meta">
+          <div>
+            <dt>Articles</dt>
+            <dd th:text="${posts.total}">0</dd>
+          </div>
+          <div>
+            <dt>Since</dt>
+            <dd th:text="${#dates.format(author.metadata.creationTimestamp, 'yyyy')}">2024</dd>
+          </div>
+        </dl>
+      </header>
+
+      <div class="hydro-author-profile">
+        <div class="hydro-author-profile__avatar">
+          <img
+            th:if="${not #strings.isEmpty(author.spec.avatar)}"
+            th:src="${author.spec.avatar}"
+            th:alt="${author.spec.displayName}"
+            loading="lazy"
+          />
+          <span
+            th:if="${#strings.isEmpty(author.spec.avatar)}"
+            th:text="${#strings.substring(author.spec.displayName, 0, 1)}"
+            >A</span
+          >
+        </div>
+        <div class="hydro-author-profile__info">
+          <a
+            th:href="@{${author.status.permalink}}"
+            class="hydro-author-profile__name"
+            th:text="${author.spec.displayName}"
+            >作者名</a
+          >
+          <p th:if="${not #strings.isEmpty(author.spec.bio)}" th:text="${author.spec.bio}">个人简介</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="hydro-author-articles">
+    <div class="hydro-container">
+      <div class="hydro-author-articles__head">
+        <h2>文章</h2>
+        <span th:text="|共 ${posts.total} 篇|">共 0 篇</span>
+      </div>
+      <div class="hydro-author-articles__list" th:if="${posts.total gt 0}">
+        <a
+          th:each="post,stat : ${posts.items}"
+          th:href="@{${post.status.permalink}}"
+          th:style="|--article-order: ${stat.index};|"
+          class="hydro-author-article-row"
+        >
+          <span class="hydro-author-article-row__index" th:text="${#numbers.formatInteger(stat.count, 2)}">01</span>
+          <span class="hydro-author-article-row__date">
+            <time th:text="${#dates.format(post.spec.publishTime, 'yyyy.MM.dd')}">2024.01.15</time>
+          </span>
+          <span class="hydro-author-article-row__body">
+            <strong th:text="${post.spec.title}">文章标题</strong>
+            <em th:if="${not #lists.isEmpty(post.categories)}" th:text="${post.categories[0].spec.displayName}"
+              >分类</em
+            >
+          </span>
+          <span class="hydro-author-article-row__arrow" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M7 17 17 7M9 7h8v8"></path>
+            </svg>
+          </span>
+        </a>
       </div>
       <div th:if="${posts.total == 0}" class="hydro-empty">这位作者还没有文章。</div>
       <th:block
