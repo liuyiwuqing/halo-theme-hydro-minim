@@ -3,7 +3,15 @@
   class="hydro-pagination"
   th:if="${hasPrevious || hasNext}"
 >
-  <a th:if="${hasPrevious}" th:href="@{${prevUrl}}">上一页</a>
+  <a
+    th:if="${hasPrevious}"
+    th:href="@{${prevUrl}}"
+    th:text="${theme.config.navigation?.pagination_previous_label ?: '上一页'}"
+  >
+    上一页
+  </a>
   <span th:text="|${page} / ${totalPages}|">1 / 1</span>
-  <a th:if="${hasNext}" th:href="@{${nextUrl}}">下一页</a>
+  <a th:if="${hasNext}" th:href="@{${nextUrl}}" th:text="${theme.config.navigation?.pagination_next_label ?: '下一页'}">
+    下一页
+  </a>
 </nav>

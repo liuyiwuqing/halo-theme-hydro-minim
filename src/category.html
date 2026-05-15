@@ -4,7 +4,7 @@
   </template>
 
   <th:block
-    th:with="eyebrow='Category', title=${category.spec.displayName}, description=${category.spec.description}"
+    th:with="eyebrow=${theme.config.taxonomy?.category_detail_eyebrow ?: 'Category'}, title=${category.spec.displayName}, description=${category.spec.description ?: (theme.config.taxonomy?.category_detail_fallback_description ?: '这个分类下的文章都会在这里汇集。')}"
     th:replace="~{modules/list-hero}"
   />
 
@@ -15,7 +15,13 @@
           <th:block th:replace="~{modules/post-card :: post-card(${post},${stat.index})}" />
         </th:block>
       </div>
-      <div th:if="${posts.total == 0}" class="hydro-empty">这个分类下还没有文章。</div>
+      <div
+        th:if="${posts.total == 0}"
+        class="hydro-empty"
+        th:text="${theme.config.taxonomy?.category_detail_empty_text ?: '这个分类下还没有文章。'}"
+      >
+        这个分类下还没有文章。
+      </div>
       <th:block
         th:replace="~{modules/pagination :: pagination(${posts.prevUrl},${posts.nextUrl},${posts.totalPages},${posts.page},${posts.hasPrevious()},${posts.hasNext()})}"
       />

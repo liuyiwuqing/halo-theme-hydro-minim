@@ -1,0 +1,165 @@
+<include src="layout.html">
+  <template name="head">
+    <title th:text="|${theme.config.equipment?.title ?: '我的装备'} - ${site.title}|">我的装备</title>
+  </template>
+
+  <section class="hydro-list-hero">
+    <div class="hydro-container">
+      <p th:text="${theme.config.equipment?.eyebrow ?: 'Equipment'}">Equipment</p>
+      <h1 th:text="${theme.config.equipment?.title ?: '我的装备'}">我的装备</h1>
+      <span th:text="${theme.config.equipment?.description ?: '记录日常使用的硬件、软件与创作工具。'}"
+        >记录日常使用的硬件、软件与创作工具。</span
+      >
+    </div>
+  </section>
+
+  <section
+    class="hydro-plugin-page hydro-equipment-page"
+    data-hydro-filter-root
+    th:with="
+      hasEquipmentPlugin=${pluginFinder.available('equipment') or pluginFinder.available('plugin-equipment') or pluginFinder.available('PluginEquipment') or pluginFinder.available('PluginEquipments')},
+      equipmentGroups=${groups != null ? groups : (hasEquipmentPlugin and equipmentFinder != null ? equipmentFinder.groupBy() : null)},
+      hasEquipmentData=${equipmentGroups != null and not #lists.isEmpty(equipmentGroups)}"
+  >
+    <div class="hydro-container">
+      <div class="hydro-plugin-notice" th:if="${not hasEquipmentPlugin}">
+        <strong th:text="${theme.config.equipment?.install_title ?: '需要安装装备插件'}">需要安装装备插件</strong>
+        <span
+          class="hydro-plugin-notice__body"
+          th:text="${theme.config.equipment?.install_text ?: '需要安装并启用 plugin-equipment。在 Halo Console -> 应用市场搜索“装备管理”，添加装备分组后这里会自动展示。'}"
+          >需要安装并启用 plugin-equipment。在 Halo Console ->
+          应用市场搜索“装备管理”，添加装备分组后这里会自动展示。</span
+        >
+        <a
+          class="hydro-plugin-install-link"
+          th:href="${theme.config.equipment?.install_link ?: 'https://www.halo.run/store/apps/app-ytygyqml'}"
+          target="_blank"
+          rel="noreferrer noopener"
+          th:text="${theme.config.equipment?.install_link_label ?: '应用市场'}"
+          >应用市场</a
+        >
+      </div>
+
+      <nav class="hydro-plugin-tabs" th:if="${hasEquipmentData}" aria-label="装备分组">
+        <button
+          class="is-active"
+          type="button"
+          data-hydro-plugin-filter="all"
+          th:text="${theme.config.equipment?.all_group_label ?: '全部'}"
+        >
+          全部
+        </button>
+        <button
+          th:each="group : ${equipmentGroups}"
+          type="button"
+          th:attr="data-hydro-plugin-filter=${group.metadata.name}"
+          th:text="${group.spec.displayName}"
+        >
+          分组
+        </button>
+      </nav>
+
+      <div th:if="${hasEquipmentData}" class="hydro-plugin-stack">
+        <section
+          class="hydro-plugin-group"
+          th:each="group,groupStat : ${equipmentGroups}"
+          th:attr="data-hydro-filter-group=${group.metadata.name}"
+        >
+          <div class="hydro-plugin-group__header">
+            <span th:text="${#numbers.formatInteger(groupStat.index + 1, 2)}">01</span>
+            <div>
+              <h2 th:text="${group.spec.displayName}">分组名称</h2>
+              <p th:if="${not #strings.isEmpty(group.spec.description)}" th:text="${group.spec.description}">
+                分组描述
+              </p>
+            </div>
+          </div>
+
+          <div
+            class="hydro-equipment-grid"
+            th:if="${group.equipments != null and not #lists.isEmpty(group.equipments)}"
+          >
+            <a
+              class="hydro-equipment-card"
+              th:each="equipment,equipmentStat : ${group.equipments}"
+              th:href="${#strings.isEmpty(equipment.spec.url) ? '#' : equipment.spec.url}"
+              th:target="${#strings.isEmpty(equipment.spec.url) ? '_self' : '_blank'}"
+              rel="noreferrer noopener"
+            >
+              <span class="hydro-equipment-card__index" th:text="${#numbers.formatInteger(equipmentStat.index + 1, 2)}"
+                >01</span
+              >
+              <div class="hydro-equipment-card__media">
+                <img
+                  th:if="${not #strings.isEmpty(equipment.spec.cover)}"
+                  th:src="${equipment.spec.cover}"
+                  th:alt="${equipment.spec.displayName}"
+                  loading="lazy"
+                />
+                <div th:if="${#strings.isEmpty(equipment.spec.cover)}" class="hydro-plugin-placeholder">
+                  <span th:text="${theme.config.equipment?.placeholder_label ?: 'Hydro Gear'}">Hydro Gear</span>
+                </div>
+              </div>
+              <div class="hydro-equipment-card__body">
+                <strong th:text="${equipment.spec.displayName}">装备名称</strong>
+                <p
+                  th:text="${equipment.spec.description ?: (theme.config.equipment?.fallback_description ?: '暂无描述。')}"
+                >
+                  暂无描述。
+                </p>
+              </div>
+            </a>
+          </div>
+
+          <div
+            th:if="${group.equipments == null or #lists.isEmpty(group.equipments)}"
+            class="hydro-plugin-empty hydro-plugin-empty--small"
+            th:text="${theme.config.equipment?.group_empty_text ?: '该分组暂无装备。可在 plugin-equipment 中补充条目。'}"
+          >
+            该分组暂无装备。可在 plugin-equipment 中补充条目。
+          </div>
+        </section>
+      </div>
+
+      <div
+        th:if="${not hasEquipmentPlugin and not hasEquipmentData}"
+        class="hydro-plugin-empty hydro-plugin-empty--install"
+      >
+        <span th:text="${theme.config.equipment?.eyebrow ?: 'Equipment'}">Equipment</span>
+        <strong th:text="${theme.config.equipment?.install_title ?: '需要安装装备插件'}">需要安装装备插件</strong>
+        <p
+          th:text="${theme.config.equipment?.install_text ?: '请安装 plugin-equipment，路径：Halo Console -> 应用市场 -> 搜索“装备管理”。'}"
+        >
+          请安装 plugin-equipment，路径：Halo Console -> 应用市场 -> 搜索“装备管理”。
+        </p>
+        <a
+          class="hydro-plugin-install-link"
+          th:href="${theme.config.equipment?.install_link ?: 'https://www.halo.run/store/apps/app-ytygyqml'}"
+          target="_blank"
+          rel="noreferrer noopener"
+          th:text="${theme.config.equipment?.install_link_label ?: '查看插件'}"
+          >查看插件</a
+        >
+      </div>
+
+      <div th:if="${hasEquipmentPlugin and not hasEquipmentData}" class="hydro-plugin-empty">
+        <span th:text="${theme.config.equipment?.eyebrow ?: 'Equipment'}">Equipment</span>
+        <strong th:text="${theme.config.equipment?.empty_text ?: '暂无装备数据'}">暂无装备数据</strong>
+        <p
+          th:text="${theme.config.equipment?.empty_available_text ?: 'plugin-equipment 已可用。创建分组并添加硬件、软件或创作工具后，这里会呈现清单。'}"
+        >
+          plugin-equipment 已可用。创建分组并添加硬件、软件或创作工具后，这里会呈现清单。
+        </p>
+      </div>
+
+      <section
+        id="comment"
+        class="hydro-plugin-comments"
+        th:if="${(theme.config.equipment == null or theme.config.equipment.enable_comment != false) and haloCommentEnabled and singlePage != null}"
+      >
+        <h2 th:text="${theme.config.equipment?.comments_title ?: '留言'}">留言</h2>
+        <halo:comment group="content.halo.run" kind="SinglePage" th:attr="name=${singlePage.metadata.name}" />
+      </section>
+    </div>
+  </section>
+</include>

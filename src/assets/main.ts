@@ -8,6 +8,13 @@ gsap.registerPlugin(ScrollTrigger);
 
 const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 const motionEnabled = document.body.dataset.enableMotion !== "false";
+const themeTransitionEnabled = document.body.dataset.themeTransition !== "false";
+const heroMotionEnabled = document.body.dataset.enableHeroMotion !== "false";
+const cardHoverEnabled = document.body.dataset.enableCardHover !== "false";
+const scrollTiltEnabled = document.body.dataset.enableScrollTilt !== "false";
+const textScrambleEnabled = document.body.dataset.enableTextScramble !== "false";
+const lightboxEnabled = document.body.dataset.enableLightbox !== "false";
+const smoothScrollEnabled = document.body.dataset.smoothScroll !== "false";
 const colorSchemeStorageKey = "hydro-color-scheme";
 const momentUpvoteStorageKey = "halo.upvoted.moment.names";
 const postUpvoteStorageKey = "halo.upvoted.post.names";
@@ -42,6 +49,39 @@ type LinksSubmitApi = {
   sendVerifyCode?: (email: string) => Promise<LinkSubmitResult>;
   getLinkDetail?: (url: string) => Promise<LinkSubmitResult<Record<string, string>>>;
   getCaptchaUrl?: () => string;
+};
+type SteamProfile = {
+  playing?: boolean;
+  statusText?: string;
+  steamLevel?: number;
+  summary?: {
+    avatarfull?: string;
+    gameid?: string;
+    personaname?: string;
+    personastate?: number;
+  };
+};
+type SteamStats = {
+  recentPlaytimeMinutes?: number;
+  totalGames?: number;
+  totalPlaytimeMinutes?: number;
+};
+type SteamBadges = {
+  playerLevel?: number;
+};
+type SteamGame = {
+  appId?: number | string;
+  appid?: number | string;
+  headerImageUrl?: string;
+  lastPlayedFormatted?: string;
+  name?: string;
+  playtime2WeeksFormatted?: string;
+  playtimeFormatted?: string;
+};
+type SteamGamesResult = {
+  items?: SteamGame[];
+  page?: number;
+  totalPages?: number;
 };
 
 declare global {
@@ -99,6 +139,78 @@ function readBooleanData(value: string | undefined, fallback = true) {
   return value !== "false";
 }
 
+function readPageLabel(element: HTMLElement | null, key: string, fallback: string) {
+  return element?.dataset[key] || document.body.dataset[key] || fallback;
+}
+
+function readNumberData(value: string | undefined, fallback: number) {
+  if (value == null || value.trim() === "") {
+    return fallback;
+  }
+  const parsed = Number.parseFloat(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function cssColorToRgb(value: string) {
+  const color = value.trim();
+  const shortHexMatch = /^#([\da-f])([\da-f])([\da-f])$/i.exec(color);
+  if (shortHexMatch) {
+    return shortHexMatch
+      .slice(1)
+      .map((part) => Number.parseInt(part + part, 16))
+      .join(" ");
+  }
+
+  const hexMatch = /^#([\da-f]{2})([\da-f]{2})([\da-f]{2})$/i.exec(color);
+  if (hexMatch) {
+    return hexMatch
+      .slice(1)
+      .map((part) => Number.parseInt(part, 16))
+      .join(" ");
+  }
+
+  const rgbMatch = /^rgba?\(\s*([\d.]+)(?:\s+|,\s*)([\d.]+)(?:\s+|,\s*)([\d.]+)/i.exec(color);
+  if (rgbMatch) {
+    return rgbMatch
+      .slice(1, 4)
+      .map((part) => Math.max(0, Math.min(255, Math.round(Number.parseFloat(part)))))
+      .join(" ");
+  }
+
+  return "";
+}
+
+function initAppearanceState() {
+  const root = document.documentElement;
+  const rootStyles = window.getComputedStyle(root);
+  const lightAccent =
+    rootStyles.getPropertyValue("--hydro-coral-light").trim() ||
+    rootStyles.getPropertyValue("--hydro-coral").trim() ||
+    "#ff6b6b";
+  const darkAccent = rootStyles.getPropertyValue("--hydro-coral-dark").trim() || lightAccent || "#ff8a8a";
+  const lightRgb = cssColorToRgb(lightAccent);
+  const darkRgb = cssColorToRgb(darkAccent);
+
+  root.dataset.hydroSmoothScroll = smoothScrollEnabled ? "true" : "false";
+  root.dataset.hydroMotion = motionEnabled ? "on" : "off";
+  root.dataset.hydroThemeTransition = themeTransitionEnabled ? "true" : "false";
+  root.dataset.hydroHeroMotion = heroMotionEnabled ? "true" : "false";
+  root.dataset.hydroCardHover = cardHoverEnabled ? "true" : "false";
+  root.dataset.hydroScrollTilt = scrollTiltEnabled ? "true" : "false";
+  root.dataset.hydroTextScramble = textScrambleEnabled ? "true" : "false";
+  root.dataset.hydroLightbox = lightboxEnabled ? "true" : "false";
+
+  root.style.setProperty("--hydro-coral-light", lightAccent);
+  root.style.setProperty("--hydro-coral-dark", darkAccent);
+  if (lightRgb) {
+    root.style.setProperty("--hydro-coral-light-rgb", lightRgb);
+    root.style.setProperty("--hydro-coral-rgb", lightRgb);
+  }
+  if (darkRgb) {
+    root.style.setProperty("--hydro-coral-dark-rgb", darkRgb);
+  }
+}
+
 function scrollToPosition(top: number) {
   const safeTop = Math.max(0, top);
   const lenis = getHydroLenis();
@@ -106,7 +218,7 @@ function scrollToPosition(top: number) {
     lenis.scrollTo(safeTop);
     return;
   }
-  window.scrollTo({ top: safeTop, behavior: "smooth" });
+  window.scrollTo({ top: safeTop, behavior: smoothScrollEnabled && motionEnabled ? "smooth" : "auto" });
 }
 
 function scrollToElement(element: HTMLElement, offset = -92) {
@@ -123,8 +235,19 @@ function escapeHtml(value: string) {
     .replace(/'/g, "&#039;");
 }
 
+function formatHours(minutes: number | undefined) {
+  const safeMinutes = typeof minutes === "number" && Number.isFinite(minutes) ? minutes : 0;
+  return `${(safeMinutes / 60).toFixed(1)}h`;
+}
+
+function createSteamFallbackImage(label = "Hydro") {
+  return `data:image/svg+xml,${encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 215"><rect width="460" height="215" fill="#f3f3f3"/><path d="M0 214h460" stroke="#111" stroke-opacity=".18"/><text x="28" y="118" fill="#111" fill-opacity=".58" font-family="monospace" font-size="24">${escapeHtml(label)}</text></svg>`,
+  )}`;
+}
+
 function initLenis() {
-  if (!motionEnabled || document.body.dataset.smoothScroll === "false") {
+  if (!motionEnabled || !smoothScrollEnabled) {
     return;
   }
 
@@ -147,6 +270,11 @@ function initLenis() {
 function initColorScheme() {
   const root = document.documentElement;
   const toggles = document.querySelectorAll<HTMLButtonElement>("[data-hydro-theme-toggle]");
+  if (document.body.dataset.allowColorSwitch === "false") {
+    toggles.forEach((toggle) => {
+      toggle.hidden = true;
+    });
+  }
   const configuredMode = root.dataset.themeDefault ?? null;
   const defaultMode: ColorSchemeMode = isColorSchemeMode(configuredMode) ? configuredMode : "auto";
   const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
@@ -174,9 +302,25 @@ function initColorScheme() {
     root.classList.toggle("color-scheme-light", mode === "light");
     root.classList.toggle("color-scheme-auto", mode === "auto");
     root.style.colorScheme = resolvedMode;
+    const styles = window.getComputedStyle(root);
+    const activeAccent =
+      styles.getPropertyValue(resolvedMode === "dark" ? "--hydro-coral-dark" : "--hydro-coral-light").trim() ||
+      styles.getPropertyValue("--hydro-coral").trim();
+    const activeAccentRgb =
+      styles.getPropertyValue(resolvedMode === "dark" ? "--hydro-coral-dark-rgb" : "--hydro-coral-light-rgb").trim() ||
+      cssColorToRgb(activeAccent);
+    if (activeAccent) {
+      root.style.setProperty("--hydro-coral", activeAccent);
+    }
+    if (activeAccentRgb) {
+      root.style.setProperty("--hydro-coral-rgb", activeAccentRgb);
+    }
 
     toggles.forEach((toggle) => {
-      const nextLabel = resolvedMode === "dark" ? "切换为浅色模式" : "切换为深色模式";
+      const nextLabel =
+        resolvedMode === "dark"
+          ? document.body.dataset.themeToLightLabel || "切换为浅色模式"
+          : document.body.dataset.themeToDarkLabel || "切换为深色模式";
       toggle.setAttribute("aria-label", nextLabel);
       toggle.setAttribute("title", nextLabel);
       toggle.setAttribute("aria-pressed", String(resolvedMode === "dark"));
@@ -222,7 +366,7 @@ function initColorScheme() {
     if (isTransitioning) {
       return;
     }
-    if (!motionEnabled || (!forceAnimation && reduceMotion.matches)) {
+    if (!motionEnabled || !themeTransitionEnabled || (!forceAnimation && reduceMotion.matches)) {
       applyMode(mode);
       return;
     }
@@ -259,6 +403,7 @@ function initNavigation() {
   const searchPanel = document.querySelector<HTMLElement>("[data-hydro-search-panel]");
   const mobileToggle = document.querySelector<HTMLButtonElement>("[data-hydro-mobile-toggle]");
   const mobileMenu = document.querySelector<HTMLElement>("[data-hydro-mobile-menu]");
+  const animateNav = motionEnabled && !prefersReducedMotion.matches;
   let navMode: "top" | "pill" = window.scrollY > 100 ? "pill" : "top";
   let navTimers: number[] = [];
   let lastScrollY = window.scrollY;
@@ -291,7 +436,13 @@ function initNavigation() {
     const deltaTime = currentTime - lastTime;
     const deltaY = Math.abs(currentScrollY - lastScrollY);
 
-    if (deltaTime > 0) {
+    if (deltaTime > 50) {
+      // 重置以前的滚动速度，避免携带旧的快速/慢速状态
+      scrollVelocity = 0;
+      // 假设第一次滚动的标准帧为 16ms
+      const instantVelocity = deltaY / 16;
+      scrollVelocity = instantVelocity * 0.4;
+    } else if (deltaTime > 0) {
       // 像素/毫秒，然后平滑处理
       const instantVelocity = deltaY / deltaTime;
       scrollVelocity = scrollVelocity * 0.6 + instantVelocity * 0.4;
@@ -308,31 +459,27 @@ function initNavigation() {
 
     const shouldBePill = window.scrollY > 100;
 
-    // 速度越快，倍数越小；速度越慢，倍数越大
-    // scrollVelocity: 0 px/ms (很慢) → 倍数 5.0
-    // scrollVelocity: 2.5 px/ms (快) → 倍数 0.2
-    const speedMultiplier = Math.max(0.2, Math.min(5.0, 5.0 - scrollVelocity * 1.92));
+    const speedMultiplier = Math.max(0.75, Math.min(1.1, 1.1 - scrollVelocity * 0.16));
 
     if (shouldBePill && navMode !== "pill") {
       clearNavTimers();
       resetNavTransitionClasses();
       navMode = "pill";
+      nav.classList.add("is-scrolled");
 
-      const exitDuration = Math.round(70 * speedMultiplier);
+      if (!animateNav) {
+        return;
+      }
+
       const enterDuration = Math.round(600 * speedMultiplier);
 
-      nav.style.setProperty("--nav-exit-duration", `${exitDuration}ms`);
       nav.style.setProperty("--nav-enter-duration", `${enterDuration}ms`);
 
-      nav.classList.add("is-nav-transitioning", "is-exiting-top");
+      nav.classList.add("is-nav-transitioning", "is-entering-pill");
       navTimers.push(
         window.setTimeout(() => {
-          nav.classList.remove("is-exiting-top");
-          nav.classList.add("is-scrolled", "is-entering-pill");
-        }, exitDuration),
-        window.setTimeout(() => {
           nav.classList.remove("is-entering-pill", "is-nav-transitioning");
-        }, exitDuration + enterDuration),
+        }, enterDuration),
       );
       return;
     }
@@ -341,22 +488,21 @@ function initNavigation() {
       clearNavTimers();
       resetNavTransitionClasses();
       navMode = "top";
+      nav.classList.remove("is-scrolled");
 
-      const exitDuration = Math.round(160 * speedMultiplier);
+      if (!animateNav) {
+        return;
+      }
+
       const enterDuration = Math.round(100 * speedMultiplier);
 
-      nav.style.setProperty("--nav-exit-duration", `${exitDuration}ms`);
       nav.style.setProperty("--nav-enter-duration", `${enterDuration}ms`);
 
-      nav.classList.add("is-nav-transitioning", "is-leaving-pill");
+      nav.classList.add("is-nav-transitioning", "is-entering-top");
       navTimers.push(
         window.setTimeout(() => {
-          nav.classList.remove("is-scrolled", "is-leaving-pill");
-          nav.classList.add("is-entering-top");
-        }, exitDuration),
-        window.setTimeout(() => {
           nav.classList.remove("is-entering-top", "is-nav-transitioning");
-        }, exitDuration + enterDuration),
+        }, enterDuration),
       );
     }
   };
@@ -383,6 +529,42 @@ function initNavigation() {
     mobileToggle.classList.toggle("is-open");
     mobileMenu?.classList.toggle("is-open");
     document.body.classList.toggle("hydro-menu-lock", mobileMenu?.classList.contains("is-open"));
+  });
+
+  const firstMobileBranch = mobileMenu?.querySelector<HTMLElement>(
+    ".hydro-mobile-menu__tree > .hydro-mobile-menu__item--branch",
+  );
+  firstMobileBranch?.classList.add("is-expanded");
+  firstMobileBranch
+    ?.querySelector<HTMLButtonElement>(":scope > .hydro-mobile-menu__row [data-hydro-mobile-submenu-toggle]")
+    ?.setAttribute("aria-expanded", "true");
+
+  const currentUrl = new URL(window.location.href);
+  const currentMobileLink = Array.from(
+    mobileMenu?.querySelectorAll<HTMLAnchorElement>(".hydro-mobile-menu__link") ?? [],
+  ).find((link) => {
+    try {
+      const linkUrl = new URL(link.href, window.location.origin);
+      return linkUrl.pathname === currentUrl.pathname && linkUrl.search === currentUrl.search;
+    } catch {
+      return false;
+    }
+  });
+  currentMobileLink?.closest<HTMLElement>(".hydro-mobile-menu__item")?.classList.add("is-current");
+  currentMobileLink?.closest<HTMLElement>(".hydro-mobile-menu__item--branch")?.classList.add("is-expanded");
+  currentMobileLink
+    ?.closest<HTMLElement>(".hydro-mobile-menu__item--branch")
+    ?.querySelector<HTMLButtonElement>(":scope > .hydro-mobile-menu__row [data-hydro-mobile-submenu-toggle]")
+    ?.setAttribute("aria-expanded", "true");
+
+  mobileMenu?.querySelectorAll<HTMLButtonElement>("[data-hydro-mobile-submenu-toggle]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const item = button.closest<HTMLElement>(".hydro-mobile-menu__item--branch");
+      if (!item) return;
+
+      const expanded = item.classList.toggle("is-expanded");
+      button.setAttribute("aria-expanded", expanded ? "true" : "false");
+    });
   });
 
   mobileMenu?.querySelectorAll("a").forEach((link) => {
@@ -419,6 +601,10 @@ function initNavigation() {
 }
 
 function initScrambleLinks() {
+  if (!motionEnabled || !textScrambleEnabled) {
+    return;
+  }
+
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
   document.querySelectorAll<HTMLAnchorElement>("[data-scramble]").forEach((link) => {
@@ -455,13 +641,15 @@ function initScrambleLinks() {
 
 function initHero() {
   const hero = document.querySelector<HTMLElement>("[data-hydro-hero]");
-  const image = document.querySelector<HTMLElement>("[data-hydro-hero-image]");
-  const imageMotion = document.querySelector<HTMLElement>("[data-hydro-hero-motion]");
-  const title = document.querySelector<HTMLElement>("[data-split-title]");
 
   if (!hero || !motionEnabled) {
     return;
   }
+
+  const image = hero.querySelector<HTMLElement>("[data-hydro-hero-image]");
+  const imageMotion = hero.querySelector<HTMLElement>("[data-hydro-hero-motion]");
+  const imageFrame = image?.closest<HTMLElement>(".hydro-hero__image") ?? null;
+  const title = hero.querySelector<HTMLElement>("[data-split-title]");
 
   if (title?.textContent) {
     title.innerHTML = Array.from(title.textContent)
@@ -502,20 +690,25 @@ function initHero() {
     });
   }, hero);
 
+  if (!heroMotionEnabled) {
+    window.addEventListener("pagehide", () => ctx.revert(), { once: true });
+    return;
+  }
+
   const setImageX = imageMotion ? gsap.quickTo(imageMotion, "x", { duration: 0.35, ease: "power3.out" }) : undefined;
   const setImageY = imageMotion ? gsap.quickTo(imageMotion, "y", { duration: 0.35, ease: "power3.out" }) : undefined;
 
-  hero.addEventListener("mousemove", (event) => {
-    const rect = hero.getBoundingClientRect();
-    const x = (event.clientX - rect.left) / rect.width;
-    const y = (event.clientY - rect.top) / rect.height;
-    hero.style.setProperty("--hero-mouse-x", `${x * 100}%`);
-    hero.style.setProperty("--hero-mouse-y", `${y * 100}%`);
+  const motionTarget = imageFrame ?? imageMotion ?? image;
+
+  motionTarget?.addEventListener("mousemove", (event) => {
+    const rect = motionTarget.getBoundingClientRect();
+    const x = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+    const y = Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height));
     setImageX?.((x - 0.5) * 22);
     setImageY?.((y - 0.5) * 22);
   });
 
-  hero.addEventListener("mouseleave", () => {
+  motionTarget?.addEventListener("mouseleave", () => {
     setImageX?.(0);
     setImageY?.(0);
   });
@@ -668,7 +861,7 @@ function initArticleMediaPrewarm() {
 }
 
 function initTiltCards() {
-  if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+  if (!motionEnabled || !cardHoverEnabled || !window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
     return;
   }
 
@@ -718,11 +911,18 @@ function initCategoryCursor() {
 }
 
 function initScrollTilt() {
-  if (!motionEnabled || prefersReducedMotion.matches) {
+  if (!motionEnabled || !scrollTiltEnabled || prefersReducedMotion.matches) {
     return;
   }
 
-  const tiltTargets = gsap.utils.toArray<HTMLElement>(".tilt-on-scroll");
+  const tiltTargets = gsap.utils
+    .toArray<HTMLElement>(".tilt-on-scroll, [data-hydro-scroll-tilt-target]")
+    .filter(
+      (target) =>
+        target.tagName.toLowerCase() !== "main" &&
+        !target.matches("[data-hydro-hero], [data-hydro-nav], .hydro-fab-group, .hydro-mobile-menu") &&
+        !target.closest("[data-hydro-hero], [data-hydro-nav], .hydro-fab-group, .hydro-mobile-menu"),
+    );
   if (tiltTargets.length === 0) {
     return;
   }
@@ -750,6 +950,10 @@ function initScrollTilt() {
       window.requestAnimationFrame(() => {
         const currentScrollY = window.scrollY;
         const velocity = currentScrollY - lastScrollY;
+        if (Math.abs(velocity) < 1) {
+          ticking = false;
+          return;
+        }
         const rotateX = Math.max(-0.8, Math.min(0.8, velocity * 0.018));
         tiltTargets.forEach((target) => target.classList.add("is-scroll-tilting"));
         setTilt(rotateX);
@@ -891,12 +1095,12 @@ function initPostToc() {
 
   if (headings.length === 0) {
     tocPanel.classList.add("is-empty");
-    tocState.textContent = "无目录";
+    tocState.textContent = tocState.dataset.emptyText || "无目录";
     return;
   }
 
   tocContainer.innerHTML = "";
-  tocState.textContent = `${headings.length} 节`;
+  tocState.textContent = `${headings.length} ${tocState.dataset.countSuffix || "节"}`;
 
   const usedIds = new Set<string>();
   const linkMap = new Map<string, HTMLAnchorElement>();
@@ -999,6 +1203,8 @@ function initPostShare() {
 
   const postTitle = (page.querySelector("h1")?.textContent ?? document.title).trim();
   const postExcerpt = (page.querySelector(".hydro-post-hero p")?.textContent ?? "").trim();
+  const copiedText = readPageLabel(page, "postShareCopiedText", "已复制");
+  const copyPromptTitle = readPageLabel(page, "postShareCopyPromptTitle", "复制链接");
 
   const copyLink = async (button: HTMLButtonElement, url: string) => {
     try {
@@ -1007,7 +1213,7 @@ function initPostShare() {
       const originalLabel = button.querySelector("strong");
       const previous = originalLabel?.textContent;
       if (originalLabel) {
-        originalLabel.textContent = "已复制";
+        originalLabel.textContent = originalLabel.dataset.copiedText || copiedText;
       }
       window.setTimeout(() => {
         button.classList.remove("is-copied");
@@ -1016,7 +1222,7 @@ function initPostShare() {
         }
       }, 1200);
     } catch {
-      window.prompt("复制链接", url);
+      window.prompt(button.querySelector<HTMLElement>("strong")?.dataset.copyPromptTitle || copyPromptTitle, url);
     }
   };
 
@@ -1095,7 +1301,7 @@ function initPostUpvote() {
         syncState();
       } catch {
         button.disabled = false;
-        window.alert("点赞失败，请稍后再试");
+        window.alert(readPageLabel(page, "postUpvoteErrorText", "点赞失败，请稍后再试"));
       }
     });
   });
@@ -1213,6 +1419,13 @@ function initLinksPage() {
 
   const enableUpdate = config.dataset.enableUpdate === "true";
   const verifyType = (config.dataset.verifyType || "email") as LinkSubmitVerifyType;
+  const submitText = {
+    submitError: config.dataset.submitErrorText || "提交失败，请稍后重试。",
+    submitSuccess: config.dataset.submitSuccessText || "提交成功，请等待审核。",
+    unavailable: config.dataset.unavailableText || "未检测到 LinksSubmit 插件，请稍后重试。",
+    updateError: config.dataset.updateErrorText || "修改失败，请稍后重试。",
+    updateSuccess: config.dataset.updateSuccessText || "修改成功。",
+  };
   const submitModal = document.getElementById("hydro-link-submit-modal");
   const submitEntry = document.getElementById("hydro-link-submit-entry");
   const updateEntry = document.getElementById("hydro-link-update-entry");
@@ -1292,7 +1505,7 @@ function initLinksPage() {
   };
   const openSubmitModal = () => {
     if (!submitReady) {
-      showMessage(submitMessageEl, "未检测到 LinksSubmit 插件，请稍后重试。", "error");
+      showMessage(submitMessageEl, submitText.unavailable, "error");
       return;
     }
     openModal(submitModal);
@@ -1306,7 +1519,7 @@ function initLinksPage() {
       return;
     }
     if (!submitReady) {
-      showMessage(updateMessageEl, "未检测到 LinksSubmit 插件，请稍后重试。", "error");
+      showMessage(updateMessageEl, submitText.unavailable, "error");
       return;
     }
     openModal(updateModal);
@@ -1536,17 +1749,17 @@ function initLinksPage() {
       .submit(payload, verifyCode, verifyType === "none" ? undefined : verifyType)
       .then((res) => {
         if (res.code === 200) {
-          showMessage(submitMessageEl, res.msg || "提交成功，请等待审核。", "success");
+          showMessage(submitMessageEl, res.msg || submitText.submitSuccess, "success");
           submitForm.reset();
           window.setTimeout(() => {
             closeModal(submitModal);
           }, 1500);
           return;
         }
-        showMessage(submitMessageEl, res.msg || "提交失败，请稍后重试。", "error");
+        showMessage(submitMessageEl, res.msg || submitText.submitError, "error");
       })
       .catch(() => {
-        showMessage(submitMessageEl, "提交失败，请稍后重试。", "error");
+        showMessage(submitMessageEl, submitText.submitError, "error");
       })
       .finally(() => {
         if (verifyType === "captcha") {
@@ -1588,7 +1801,7 @@ function initLinksPage() {
       .update(payload, verifyCode, verifyType === "none" ? undefined : verifyType)
       .then((res) => {
         if (res.code === 200) {
-          showMessage(updateMessageEl, res.msg || "修改成功。", "success");
+          showMessage(updateMessageEl, res.msg || submitText.updateSuccess, "success");
           updateForm.reset();
           window.setTimeout(() => {
             if (updateModal) {
@@ -1597,10 +1810,10 @@ function initLinksPage() {
           }, 1500);
           return;
         }
-        showMessage(updateMessageEl, res.msg || "修改失败，请稍后重试。", "error");
+        showMessage(updateMessageEl, res.msg || submitText.updateError, "error");
       })
       .catch(() => {
-        showMessage(updateMessageEl, "修改失败，请稍后重试。", "error");
+        showMessage(updateMessageEl, submitText.updateError, "error");
       })
       .finally(() => {
         if (verifyType === "captcha") {
@@ -1645,6 +1858,7 @@ function initLinksPage() {
   initEntries();
 }
 
+initAppearanceState();
 initColorScheme();
 initNavigation();
 initScrambleLinks();
@@ -1763,6 +1977,7 @@ function initMomentsContent() {
 
 function initMomentActions() {
   const upvotedNames = new Set(readJsonArray(momentUpvoteStorageKey));
+  const upvoteErrorText = document.body.dataset.momentUpvoteErrorText || "点赞失败，请稍后再试";
 
   document.querySelectorAll<HTMLButtonElement>("[data-moment-upvote]").forEach((button) => {
     const name = button.dataset.momentUpvote;
@@ -1790,7 +2005,7 @@ function initMomentActions() {
         if (count) count.textContent = String(Number.parseInt(count.textContent || "0", 10) + 1);
       } catch {
         button.disabled = false;
-        window.alert("点赞失败，请稍后再试");
+        window.alert(upvoteErrorText);
       }
     });
   });
@@ -1810,6 +2025,20 @@ function initMomentActions() {
 }
 
 function initLightbox() {
+  if (!lightboxEnabled) {
+    document.querySelectorAll<HTMLElement>("[data-lightbox-trigger]").forEach((trigger) => {
+      trigger.removeAttribute("data-lightbox-trigger");
+      trigger.removeAttribute("data-src");
+      trigger.removeAttribute("data-alt");
+      if (trigger instanceof HTMLButtonElement) {
+        trigger.type = "button";
+        trigger.disabled = true;
+        trigger.setAttribute("aria-disabled", "true");
+      }
+    });
+    return;
+  }
+
   const lightbox = document.querySelector<HTMLElement>("[data-lightbox]");
   if (!lightbox) return;
   document.body.append(lightbox);
@@ -1868,18 +2097,364 @@ function initLightbox() {
   });
 }
 
+function toAbsoluteShareUrl(value: string | undefined) {
+  try {
+    return new URL(value || window.location.href, window.location.origin).href;
+  } catch {
+    return window.location.href;
+  }
+}
+
+function initPosterShare() {
+  const page = document.querySelector<HTMLElement>("[data-hydro-poster-page]");
+  if (!page) return;
+  const copiedText = page.dataset.copiedText || document.body.dataset.shareCopiedText || "已复制";
+  const copyPromptTitle = page.dataset.copyPromptTitle || document.body.dataset.shareCopyPromptTitle || "复制链接";
+  const qrServiceUrl = document.body.dataset.qrServiceUrl || "https://api.qrserver.com/v1/create-qr-code/";
+
+  page.querySelectorAll<HTMLImageElement>("[data-hydro-poster-qr]").forEach((img) => {
+    const shareUrl = toAbsoluteShareUrl(img.dataset.url);
+    const encoded = encodeURIComponent(shareUrl);
+    const separator = qrServiceUrl.includes("?") ? "&" : "?";
+    img.src = `${qrServiceUrl}${separator}size=220x220&margin=12&data=${encoded}`;
+  });
+
+  page.querySelectorAll<HTMLAnchorElement>("[data-hydro-poster-url]").forEach((anchor) => {
+    const shareUrl = toAbsoluteShareUrl(anchor.getAttribute("href") || anchor.textContent || "");
+    anchor.href = shareUrl;
+    anchor.textContent = shareUrl;
+  });
+
+  page.querySelectorAll<HTMLButtonElement>("[data-hydro-poster-copy]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const shareUrl = toAbsoluteShareUrl(button.dataset.url);
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        const label = button.textContent || "复制链接";
+        button.textContent = copiedText;
+        button.classList.add("is-copied");
+        window.setTimeout(() => {
+          button.textContent = label;
+          button.classList.remove("is-copied");
+        }, 1400);
+      } catch {
+        window.prompt(copyPromptTitle, shareUrl);
+      }
+    });
+  });
+
+  page.querySelectorAll<HTMLButtonElement>("[data-hydro-poster-print]").forEach((button) => {
+    button.addEventListener("click", () => window.print());
+  });
+
+  page.querySelectorAll<HTMLButtonElement>("[data-hydro-poster-back]").forEach((button) => {
+    button.addEventListener("click", () => {
+      if (window.history.length > 1) {
+        window.history.back();
+        return;
+      }
+      window.location.href = "/";
+    });
+  });
+}
+
+function initHydroPluginFilters() {
+  document.querySelectorAll<HTMLElement>("[data-hydro-filter-root]").forEach((root) => {
+    const filters = Array.from(root.querySelectorAll<HTMLButtonElement>("[data-hydro-plugin-filter]"));
+    const groups = Array.from(root.querySelectorAll<HTMLElement>("[data-hydro-filter-group]"));
+    if (filters.length === 0 || groups.length === 0) {
+      return;
+    }
+
+    filters.forEach((filter) => {
+      filter.addEventListener("click", () => {
+        const target = filter.dataset.hydroPluginFilter || "all";
+        filters.forEach((item) => item.classList.toggle("is-active", item === filter));
+        groups.forEach((group) => {
+          const visible = target === "all" || group.dataset.hydroFilterGroup === target;
+          group.toggleAttribute("hidden", !visible);
+        });
+      });
+    });
+  });
+}
+
+function initHydroDocsToc() {
+  const content = document.querySelector<HTMLElement>("#hydro-doc-content");
+  const toc = document.querySelector<HTMLElement>("[data-hydro-doc-toc]");
+  if (!content || !toc) {
+    return;
+  }
+
+  const headings = Array.from(content.querySelectorAll<HTMLElement>("h2, h3, h4")).filter((heading) => {
+    return (heading.textContent || "").trim().length > 0;
+  });
+  if (headings.length === 0) {
+    toc.innerHTML = `<span class="hydro-doc-toc__empty">${escapeHtml(document.body.dataset.docTocEmptyText || "无目录")}</span>`;
+    return;
+  }
+
+  const usedIds = new Set<string>();
+  toc.innerHTML = "";
+
+  headings.forEach((heading, index) => {
+    const fallbackId = slugifyHeading(heading.textContent || "", index).replace(/^post-/, "doc-");
+    let id = heading.id || fallbackId;
+    let suffix = 2;
+    while (usedIds.has(id)) {
+      id = `${fallbackId}-${suffix}`;
+      suffix += 1;
+    }
+    usedIds.add(id);
+    heading.id = id;
+
+    const link = document.createElement("a");
+    link.href = `#${id}`;
+    link.dataset.depth = heading.tagName.replace("H", "");
+    link.textContent = (heading.textContent || "").trim();
+    link.addEventListener("click", (event) => {
+      event.preventDefault();
+      scrollToElement(heading);
+    });
+    toc.append(link);
+  });
+}
+
+function initHydroSteamPage() {
+  const page = document.querySelector<HTMLElement>("[data-hydro-steam]");
+  if (!page) {
+    return;
+  }
+
+  const cachePrefix = "hydro-steam-cache";
+  const cacheTtl = Math.max(0, readNumberData(page.dataset.cacheTtlMinutes, 3)) * 60 * 1000;
+  const recentLimit = Number.parseInt(page.dataset.recentLimit || "8", 10);
+  const pageSize = Number.parseInt(page.dataset.pageSize || "18", 10);
+  const enableGameLink = page.dataset.enableGameLink !== "false";
+  const emptyText = page.dataset.emptyText || "暂无 Steam 游戏数据";
+  const errorText = page.dataset.errorText || "Steam 数据暂时不可用";
+  const syncHintText = page.dataset.syncHintText || "请确认 plugin-steam 已同步账号数据。";
+  const configHintText = page.dataset.configHintText || "请确认 plugin-steam 已启用，并已填写 Steam ID/API 配置。";
+  const libraryLoadingText = page.dataset.libraryLoadingText || "正在加载游戏库。";
+  const errorNotice = page.querySelector<HTMLElement>("[data-steam-error]");
+  const profileAvatar = page.querySelector<HTMLElement>("[data-steam-avatar]");
+  const profileName = page.querySelector<HTMLElement>("[data-steam-name]");
+  const profileStatus = page.querySelector<HTMLElement>("[data-steam-status]");
+  const profileLevel = page.querySelector<HTMLElement>("[data-steam-level]");
+  const recentGrid = page.querySelector<HTMLElement>("[data-steam-recent]");
+  const gamesGrid = page.querySelector<HTMLElement>("[data-steam-games]");
+  const pagination = page.querySelector<HTMLElement>("[data-steam-pagination]");
+  const prevButton = page.querySelector<HTMLButtonElement>("[data-steam-prev]");
+  const nextButton = page.querySelector<HTMLButtonElement>("[data-steam-next]");
+  const pageLabel = page.querySelector<HTMLElement>("[data-steam-page]");
+
+  const readCache = <T>(key: string): T | null => {
+    try {
+      const raw = window.localStorage.getItem(`${cachePrefix}:${key}`);
+      if (!raw) {
+        return null;
+      }
+      const parsed = JSON.parse(raw) as { expires: number; value: T };
+      if (parsed.expires < Date.now()) {
+        window.localStorage.removeItem(`${cachePrefix}:${key}`);
+        return null;
+      }
+      return parsed.value;
+    } catch {
+      return null;
+    }
+  };
+  const writeCache = <T>(key: string, value: T) => {
+    if (cacheTtl <= 0) {
+      return;
+    }
+    try {
+      window.localStorage.setItem(`${cachePrefix}:${key}`, JSON.stringify({ expires: Date.now() + cacheTtl, value }));
+    } catch {
+      // Ignore cache quota failures.
+    }
+  };
+  const fetchSteam = async <T>(endpoint: string, useCache = true): Promise<T> => {
+    const cacheKey = endpoint.replace(/[^a-z0-9]/gi, "_");
+    const cached = useCache ? readCache<T>(cacheKey) : null;
+    if (cached) {
+      return cached;
+    }
+
+    const response = await window.fetch(`/apis/api.steam.timxs.com/v1alpha1${endpoint}`);
+    if (!response.ok) {
+      throw new Error(`Steam API ${endpoint} failed with ${response.status}`);
+    }
+    const data = (await response.json()) as T;
+    if (useCache) {
+      writeCache(cacheKey, data);
+    }
+    return data;
+  };
+  const renderEmpty = (target: HTMLElement | null, title: string, description = "") => {
+    if (!target) {
+      return;
+    }
+    target.innerHTML = `<div class="hydro-plugin-empty hydro-plugin-empty--small">
+      <span>Steam</span>
+      <strong>${escapeHtml(title)}</strong>
+      ${description ? `<p>${escapeHtml(description)}</p>` : ""}
+    </div>`;
+  };
+  const gameIdOf = (game: SteamGame) => game.appid || game.appId || "";
+  const renderGames = (target: HTMLElement | null, games: SteamGame[], emptyMessage: string, recent = false) => {
+    if (!target) {
+      return;
+    }
+    const visibleGames = games.filter((game) => gameIdOf(game) || game.headerImageUrl || game.name);
+    if (visibleGames.length === 0) {
+      renderEmpty(target, emptyMessage || emptyText, syncHintText);
+      return;
+    }
+
+    target.innerHTML = visibleGames
+      .map((game) => {
+        const appId = gameIdOf(game);
+        const image =
+          game.headerImageUrl || (appId ? `https://cdn.cloudflare.steamstatic.com/steam/apps/${appId}/header.jpg` : "");
+        const title = escapeHtml(game.name || "Untitled Game");
+        const meta = escapeHtml(
+          (recent ? game.playtime2WeeksFormatted : game.playtimeFormatted) ||
+            game.lastPlayedFormatted ||
+            "No time data",
+        );
+        const href = enableGameLink && appId ? `https://store.steampowered.com/app/${appId}` : "#";
+        const targetAttr = enableGameLink && appId ? ' target="_blank" rel="noreferrer noopener"' : "";
+        return `<a class="hydro-game-card" href="${href}"${targetAttr}>
+          <span class="hydro-game-card__media">
+            <img src="${escapeHtml(image || createSteamFallbackImage(title))}" alt="${title}" loading="lazy" />
+          </span>
+          <strong>${title}</strong>
+          <span>${meta}</span>
+        </a>`;
+      })
+      .join("");
+
+    target.querySelectorAll<HTMLImageElement>("img").forEach((image) => {
+      image.addEventListener(
+        "error",
+        () => {
+          image.src = createSteamFallbackImage(image.alt || "Steam");
+        },
+        { once: true },
+      );
+    });
+  };
+  const syncPagination = (result: SteamGamesResult) => {
+    const currentPage = result.page || 1;
+    const totalPages = result.totalPages || 1;
+    if (pageLabel) {
+      pageLabel.textContent = `${currentPage} / ${totalPages}`;
+    }
+    if (prevButton) {
+      prevButton.disabled = currentPage <= 1;
+    }
+    if (nextButton) {
+      nextButton.disabled = currentPage >= totalPages;
+    }
+    if (pagination) {
+      pagination.hidden = totalPages <= 1;
+    }
+  };
+  const loadGames = async (targetPage: number) => {
+    if (gamesGrid) {
+      renderEmpty(gamesGrid, libraryLoadingText);
+    }
+    try {
+      const games = await fetchSteam<SteamGamesResult>(`/games?page=${targetPage}&size=${pageSize}`, false);
+      renderGames(gamesGrid, games.items || [], emptyText);
+      syncPagination(games);
+    } catch {
+      renderEmpty(gamesGrid, errorText, configHintText);
+      errorNotice?.removeAttribute("hidden");
+    }
+  };
+
+  void Promise.allSettled([
+    fetchSteam<SteamProfile>("/profile"),
+    fetchSteam<SteamStats>("/stats"),
+    fetchSteam<SteamBadges>("/badges"),
+    fetchSteam<SteamGame[]>(`/recent?limit=${recentLimit}`),
+  ]).then(([profileResult, statsResult, badgesResult, recentResult]) => {
+    if (profileResult.status === "fulfilled") {
+      const profile = profileResult.value;
+      const avatarUrl = profile.summary?.avatarfull;
+      if (profileAvatar) {
+        profileAvatar.innerHTML = avatarUrl
+          ? `<img src="${escapeHtml(avatarUrl)}" alt="${escapeHtml(profile.summary?.personaname || "Steam")}" />`
+          : "<span>ST</span>";
+      }
+      if (profileName) {
+        profileName.textContent = profile.summary?.personaname || "Steam User";
+      }
+      if (profileStatus) {
+        profileStatus.textContent = profile.statusText || (profile.playing ? "Playing" : "Steam profile");
+      }
+    } else {
+      errorNotice?.removeAttribute("hidden");
+    }
+
+    if (statsResult.status === "fulfilled") {
+      const stats = statsResult.value;
+      const games = page.querySelector<HTMLElement>("[data-steam-stat='games']");
+      const total = page.querySelector<HTMLElement>("[data-steam-stat='total']");
+      const recent = page.querySelector<HTMLElement>("[data-steam-stat='recent']");
+      if (games) games.textContent = String(stats.totalGames || 0);
+      if (total) total.textContent = formatHours(stats.totalPlaytimeMinutes);
+      if (recent) recent.textContent = formatHours(stats.recentPlaytimeMinutes);
+    }
+
+    if (badgesResult.status === "fulfilled" && profileLevel) {
+      profileLevel.textContent = `Lv. ${badgesResult.value.playerLevel || 0}`;
+    }
+
+    if (recentResult.status === "fulfilled") {
+      renderGames(recentGrid, recentResult.value, emptyText, true);
+    } else {
+      renderEmpty(recentGrid, errorText, configHintText);
+    }
+  });
+
+  prevButton?.addEventListener("click", () => {
+    const current = Number.parseInt(pageLabel?.textContent?.split("/")[0]?.trim() || "1", 10);
+    if (current > 1) {
+      void loadGames(current - 1);
+    }
+  });
+  nextButton?.addEventListener("click", () => {
+    const [currentText, totalText] = pageLabel?.textContent?.split("/") || ["1", "1"];
+    const current = Number.parseInt(currentText.trim(), 10);
+    const total = Number.parseInt(totalText.trim(), 10);
+    if (current < total) {
+      void loadGames(current + 1);
+    }
+  });
+
+  void loadGames(1);
+}
+
 initLinkCards();
 initLinksPage();
 initMomentsContent();
 initMomentActions();
 initMomentsReveal();
 initLightbox();
+initPosterShare();
+initHydroPluginFilters();
+initHydroDocsToc();
+initHydroSteamPage();
 
 function initBackToTop() {
   const btn = document.querySelector<HTMLButtonElement>("[data-hydro-back-to-top]");
   if (!btn) return;
+  const threshold = readNumberData(document.body.dataset.backToTopThreshold, 100);
 
-  const sync = () => btn.classList.toggle("is-visible", window.scrollY > 100);
+  const sync = () => btn.classList.toggle("is-visible", window.scrollY > threshold);
 
   sync(); // 刷新时立即同步
   window.addEventListener("scroll", sync, { passive: true });
@@ -1896,6 +2471,7 @@ function initFab() {
 
   const items = Array.from(menu.querySelectorAll<HTMLElement>(".hydro-fab-item"));
   if (items.length === 0) return;
+  const canHover = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
 
   // 扇形：固定间隔 25°，以 225°（左上）为中心，向两侧展开
   const RADIUS = 80;
@@ -1931,15 +2507,17 @@ function initFab() {
     }, 300);
   };
 
-  // trigger hover
-  trigger.addEventListener("mouseenter", open);
-  trigger.addEventListener("mouseleave", scheduleClose);
+  if (canHover) {
+    // trigger hover
+    trigger.addEventListener("mouseenter", open);
+    trigger.addEventListener("mouseleave", scheduleClose);
 
-  // 每个 item 独立绑定，鼠标进入时取消关闭计时器
-  items.forEach((item) => {
-    item.addEventListener("mouseenter", open);
-    item.addEventListener("mouseleave", scheduleClose);
-  });
+    // 每个 item 独立绑定，鼠标进入时取消关闭计时器
+    items.forEach((item) => {
+      item.addEventListener("mouseenter", open);
+      item.addEventListener("mouseleave", scheduleClose);
+    });
+  }
 
   // 移动端点击
   trigger.addEventListener("click", (e) => {

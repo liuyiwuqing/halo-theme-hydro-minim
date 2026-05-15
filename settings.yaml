@@ -4,12 +4,12 @@ metadata:
   name: halo-theme-hydro-minim-setting
 spec:
   forms:
-    - group: brand
-      label: 品牌
+    - group: site
+      label: 全局基础
       formSchema:
         - $formkit: radio
-          id: brand_logo_display
-          key: brand_logo_display
+          id: site_logo_display
+          key: site_logo_display
           name: logo_display
           label: 顶部品牌展示
           value: logo
@@ -19,42 +19,92 @@ spec:
             - label: 展示站点名称
               value: name
         - $formkit: attachment
-          if: $get(brand_logo_display).value === logo
-          id: brand_logo
-          key: brand_logo
+          if: $get(site_logo_display).value === 'logo'
+          key: site_logo
           name: logo
           label: 方形标识（胶囊菜单）
           value: /themes/halo-theme-hydro-minim/assets/brand/hydro-minim-mark.svg
         - $formkit: attachment
-          if: $get(brand_logo_display).value === logo
-          id: brand_dark_logo
-          key: brand_dark_logo
+          if: $get(site_logo_display).value === 'logo'
+          key: site_dark_logo
           name: dark_logo
           label: 深色方形标识（胶囊菜单）
           value: /themes/halo-theme-hydro-minim/assets/brand/hydro-minim-mark-dark.svg
         - $formkit: attachment
-          if: $get(brand_logo_display).value === logo
-          id: brand_nav_logo
-          key: brand_nav_logo
+          if: $get(site_logo_display).value === 'logo'
+          key: site_nav_logo
           name: nav_logo
           label: 长方形 Logo（顶部菜单）
           value: /themes/halo-theme-hydro-minim/assets/brand/hydro-minim-lockup.svg
         - $formkit: attachment
-          if: $get(brand_logo_display).value === logo
-          id: brand_dark_nav_logo
-          key: brand_dark_nav_logo
+          if: $get(site_logo_display).value === 'logo'
+          key: site_dark_nav_logo
           name: dark_nav_logo
           label: 深色长方形 Logo（顶部菜单）
           value: /themes/halo-theme-hydro-minim/assets/brand/hydro-minim-lockup-dark.svg
         - $formkit: text
-          if: $get(brand_logo_display).value === logo
-          id: brand_logo_alt
-          key: brand_logo_alt
+          if: $get(site_logo_display).value === 'logo'
+          key: site_logo_alt
           name: logo_alt
           label: Logo 替代文本
           value: 氢·简 Hydro-Minim
-    - group: style
-      label: 样式
+        - $formkit: attachment
+          name: article_cover_1
+          label: 默认文章封面 1
+          value: /themes/halo-theme-hydro-minim/assets/images/article-1.jpg
+        - $formkit: attachment
+          name: article_cover_2
+          label: 默认文章封面 2
+          value: /themes/halo-theme-hydro-minim/assets/images/article-2.jpg
+        - $formkit: attachment
+          name: article_cover_3
+          label: 默认文章封面 3
+          value: /themes/halo-theme-hydro-minim/assets/images/article-3.jpg
+        - $formkit: array
+          name: social_links
+          label: 站点社交链接
+          value:
+            - label: Twitter
+              url: "#"
+              new_tab: true
+              icon: ""
+            - label: GitHub
+              url: "#"
+              new_tab: true
+              icon: ""
+            - label: Dribbble
+              url: "#"
+              new_tab: true
+              icon: ""
+            - label: Email
+              url: "mailto:"
+              new_tab: false
+              icon: ""
+          min: 0
+          addLabel: 添加社交链接
+          itemLabels:
+            - type: text
+              label: $value.label
+          children:
+            - $formkit: text
+              name: label
+              label: 名称
+              value: ""
+            - $formkit: text
+              name: url
+              label: 链接
+              value: ""
+            - $formkit: iconify
+              name: icon
+              label: 图标（可选）
+              format: svg
+              value-only: true
+            - $formkit: switch
+              name: new_tab
+              label: 新标签打开
+              value: true
+    - group: appearance
+      label: 全局外观
       formSchema:
         - $formkit: radio
           name: color_scheme
@@ -77,195 +127,146 @@ spec:
           value: "#101112"
         - $formkit: color
           name: accent_color
-          label: 强调色
+          label: 浅色强调色
           value: "#FF6B6B"
-        - $formkit: checkbox
-          name: grain
+        - $formkit: color
+          name: dark_accent_color
+          label: 深色强调色
+          value: "#FF8A8A"
+        - $formkit: switch
+          name: show_grain
           label: 显示轻微颗粒
           value: true
-        - $formkit: checkbox
+        - $formkit: switch
           name: enable_motion
-          label: 启用动效
+          label: 启用全局动效
           value: true
-        - $formkit: checkbox
+        - $formkit: switch
           name: smooth_scroll
           label: 启用平滑滚动
           value: true
-    - group: hero
-      label: 首屏
-      formSchema:
-        - $formkit: text
-          name: label
-          label: 首屏标签
-          value: 氢视窗
-        - $formkit: text
-          name: title
-          label: 首屏标题
-          value: 探索
-        - $formkit: textarea
-          name: description
-          label: 首屏描述
-          value: 精选的想法、故事和创意，全部汇集于此。如氢气般轻快、简洁、流畅的体验。
-        - $formkit: attachment
-          name: cover
-          label: 首屏封面
-          value: /themes/halo-theme-hydro-minim/assets/images/hero-featured.jpg
-    - group: post
-      label: 文章页
-      formSchema:
-        - $formkit: checkbox
-          name: enable_toc
-          label: 启用目录
+        - $formkit: switch
+          name: enable_theme_transition
+          label: 启用深浅色光幕过渡
           value: true
-        - $formkit: checkbox
-          name: enable_action_rail
-          label: 启用右侧操作栏
+        - $formkit: switch
+          name: enable_hero_motion
+          label: 启用 Hero 图片动效
           value: true
-        - $formkit: checkbox
-          name: enable_upvote
-          label: 启用点赞按钮
+        - $formkit: switch
+          name: enable_card_hover
+          label: 启用卡片 3D Hover
           value: true
-        - $formkit: checkbox
-          name: enable_share
-          label: 启用分享按钮
+        - $formkit: switch
+          name: enable_scroll_tilt
+          label: 启用主内容滚动倾斜
           value: true
-        - $formkit: checkbox
-          name: enable_reading_progress
-          label: 启用阅读进度
+        - $formkit: switch
+          name: enable_text_scramble
+          label: 启用文字扰动
           value: true
-        - $formkit: checkbox
-          name: enable_related_posts
-          label: 启用继续阅读
+        - $formkit: switch
+          name: enable_lightbox
+          label: 启用图片灯箱
           value: true
-        - $formkit: number
-          if: $get(enable_related_posts).value === true
-          name: related_posts_size
-          label: 继续阅读展示数量
-          value: 3
-          min: 1
-          max: 6
-          step: 1
-        - $formkit: number
-          if: $get(enable_related_posts).value === true
-          name: related_fallback_latest_size
-          label: 继续阅读回退池数量
-          value: 8
-          min: 3
-          max: 20
-          step: 1
-    - group: about
-      label: 关于
-      formSchema:
         - $formkit: text
-          name: title
-          label: 主标题
-          value: 关于
+          name: theme_to_light_label
+          label: 切换到浅色提示
+          value: 切换为浅色模式
         - $formkit: text
-          name: subtitle
-          label: 副标题
-          value: 艺术的生活家
-        - $formkit: textarea
-          name: paragraph_1
-          label: 段落一
-          value: 氢风格博客诞生于对简约美学的追求。我们相信，好的设计应该像氢气一样——轻快、简洁、流畅，却蕴含着无限的可能。
-        - $formkit: textarea
-          name: paragraph_2
-          label: 段落二
-          value: 在这里，我们分享关于设计、科技与生活方式的思考。每一篇文章都是精心策划的创意表达，旨在为读者带来启发与美的享受。
-        - $formkit: textarea
-          name: paragraph_3
-          label: 段落三
-          value: 33% 的自由，66% 的内容。这是氢视窗的哲学，也是我们对内容创作的坚持——在结构化的框架中，保留艺术的呼吸空间。
-        - $formkit: text
-          name: readers
-          label: 读者展示值
-          value: 2.4k
-    - group: social
-      label: 社交
-      formSchema:
-        - $formkit: text
-          name: twitter
-          label: Twitter
-          value: "#"
-        - $formkit: text
-          name: github
-          label: GitHub
-          value: "#"
-        - $formkit: text
-          name: dribbble
-          label: Dribbble
-          value: "#"
-        - $formkit: text
-          name: email
-          label: Email
-          value: "mailto:"
-    - group: links
-      label: 友链页面
+          name: theme_to_dark_label
+          label: 切换到深色提示
+          value: 切换为深色模式
+    - group: navigation
+      label: 全局组件
       formSchema:
         - $formkit: switch
-          id: links_enable_submit
-          key: links_enable_submit
-          name: enable_submit
-          label: 启用在线提交
-          value: false
-          help: 开启后访客可在友链页通过插件在线提交申请
-        - $el: div
-          if: $get(links_enable_submit).value === true
-          attrs:
-            class: "text-sm"
-            style: |
-              display: inline-block;
-              margin-top: 0.5rem;
-              padding: 0.5rem 0.75rem;
-              background: #fffbeb;
-              border-radius: 0.375rem;
-              border: 1px solid #fcd34d;
+          name: show_search
+          label: 显示搜索入口
+          value: true
+        - $formkit: switch
+          name: enable_builtin_search
+          label: 未安装搜索插件时启用内置搜索页
+          value: true
+          help: 开启后 Header 搜索会跳转到 /search，关闭后仅在安装 PluginSearchWidget 时显示搜索入口。
+        - $formkit: switch
+          name: allow_color_switch
+          label: 允许访客切换深浅色
+          value: true
+        - $formkit: text
+          name: mobile_menu_label
+          label: 移动端菜单按钮提示
+          value: 菜单
+        - $formkit: array
+          name: fallback_links
+          label: 无主菜单时的默认导航
+          value:
+            - label: 文章
+              url: "#articles"
+            - label: 分类
+              url: "#categories"
+            - label: 关于
+              url: "#about"
+          min: 0
+          addLabel: 添加默认导航
+          itemLabels:
+            - type: text
+              label: $value.label
           children:
-            - $el: span
-              attrs:
-                style: "color: #92400e;"
-              children: "⚠️ 该功能依赖 "
-            - $el: code
-              attrs:
-                style: "color: #92400e;"
-              children: "plugin-links-submit"
-            - $el: span
-              attrs:
-                style: "color: #92400e;"
-              children: " 插件提供的 LinksSubmit API"
-        - $formkit: select
-          name: verify_type
-          label: 提交验证方式
-          value: email
-          if: $get(links_enable_submit).value === true
-          options:
-            - label: 邮箱验证码
-              value: email
-            - label: 图形验证码
-              value: captcha
-            - label: 无需验证
-              value: none
+            - $formkit: text
+              name: label
+              label: 名称
+              value: ""
+            - $formkit: text
+              name: url
+              label: 链接
+              value: ""
+        - $formkit: text
+          name: pagination_previous_label
+          label: 分页上一页文案
+          value: 上一页
+        - $formkit: text
+          name: pagination_next_label
+          label: 分页下一页文案
+          value: 下一页
         - $formkit: switch
-          name: enable_update
-          label: 允许在线修改友链
-          value: false
-          if: $get(links_enable_submit).value === true
-          help: 开启后可通过邮箱验证修改已提交的友链信息
-    - group: fab
-      label: 快捷操作
-      formSchema:
+          id: navigation_show_back_to_top
+          key: navigation_show_back_to_top
+          name: show_back_to_top
+          label: 显示返回顶部按钮
+          value: true
+        - $formkit: text
+          if: $get(navigation_show_back_to_top).value === true
+          name: back_to_top_label
+          label: 返回顶部提示
+          value: 返回顶部
+        - $formkit: number
+          if: $get(navigation_show_back_to_top).value === true
+          name: back_to_top_threshold
+          label: 返回顶部显示阈值
+          value: 100
+          min: 0
+          max: 800
+          step: 10
         - $formkit: switch
-          id: fab_enabled
-          key: fab_enabled
-          name: enabled
+          id: navigation_fab_enabled
+          key: navigation_fab_enabled
+          name: fab_enabled
           label: 启用快捷操作按钮
           value: true
+        - $formkit: text
+          if: $get(navigation_fab_enabled).value === true
+          key: navigation_fab_label
+          name: fab_label
+          label: 快捷操作提示
+          value: 快捷操作
         - $formkit: array
-          if: $get(fab_enabled).value === true
-          name: items
+          if: $get(navigation_fab_enabled).value === true
+          key: navigation_fab_items
+          name: fab_items
           label: 快捷项
           value: []
-          min: 3
+          min: 0
           max: 5
           addLabel: 添加快捷项
           itemLabels:
@@ -279,7 +280,7 @@ spec:
               value-only: true
             - $formkit: text
               name: label
-              label: 提示文字（tooltip）
+              label: 提示文字
               value: ""
             - $formkit: text
               name: url
@@ -287,20 +288,1620 @@ spec:
               value: ""
             - $formkit: switch
               name: new_tab
-              label: 在新标签页打开
+              label: 新标签打开
               value: true
-    - group: assets
-      label: 默认图片
+    - group: footer
+      label: 页脚
       formSchema:
+        - $formkit: switch
+          id: footer_show_marquee
+          key: footer_show_marquee
+          name: show_marquee
+          label: 显示页脚滚动字
+          value: true
+        - $formkit: text
+          if: $get(footer_show_marquee).value === true
+          name: marquee_text
+          label: 滚动字
+          value: 氢
+        - $formkit: text
+          label: 页脚品牌短字
+          value: 氢
+        - $formkit: textarea
+          name: description
+          label: 页脚描述
+          value: 艺术的生活家。在结构化与自由之间，寻找设计的平衡。
+        - $formkit: switch
+          name: show_nav
+          label: 显示页脚导航
+          value: true
+        - $formkit: text
+          name: nav_title
+          label: 导航栏目标题
+          value: 导航
+        - $formkit: switch
+          name: show_social
+          label: 显示页脚社交链接
+          value: true
+        - $formkit: text
+          name: social_title
+          label: 社交栏目标题
+          value: 社交
+        - $formkit: text
+          name: copyright
+          label: 版权文案
+          value: "© {year} {site}. 保留所有权利."
+          help: 支持 {year} 和 {site} 占位符。
+        - $formkit: text
+          name: build_text
+          label: 构建署名
+          value: 用 ♥ 与氢气构建
+        - $formkit: text
+          name: icp_text
+          label: ICP 备案号
+          value: ""
+        - $formkit: url
+          name: icp_link
+          label: ICP 备案链接
+          value: "https://beian.miit.gov.cn/"
+        - $formkit: text
+          name: gongan_text
+          label: 公安联网备案号
+          value: ""
+        - $formkit: url
+          name: gongan_link
+          label: 公安联网备案链接
+          value: ""
+    - group: home
+      label: 首页
+      formSchema:
+        - $formkit: switch
+          name: show_hero
+          label: 显示首屏 Hero
+          value: true
+        - $formkit: text
+          name: hero_label
+          label: Hero 标签
+          value: 氢视窗
+        - $formkit: text
+          name: hero_title
+          label: Hero 标题
+          value: 探索
+        - $formkit: textarea
+          name: hero_description
+          label: Hero 描述
+          value: 精选的想法、故事和创意，全部汇集于此。如氢气般轻快、简洁、流畅的体验。
         - $formkit: attachment
-          name: article_cover_1
-          label: 默认文章封面 1
-          value: /themes/halo-theme-hydro-minim/assets/images/article-1.jpg
-        - $formkit: attachment
-          name: article_cover_2
-          label: 默认文章封面 2
-          value: /themes/halo-theme-hydro-minim/assets/images/article-2.jpg
-        - $formkit: attachment
-          name: article_cover_3
-          label: 默认文章封面 3
-          value: /themes/halo-theme-hydro-minim/assets/images/article-3.jpg
+          name: hero_cover
+          label: Hero 封面
+          value: /themes/halo-theme-hydro-minim/assets/images/hero-featured.jpg
+        - $formkit: text
+          name: hero_scroll_hint
+          label: Hero 滚动提示
+          value: 向下滚动
+        - $formkit: number
+          name: hero_featured_size
+          label: Hero 右侧文章数量
+          value: 4
+          min: 1
+          max: 8
+          step: 1
+        - $formkit: text
+          name: hero_empty_text
+          label: Hero 无文章提示
+          value: 还没有发布文章。
+        - $formkit: switch
+          name: show_latest
+          label: 显示最新文章
+          value: true
+        - $formkit: text
+          name: latest_title
+          label: 最新文章标题
+          value: 最新文章
+        - $formkit: number
+          name: latest_size
+          label: 首页文章展示数量
+          value: 3
+          min: 1
+          max: 6
+          step: 1
+        - $formkit: text
+          name: latest_action_label
+          label: 最新文章按钮文案
+          value: 查看全部文章
+        - $formkit: text
+          name: latest_empty_text
+          label: 无文章提示
+          value: 还没有发布文章。
+        - $formkit: switch
+          name: show_categories
+          label: 显示分类模块
+          value: true
+        - $formkit: text
+          name: categories_title
+          label: 分类模块标题
+          value: 分类
+        - $formkit: number
+          name: categories_size
+          label: 首页分类展示数量
+          value: 4
+          min: 1
+          max: 8
+          step: 1
+        - $formkit: text
+          name: category_fallback_description
+          label: 分类描述兜底
+          value: 继续探索这个分类下的内容
+        - $formkit: text
+          name: categories_all_title
+          label: 全部分类卡片标题
+          value: 全部
+        - $formkit: text
+          name: categories_all_description
+          label: 全部分类卡片描述
+          value: 浏览所有文章内容
+        - $formkit: text
+          name: categories_cta_label
+          label: 分类卡片 CTA
+          value: 探索
+        - $formkit: text
+          name: categories_cursor_text
+          label: 分类悬浮 Cursor 文案
+          value: 查看
+        - $formkit: switch
+          name: show_about
+          label: 显示首页关于模块
+          value: true
+        - $formkit: text
+          name: about_eyebrow
+          label: 关于模块标签
+          value: About
+        - $formkit: text
+          name: about_title
+          label: 关于标题
+          value: 关于
+        - $formkit: text
+          name: about_subtitle
+          label: 关于副标题
+          value: 艺术的生活家
+        - $formkit: textarea
+          name: about_paragraph_1
+          label: 关于段落一
+          value: 氢风格博客诞生于对简约美学的追求。我们相信，好的设计应该像氢气一样——轻快、简洁、流畅，却蕴含着无限的可能。
+        - $formkit: textarea
+          name: about_paragraph_2
+          label: 关于段落二
+          value: 在这里，我们分享关于设计、科技与生活方式的思考。每一篇文章都是精心策划的创意表达，旨在为读者带来启发与美的享受。
+        - $formkit: textarea
+          name: about_paragraph_3
+          label: 关于段落三
+          value: 33% 的自由，66% 的内容。这是氢视窗的哲学，也是我们对内容创作的坚持——在结构化的框架中，保留艺术的呼吸空间。
+        - $formkit: text
+          name: about_articles_label
+          label: 文章统计标签
+          value: 篇文章
+        - $formkit: text
+          name: about_categories_label
+          label: 分类统计标签
+          value: 个分类
+        - $formkit: text
+          name: about_readers_label
+          label: 读者统计标签
+          value: 位读者
+        - $formkit: text
+          name: about_readers
+          label: 读者展示值
+          value: 2.4k
+        - $formkit: switch
+          name: about_show_socials
+          label: 首页关于模块显示社交链接
+          value: true
+    - group: post
+      label: 文章详情
+      formSchema:
+        - $formkit: text
+          name: eyebrow
+          label: 顶部标签
+          value: Post
+        - $formkit: switch
+          name: show_cover
+          label: 显示文章封面 Hero
+          value: true
+        - $formkit: switch
+          name: show_visit
+          label: 显示阅读数
+          value: true
+        - $formkit: switch
+          name: show_upvote_meta
+          label: 显示点赞数
+          value: true
+        - $formkit: switch
+          name: show_comment_meta
+          label: 显示评论数
+          value: true
+        - $formkit: text
+          name: visit_label
+          label: 阅读数标签
+          value: 阅读
+        - $formkit: text
+          name: upvote_label
+          label: 点赞数标签
+          value: 点赞
+        - $formkit: text
+          name: comment_label
+          label: 评论数标签
+          value: 评论
+        - $formkit: switch
+          name: show_author
+          label: 显示作者卡片
+          value: true
+        - $formkit: text
+          name: author_label
+          label: 作者卡片标签
+          value: 作者
+        - $formkit: text
+          name: contributor_label
+          label: 协作者标签
+          value: 协作
+        - $formkit: switch
+          name: show_neighbors
+          label: 显示上一篇/下一篇
+          value: true
+        - $formkit: text
+          name: previous_label
+          label: 上一篇标签
+          value: 上一篇
+        - $formkit: text
+          name: next_label
+          label: 下一篇标签
+          value: 下一篇
+        - $formkit: switch
+          name: enable_comment
+          label: 启用文章评论区
+          value: true
+        - $formkit: text
+          name: comments_title
+          label: 评论区标题
+          value: 评论
+        - $formkit: switch
+          name: enable_toc
+          label: 启用目录
+          value: true
+        - $formkit: text
+          name: toc_title
+          label: 目录标题
+          value: 目录
+        - $formkit: text
+          name: toc_loading_text
+          label: 目录加载文案
+          value: 加载中
+        - $formkit: text
+          name: toc_empty_text
+          label: 无目录文案
+          value: 无目录
+        - $formkit: text
+          name: toc_count_suffix
+          label: 目录数量后缀
+          value: 节
+        - $formkit: switch
+          name: enable_reading_progress
+          label: 启用阅读进度
+          value: true
+        - $formkit: text
+          name: progress_title
+          label: 阅读进度标题
+          value: 阅读进度
+        - $formkit: switch
+          name: enable_action_rail
+          label: 启用右侧操作栏
+          value: true
+        - $formkit: switch
+          name: enable_upvote
+          label: 启用点赞按钮
+          value: true
+        - $formkit: switch
+          name: enable_share
+          label: 启用分享按钮
+          value: true
+        - $formkit: text
+          name: action_comment_label
+          label: 操作栏评论文案
+          value: 评论
+        - $formkit: text
+          name: action_upvote_label
+          label: 操作栏点赞文案
+          value: 点赞
+        - $formkit: text
+          name: action_share_label
+          label: 操作栏分享文案
+          value: 分享
+        - $formkit: text
+          name: action_share_value_label
+          label: 分享按钮值文案
+          value: Link
+        - $formkit: text
+          name: action_top_label
+          label: 操作栏回到顶部文案
+          value: 回到顶部
+        - $formkit: text
+          name: share_copied_text
+          label: 分享复制成功文案
+          value: 已复制
+        - $formkit: text
+          name: copy_prompt_title
+          label: 复制失败提示标题
+          value: 复制链接
+        - $formkit: text
+          name: upvote_error_text
+          label: 点赞失败提示
+          value: 点赞失败，请稍后再试
+        - $formkit: switch
+          id: post_enable_related_posts
+          key: post_enable_related_posts
+          name: enable_related_posts
+          label: 启用继续阅读
+          value: true
+        - $formkit: text
+          if: $get(post_enable_related_posts).value === true
+          key: post_related_title
+          name: related_title
+          label: 继续阅读标题
+          value: 继续阅读
+        - $formkit: text
+          if: $get(post_enable_related_posts).value === true
+          key: post_related_archive_label
+          name: related_archive_label
+          label: 全部归档按钮文案
+          value: 全部归档
+        - $formkit: number
+          if: $get(post_enable_related_posts).value === true
+          key: post_related_posts_size
+          name: related_posts_size
+          label: 继续阅读展示数量
+          value: 3
+          min: 1
+          max: 6
+          step: 1
+        - $formkit: number
+          if: $get(post_enable_related_posts).value === true
+          key: post_related_fallback_latest_size
+          name: related_fallback_latest_size
+          label: 继续阅读回退池数量
+          value: 8
+          min: 3
+          max: 20
+          step: 1
+    - group: page
+      label: 页面
+      formSchema:
+        - $formkit: text
+          name: eyebrow
+          label: 普通页面标签
+          value: Page
+        - $formkit: switch
+          name: show_cover
+          label: 显示页面封面
+          value: true
+        - $formkit: switch
+          name: show_publish_time
+          label: 显示发布时间
+          value: true
+        - $formkit: switch
+          name: enable_comment
+          label: 启用页面评论区
+          value: true
+        - $formkit: text
+          name: comments_title
+          label: 普通页面评论标题
+          value: 评论
+        - $formkit: text
+          name: about_eyebrow
+          label: 关于页标签
+          value: About
+        - $formkit: switch
+          name: about_show_stats
+          label: 关于页显示统计
+          value: true
+        - $formkit: text
+          name: about_contact_eyebrow
+          label: 关于页联系标签
+          value: Connect
+        - $formkit: text
+          name: about_contact_title
+          label: 关于页联系标题
+          value: 保持联系
+        - $formkit: switch
+          name: about_enable_comment
+          label: 关于页启用评论
+          value: true
+        - $formkit: text
+          name: author_eyebrow
+          label: 作者页标签
+          value: Hydro-Minim / Author
+        - $formkit: text
+          name: author_articles_label
+          label: 作者页文章标签
+          value: 文章
+        - $formkit: text
+          name: author_joined_label
+          label: 作者页加入标签
+          value: 加入
+        - $formkit: text
+          name: author_count_prefix
+          label: 作者页文章数量前缀
+          value: 共
+        - $formkit: text
+          name: author_count_suffix
+          label: 作者页文章数量后缀
+          value: 篇
+        - $formkit: text
+          name: author_empty_text
+          label: 作者页空状态
+          value: 这位作者还没有文章。
+        - $formkit: text
+          name: error_eyebrow
+          label: 错误页标签
+          value: Hydro-Minim
+        - $formkit: text
+          name: error_default_text
+          label: 错误页默认文案
+          value: 页面没有找到，或它已经像氢气一样轻轻飘走。
+        - $formkit: text
+          name: error_home_label
+          label: 错误页返回首页文案
+          value: 返回首页
+    - group: archive
+      label: 归档
+      formSchema:
+        - $formkit: text
+          name: eyebrow
+          label: 顶部标签
+          value: Hydro-Minim / Archives
+        - $formkit: text
+          name: title
+          label: 页面标题
+          value: 归档
+        - $formkit: textarea
+          name: description
+          label: 页面描述
+          value: 文章按发布时间归入年份和月份，方便回看往期内容。
+        - $formkit: switch
+          name: show_meta
+          label: 显示统计区
+          value: true
+        - $formkit: text
+          name: articles_metric_label
+          label: 文章统计标签
+          value: Articles
+        - $formkit: text
+          name: page_metric_label
+          label: 页码统计标签
+          value: Page
+        - $formkit: text
+          name: year_label
+          label: 年份区标签
+          value: Year
+        - $formkit: text
+          name: month_unit
+          label: 月份单位
+          value: 个月份
+        - $formkit: text
+          name: month_suffix
+          label: 月份标题后缀
+          value: 月
+        - $formkit: text
+          name: post_unit
+          label: 文章数量单位
+          value: 篇
+        - $formkit: switch
+          name: show_post_cover
+          label: 显示文章缩略图
+          value: true
+        - $formkit: text
+          name: empty_text
+          label: 空状态文案
+          value: 还没有归档文章。
+    - group: taxonomy
+      label: 分类与标签
+      formSchema:
+        - $formkit: text
+          name: category_eyebrow
+          label: 分类列表标签
+          value: Hydro-Minim / Categories
+        - $formkit: text
+          name: category_title
+          label: 分类列表标题
+          value: 分类
+        - $formkit: textarea
+          name: category_description
+          label: 分类列表描述
+          value: 按主题收束文章，从一个分类进入一组连续的阅读线索。
+        - $formkit: switch
+          name: category_show_meta
+          label: 分类列表显示统计
+          value: true
+        - $formkit: text
+          name: category_groups_metric_label
+          label: 分类数量标签
+          value: Groups
+        - $formkit: text
+          name: category_mode_metric_label
+          label: 分类模式标签
+          value: Mode
+        - $formkit: text
+          name: category_mode_value
+          label: 分类模式值
+          value: Index
+        - $formkit: text
+          name: category_item_fallback_description
+          label: 分类描述兜底
+          value: 这个分类下收纳了一组相近主题的文章。
+        - $formkit: text
+          name: category_child_label
+          label: 子分类标签
+          value: Sub
+        - $formkit: text
+          name: category_post_unit
+          label: 分类文章数量单位
+          value: 篇
+        - $formkit: text
+          name: category_empty_text
+          label: 分类列表空态
+          value: 还没有创建分类。
+        - $formkit: text
+          name: category_detail_eyebrow
+          label: 分类详情标签
+          value: Category
+        - $formkit: text
+          name: category_detail_fallback_description
+          label: 分类详情描述兜底
+          value: 这个分类下的文章都会在这里汇集。
+        - $formkit: text
+          name: category_detail_empty_text
+          label: 分类详情空态
+          value: 这个分类下还没有文章。
+        - $formkit: text
+          name: tag_eyebrow
+          label: 标签列表标签
+          value: Hydro-Minim / Tags
+        - $formkit: text
+          name: tag_title
+          label: 标签列表标题
+          value: 标签
+        - $formkit: textarea
+          name: tag_description
+          label: 标签列表描述
+          value: 把散落的文章压缩成一组轻量关键词，从一个符号进入另一条阅读路径。
+        - $formkit: switch
+          name: tag_show_meta
+          label: 标签列表显示统计
+          value: true
+        - $formkit: text
+          name: tag_keywords_metric_label
+          label: 标签数量标签
+          value: Keywords
+        - $formkit: text
+          name: tag_shape_metric_label
+          label: 标签形态标签
+          value: Shape
+        - $formkit: text
+          name: tag_shape_value
+          label: 标签形态值
+          value: Cloud
+        - $formkit: text
+          name: tag_empty_text
+          label: 标签列表空态
+          value: 还没有创建标签。
+        - $formkit: text
+          name: tag_detail_eyebrow
+          label: 标签详情标签
+          value: Tag
+        - $formkit: text
+          name: tag_detail_description
+          label: 标签详情描述
+          value: 标签归档
+        - $formkit: text
+          name: tag_detail_empty_text
+          label: 标签详情空态
+          value: 这个标签下还没有文章。
+    - group: search
+      label: 搜索
+      formSchema:
+        - $formkit: text
+          name: eyebrow
+          label: 顶部标签
+          value: Hydro-Minim / Search
+        - $formkit: text
+          name: title
+          label: 页面标题
+          value: 搜索
+        - $formkit: textarea
+          name: description
+          label: 页面描述
+          value: 输入关键词，在站点内容里快速找到相关的想法、文章和记录。
+        - $formkit: text
+          name: placeholder
+          label: 搜索框占位文案
+          value: 搜索文章...
+        - $formkit: number
+          name: limit
+          label: 搜索结果数量
+          value: 20
+          min: 5
+          max: 50
+          step: 1
+        - $formkit: text
+          name: keyword_label
+          label: 输入框标签
+          value: Keyword
+        - $formkit: text
+          name: submit_label
+          label: 搜索按钮文案
+          value: 搜索
+        - $formkit: text
+          name: results_metric_label
+          label: 结果统计标签
+          value: Results
+        - $formkit: text
+          name: limit_metric_label
+          label: 数量统计标签
+          value: Limit
+        - $formkit: text
+          name: found_label
+          label: 搜索摘要标签
+          value: Found
+        - $formkit: text
+          name: result_suffix
+          label: 结果数量后缀
+          value: 个结果
+        - $formkit: text
+          name: no_results_label
+          label: 无结果状态标签
+          value: No Results
+        - $formkit: text
+          name: empty_text
+          label: 无结果提示
+          value: 没有搜索到文章，换个关键词再试试。
+        - $formkit: text
+          name: ready_label
+          label: 未输入状态标签
+          value: Ready
+        - $formkit: text
+          name: idle_text
+          label: 未输入关键词提示
+          value: 输入关键词后开始搜索，也可以先看看最近更新。
+        - $formkit: switch
+          name: show_recommendations
+          label: 无关键词或无结果时显示推荐文章
+          value: true
+        - $formkit: number
+          name: recommendation_size
+          label: 推荐文章数量
+          value: 3
+          min: 1
+          max: 9
+          step: 1
+        - $formkit: text
+          name: recommendations_eyebrow
+          label: 推荐区标签
+          value: Recent
+        - $formkit: text
+          name: recommendations_title
+          label: 推荐区标题
+          value: 最近更新
+    - group: share
+      label: 分享海报
+      formSchema:
+        - $formkit: text
+          name: title
+          label: 页面标题
+          value: 分享海报
+        - $formkit: text
+          name: eyebrow
+          label: 页面标签
+          value: Hydro-Minim / Poster
+        - $formkit: textarea
+          name: post_description
+          label: 文章海报描述
+          value: 把文章整理成一张适合保存与转发的轻量海报。
+        - $formkit: textarea
+          name: moment_description
+          label: 瞬间海报描述
+          value: 把瞬间整理成一张适合保存与转发的轻量海报。
+        - $formkit: textarea
+          name: unsupported_description
+          label: 不支持类型描述
+          value: 当前分享类型暂未支持。
+        - $formkit: text
+          name: post_card_eyebrow
+          label: 文章卡片标签
+          value: Post
+        - $formkit: text
+          name: moment_card_eyebrow
+          label: 瞬间卡片标签
+          value: Moment
+        - $formkit: text
+          name: qr_alt
+          label: 二维码替代文本
+          value: 分享二维码
+        - $formkit: text
+          name: panel_eyebrow
+          label: 操作面板标签
+          value: Share
+        - $formkit: text
+          name: panel_title
+          label: 操作面板标题
+          value: 生成与分享
+        - $formkit: textarea
+          name: panel_description
+          label: 操作面板描述
+          value: 二维码会在浏览器中按当前链接生成；如果二维码服务无法访问，也可以直接复制链接分享。
+        - $formkit: text
+          name: copy_label
+          label: 复制按钮文案
+          value: 复制链接
+        - $formkit: text
+          name: print_label
+          label: 打印按钮文案
+          value: 打印/保存
+        - $formkit: text
+          name: back_label
+          label: 返回按钮文案
+          value: 返回上一页
+        - $formkit: text
+          name: empty_title
+          label: 空状态标题
+          value: 没有找到可生成海报的内容。
+        - $formkit: text
+          name: empty_description
+          label: 空状态描述
+          value: 请检查分享类型和内容名称是否正确。
+        - $formkit: text
+          name: copied_text
+          label: 复制成功文案
+          value: 已复制
+        - $formkit: text
+          name: copy_prompt_title
+          label: 复制失败提示标题
+          value: 复制链接
+    - group: links
+      label: 友链
+      formSchema:
+        - $formkit: text
+          name: eyebrow
+          label: 顶部标签
+          value: Links
+        - $formkit: text
+          name: title
+          label: 页面标题
+          value: 友链
+        - $formkit: textarea
+          name: description
+          label: 页面描述
+          value: 与志同道合的创作者相互连接，共同构建开放的网络。
+        - $formkit: text
+          name: site_info_title
+          label: 站点信息标题
+          value: 我的站点信息
+        - $formkit: text
+          name: site_info_description
+          label: 站点信息描述
+          value: 方便你回链
+        - $formkit: text
+          name: site_name_label
+          label: 站名标签
+          value: 站名
+        - $formkit: text
+          name: site_url_label
+          label: 链接标签
+          value: 链接
+        - $formkit: text
+          name: copy_site_name_label
+          label: 复制站名提示
+          value: 复制站名
+        - $formkit: text
+          name: copy_site_url_label
+          label: 复制链接提示
+          value: 复制链接
+        - $formkit: text
+          name: apply_title
+          label: 申请区标题
+          value: 申请友链
+        - $formkit: text
+          name: submit_note
+          label: 在线提交说明
+          value: 支持在线提交友链申请，填写后将进入站点审核流程。
+        - $formkit: text
+          name: submit_button_label
+          label: 在线提交按钮
+          value: 在线提交
+        - $formkit: text
+          name: update_button_label
+          label: 修改友链按钮
+          value: 修改友链
+        - $formkit: text
+          name: unavailable_text
+          label: 未检测到提交插件文案
+          value: 未检测到 LinksSubmit 插件，暂不可在线提交
+        - $formkit: text
+          name: group_count_suffix
+          label: 分组链接数量后缀
+          value: 个链接
+        - $formkit: text
+          name: random_label
+          label: 随机访问提示
+          value: 随机访问
+        - $formkit: text
+          name: empty_text
+          label: 友链空态
+          value: 暂无友链。
+        - $formkit: switch
+          name: enable_comment
+          label: 启用友链页评论
+          value: true
+        - $formkit: text
+          name: comments_title
+          label: 评论标题
+          value: 评论
+        - $formkit: switch
+          id: links_enable_submit
+          key: links_enable_submit
+          name: enable_submit
+          label: 启用在线提交
+          value: false
+          help: 开启后访客可在友链页通过 plugin-links-submit 在线提交申请。
+        - $formkit: select
+          if: $get(links_enable_submit).value === true
+          key: links_verify_type
+          name: verify_type
+          label: 提交验证方式
+          value: email
+          options:
+            - label: 邮箱验证码
+              value: email
+            - label: 图形验证码
+              value: captcha
+            - label: 无需验证
+              value: none
+        - $formkit: switch
+          if: $get(links_enable_submit).value === true
+          key: links_enable_update
+          name: enable_update
+          label: 允许在线修改友链
+          value: false
+        - $formkit: text
+          if: $get(links_enable_submit).value === true
+          key: links_submit_modal_title
+          name: submit_modal_title
+          label: 提交弹窗标题
+          value: 提交友链申请
+        - $formkit: text
+          if: $get(links_enable_submit).value === true
+          key: links_submit_modal_description
+          name: submit_modal_description
+          label: 提交弹窗描述
+          value: 填写你的网站信息，审核通过后将展示在友链页
+        - $formkit: text
+          if: $get(links_enable_submit).value === true
+          key: links_update_modal_title
+          name: update_modal_title
+          label: 修改弹窗标题
+          value: 修改友链信息
+        - $formkit: text
+          if: $get(links_enable_submit).value === true
+          key: links_update_modal_description
+          name: update_modal_description
+          label: 修改弹窗描述
+          value: 请使用原友链邮箱验证身份后提交修改
+        - $formkit: text
+          if: $get(links_enable_submit).value === true
+          key: links_submit_success_text
+          name: submit_success_text
+          label: 提交成功文案
+          value: 提交成功，请等待审核。
+        - $formkit: text
+          if: $get(links_enable_submit).value === true
+          key: links_submit_error_text
+          name: submit_error_text
+          label: 提交失败文案
+          value: 提交失败，请稍后重试。
+        - $formkit: text
+          if: $get(links_enable_submit).value === true
+          key: links_update_success_text
+          name: update_success_text
+          label: 修改成功文案
+          value: 修改成功。
+        - $formkit: text
+          if: $get(links_enable_submit).value === true
+          key: links_update_error_text
+          name: update_error_text
+          label: 修改失败文案
+          value: 修改失败，请稍后重试。
+        - $formkit: text
+          if: $get(links_enable_submit).value === true
+          key: links_form_url_placeholder
+          name: form_url_placeholder
+          label: 网站地址占位
+          value: https://example.com
+        - $formkit: text
+          if: $get(links_enable_submit).value === true
+          key: links_form_name_placeholder
+          name: form_name_placeholder
+          label: 网站名称占位
+          value: 我的博客
+        - $formkit: text
+          if: $get(links_enable_submit).value === true
+          key: links_form_logo_placeholder
+          name: form_logo_placeholder
+          label: 网站图标占位
+          value: Logo URL（可选）
+        - $formkit: text
+          if: $get(links_enable_submit).value === true
+          key: links_form_description_placeholder
+          name: form_description_placeholder
+          label: 网站描述占位
+          value: 一句话介绍你的网站（可选）
+        - $formkit: text
+          if: $get(links_enable_submit).value === true
+          key: links_form_page_url_placeholder
+          name: form_page_url_placeholder
+          label: 友链页面占位
+          value: 友链页面 URL
+        - $formkit: text
+          if: $get(links_enable_submit).value === true
+          key: links_form_rss_url_placeholder
+          name: form_rss_url_placeholder
+          label: RSS 地址占位
+          value: RSS 订阅地址
+        - $formkit: text
+          if: $get(links_enable_submit).value === true
+          key: links_form_email_placeholder
+          name: form_email_placeholder
+          label: 邮箱占位
+          value: your@email.com
+        - $formkit: text
+          if: $get(links_enable_submit).value === true
+          key: links_form_code_placeholder
+          name: form_code_placeholder
+          label: 验证码占位
+          value: 请输入邮箱验证码
+        - $formkit: text
+          if: $get(links_enable_submit).value === true
+          key: links_form_captcha_placeholder
+          name: form_captcha_placeholder
+          label: 图形验证码占位
+          value: 请输入图中字符
+    - group: moments
+      label: 瞬间
+      formSchema:
+        - $formkit: text
+          name: eyebrow
+          label: 顶部标签
+          value: Hydro-Minim / Moments
+        - $formkit: text
+          name: title
+          label: 页面标题
+          value: 瞬间
+        - $formkit: textarea
+          name: description
+          label: 页面描述
+          value: 像朋友圈一样记录正在发生的碎片：图片、视频、声音、音乐和一句短短的心情。
+        - $formkit: number
+          name: page_size
+          label: 每页瞬间数量
+          value: 10
+          min: 5
+          max: 30
+          step: 1
+        - $formkit: text
+          name: total_metric_label
+          label: 总数统计标签
+          value: Total
+        - $formkit: text
+          name: page_metric_label
+          label: 页码统计标签
+          value: Page
+        - $formkit: text
+          name: all_tag_label
+          label: 全部标签文案
+          value: 全部
+        - $formkit: switch
+          name: enable_upvote
+          label: 显示点赞按钮
+          value: true
+        - $formkit: switch
+          name: enable_comment
+          label: 显示评论按钮与评论区
+          value: true
+        - $formkit: switch
+          name: show_detail_link
+          label: 显示瞬间详情入口
+          value: true
+        - $formkit: text
+          name: detail_link_label
+          label: 详情入口文案
+          value: 查看瞬间
+        - $formkit: text
+          name: detail_title
+          label: 瞬间详情标题
+          value: 瞬间详情
+        - $formkit: text
+          name: detail_eyebrow
+          label: 瞬间详情标签
+          value: Hydro-Minim / Moment
+        - $formkit: text
+          name: detail_back_label
+          label: 返回瞬间文案
+          value: 返回瞬间
+        - $formkit: text
+          name: detail_release_label
+          label: 发布时间标签
+          value: Release
+        - $formkit: text
+          name: detail_author_label
+          label: 作者标签
+          value: Author
+        - $formkit: text
+          name: share_poster_label
+          label: 分享海报文案
+          value: 分享海报
+        - $formkit: switch
+          name: enable_share_poster
+          label: 显示分享海报入口
+          value: true
+        - $formkit: text
+          name: upvote_error_text
+          label: 点赞失败提示
+          value: 点赞失败，请稍后再试
+        - $formkit: text
+          name: comments_title
+          label: 评论标题
+          value: 评论
+        - $formkit: text
+          name: empty_text
+          label: 空状态文案
+          value: 暂无瞬间。
+        - $formkit: text
+          name: install_title
+          label: 未安装标题
+          value: 需要安装瞬间插件
+        - $formkit: textarea
+          name: install_text
+          label: 插件未安装提示
+          value: 需要安装并启用 PluginMoments。安装后发布瞬间，这里会展示时间线、图片和评论入口。
+        - $formkit: url
+          name: install_link
+          label: 插件安装链接
+          value: https://www.halo.run/store/apps/app-SnwWD
+        - $formkit: text
+          name: install_link_label
+          label: 安装链接文案
+          value: 应用市场
+        - $formkit: text
+          name: empty_available_text
+          label: 插件可用但无数据提示
+          value: PluginMoments 已可用。发布瞬间后，这里会展示时间线。
+    - group: photos
+      label: 图库
+      formSchema:
+        - $formkit: text
+          name: eyebrow
+          label: 顶部标签
+          value: Gallery
+        - $formkit: text
+          name: title
+          label: 页面标题
+          value: 图库
+        - $formkit: textarea
+          name: description
+          label: 页面描述
+          value: 用镜头定格光影，每一帧都是时间的切片。
+        - $formkit: number
+          name: page_size
+          label: 每页图片数量
+          value: 30
+          min: 6
+          max: 60
+          step: 1
+        - $formkit: text
+          name: all_group_label
+          label: 全部分组文案
+          value: 全部
+        - $formkit: text
+          name: empty_text
+          label: 空状态文案
+          value: 暂无图片。
+        - $formkit: text
+          name: empty_available_text
+          label: 插件可用但无数据提示
+          value: PluginPhotos 已可用。创建分组并上传图片后，这里会展示瀑布流。
+        - $formkit: switch
+          name: enable_comment
+          label: 启用图库页评论
+          value: true
+        - $formkit: text
+          name: comments_title
+          label: 评论标题
+          value: 评论
+        - $formkit: text
+          name: install_title
+          label: 未安装标题
+          value: 需要安装图库插件
+        - $formkit: textarea
+          name: install_text
+          label: 插件未安装提示
+          value: 需要安装并启用 PluginPhotos。在 Halo Console -> 应用市场搜索“图库管理”，创建分组和图片后这里会展示瀑布流。
+        - $formkit: url
+          name: install_link
+          label: 插件安装链接
+          value: https://www.halo.run/store/apps/app-BmQJW
+        - $formkit: text
+          name: install_link_label
+          label: 安装链接文案
+          value: 应用市场
+    - group: equipment
+      label: 装备
+      formSchema:
+        - $formkit: text
+          name: eyebrow
+          label: 顶部标签
+          value: Equipment
+        - $formkit: text
+          name: title
+          label: 页面标题
+          value: 我的装备
+        - $formkit: textarea
+          name: description
+          label: 页面描述
+          value: 记录日常使用的硬件、软件与创作工具。
+        - $formkit: text
+          name: all_group_label
+          label: 全部分组文案
+          value: 全部
+        - $formkit: text
+          name: fallback_description
+          label: 装备描述兜底
+          value: 暂无描述。
+        - $formkit: text
+          name: placeholder_label
+          label: 无封面占位文案
+          value: Hydro Gear
+        - $formkit: text
+          name: empty_text
+          label: 空状态文案
+          value: 暂无装备数据
+        - $formkit: text
+          name: group_empty_text
+          label: 空分组提示
+          value: 该分组暂无装备。可在 plugin-equipment 中补充条目。
+        - $formkit: text
+          name: empty_available_text
+          label: 插件可用但无数据提示
+          value: plugin-equipment 已可用。创建分组并添加硬件、软件或创作工具后，这里会呈现清单。
+        - $formkit: switch
+          name: enable_comment
+          label: 启用装备页留言
+          value: true
+        - $formkit: text
+          name: comments_title
+          label: 留言标题
+          value: 留言
+        - $formkit: text
+          name: install_title
+          label: 未安装标题
+          value: 需要安装装备插件
+        - $formkit: textarea
+          name: install_text
+          label: 插件未安装提示
+          value: 需要安装并启用 plugin-equipment。在 Halo Console -> 应用市场搜索“装备管理”，添加装备分组后这里会自动展示。
+        - $formkit: url
+          name: install_link
+          label: 插件安装链接
+          value: https://www.halo.run/store/apps/app-ytygyqml
+        - $formkit: text
+          name: install_link_label
+          label: 安装链接文案
+          value: 应用市场
+    - group: friends
+      label: 朋友圈
+      formSchema:
+        - $formkit: text
+          name: eyebrow
+          label: 顶部标签
+          value: Friends
+        - $formkit: text
+          name: title
+          label: 页面标题
+          value: 朋友圈
+        - $formkit: textarea
+          name: description
+          label: 页面描述
+          value: 订阅朋友们的最新动态，让创作者之间保持轻盈连接。
+        - $formkit: number
+          name: page_size
+          label: 每页动态数量
+          value: 20
+          min: 5
+          max: 50
+          step: 1
+        - $formkit: text
+          name: empty_text
+          label: 空状态文案
+          value: 暂无朋友动态
+        - $formkit: text
+          name: empty_available_text
+          label: 插件可用但无数据提示
+          value: plugin-friends 已可用。添加订阅源并完成同步后，这里会按时间流展示新文章。
+        - $formkit: switch
+          name: enable_comment
+          label: 启用朋友圈页评论
+          value: true
+        - $formkit: text
+          name: comments_title
+          label: 评论标题
+          value: 评论
+        - $formkit: text
+          name: install_title
+          label: 未安装标题
+          value: 需要安装朋友圈插件
+        - $formkit: textarea
+          name: install_text
+          label: 插件未安装提示
+          value: 需要安装并启用 plugin-friends。在 Halo Console -> 应用市场搜索“朋友圈”，添加订阅源后这里会展示朋友们的新文章。
+        - $formkit: url
+          name: install_link
+          label: 插件安装链接
+          value: https://www.halo.run/store/apps/app-yISsV
+        - $formkit: text
+          name: install_link_label
+          label: 安装链接文案
+          value: 应用市场
+    - group: bangumi
+      label: 追番
+      formSchema:
+        - $formkit: text
+          name: eyebrow
+          label: 顶部标签
+          value: Bangumi
+        - $formkit: text
+          name: title
+          label: 页面标题
+          value: 追番
+        - $formkit: textarea
+          name: description
+          label: 页面描述
+          value: 把看过、想看和正在看的故事安静地陈列起来。
+        - $formkit: number
+          name: item_limit
+          label: 海报展示数量
+          value: 36
+          min: 6
+          max: 120
+          step: 1
+        - $formkit: text
+          name: anime_tab_label
+          label: 追番标签
+          value: 追番
+        - $formkit: text
+          name: drama_tab_label
+          label: 追剧标签
+          value: 追剧
+        - $formkit: text
+          name: all_status_label
+          label: 全部状态标签
+          value: 全部
+        - $formkit: text
+          name: wish_status_label
+          label: 想看状态标签
+          value: 想看
+        - $formkit: text
+          name: watching_status_label
+          label: 在看状态标签
+          value: 在看
+        - $formkit: text
+          name: watched_status_label
+          label: 已看状态标签
+          value: 已看
+        - $formkit: text
+          name: empty_text
+          label: 空状态文案
+          value: 暂无追番数据
+        - $formkit: text
+          name: empty_available_text
+          label: 插件可用但无数据提示
+          value: plugin-bilibili-bangumi 已可用。完成账号绑定与数据同步后，Hydro 会用低饱和海报墙呈现观看记录。
+        - $formkit: switch
+          name: enable_comment
+          label: 启用追番页评论
+          value: true
+        - $formkit: text
+          name: comments_title
+          label: 评论标题
+          value: 评论
+        - $formkit: text
+          name: install_title
+          label: 未安装标题
+          value: 需要安装追番插件
+        - $formkit: textarea
+          name: install_text
+          label: 插件未安装提示
+          value: 需要安装并启用 plugin-bilibili-bangumi。在 Halo Console -> 应用市场搜索“Bilibili 追番”，同步账号数据后这里会展示海报墙。
+        - $formkit: url
+          name: install_link
+          label: 插件安装链接
+          value: https://www.halo.run/store/apps/app-OTFPN
+        - $formkit: text
+          name: install_link_label
+          label: 安装链接文案
+          value: 应用市场
+    - group: steam
+      label: Steam
+      formSchema:
+        - $formkit: text
+          name: eyebrow
+          label: 顶部标签
+          value: Steam
+        - $formkit: text
+          name: title
+          label: 页面标题
+          value: Steam 游戏库
+        - $formkit: textarea
+          name: description
+          label: 页面描述
+          value: 用一张轻盈的游戏清单，记录最近的游玩状态与收藏。
+        - $formkit: number
+          name: recent_limit
+          label: 最近游玩数量
+          value: 8
+          min: 3
+          max: 12
+          step: 1
+        - $formkit: number
+          name: game_page_size
+          label: 游戏库每页数量
+          value: 18
+          min: 6
+          max: 36
+          step: 1
+        - $formkit: switch
+          name: enable_game_link
+          label: 游戏卡片跳转 Steam 商店
+          value: true
+        - $formkit: text
+          name: empty_text
+          label: 游戏库空状态文案
+          value: 暂无 Steam 游戏数据
+        - $formkit: text
+          name: empty_available_text
+          label: 插件可用但无数据提示
+          value: plugin-steam 已可用。同步账号数据后，这里会展示最近游玩和游戏库。
+        - $formkit: text
+          name: error_text
+          label: Steam API 异常提示
+          value: Steam 数据暂时不可用
+        - $formkit: text
+          name: profile_loading_status
+          label: 资料状态加载文案
+          value: Loading
+        - $formkit: text
+          name: profile_loading_name
+          label: 资料名称加载文案
+          value: 正在读取 Steam 资料
+        - $formkit: text
+          name: games_metric_label
+          label: 游戏数标签
+          value: Games
+        - $formkit: text
+          name: total_time_metric_label
+          label: 总时长标签
+          value: Total Time
+        - $formkit: text
+          name: recent_metric_label
+          label: 最近游玩统计标签
+          value: Recent
+        - $formkit: text
+          name: recent_section_eyebrow
+          label: 最近游玩模块标签
+          value: Recent
+        - $formkit: text
+          name: recent_section_title
+          label: 最近游玩模块标题
+          value: 最近游玩
+        - $formkit: text
+          name: recent_loading_text
+          label: 最近游玩加载文案
+          value: 正在加载最近游玩。
+        - $formkit: text
+          name: library_section_eyebrow
+          label: 游戏库模块标签
+          value: Library
+        - $formkit: text
+          name: library_section_title
+          label: 游戏库模块标题
+          value: 游戏库
+        - $formkit: text
+          name: library_loading_text
+          label: 游戏库加载文案
+          value: 正在加载游戏库。
+        - $formkit: text
+          name: sync_hint_text
+          label: 无数据同步提示
+          value: 请确认 plugin-steam 已同步账号数据。
+        - $formkit: text
+          name: config_hint_text
+          label: 接口异常配置提示
+          value: 请确认 plugin-steam 已启用，并已填写 Steam ID/API 配置。
+        - $formkit: text
+          name: previous_label
+          label: 游戏库上一页按钮
+          value: 上一页
+        - $formkit: text
+          name: next_label
+          label: 游戏库下一页按钮
+          value: 下一页
+        - $formkit: switch
+          name: enable_comment
+          label: 启用 Steam 页评论
+          value: true
+        - $formkit: text
+          name: comments_title
+          label: 评论标题
+          value: 评论
+        - $formkit: text
+          name: install_title
+          label: 未安装标题
+          value: 需要安装 Steam 插件
+        - $formkit: textarea
+          name: install_text
+          label: 插件未安装提示
+          value: 需要安装并启用 plugin-steam。在 Halo Console -> 应用市场搜索“Steam 游戏库”，配置 Steam 账号后这里会自动读取。
+        - $formkit: url
+          name: install_link
+          label: 插件安装链接
+          value: https://www.halo.run/store/apps/app-0ojqyzfh
+        - $formkit: text
+          name: install_link_label
+          label: 安装链接文案
+          value: 应用市场
+    - group: docs
+      label: 文档
+      formSchema:
+        - $formkit: text
+          name: eyebrow
+          label: 文档中心标签
+          value: Docs
+        - $formkit: text
+          name: title
+          label: 文档中心标题
+          value: 文档中心
+        - $formkit: textarea
+          name: description
+          label: 文档中心描述
+          value: 把项目说明、使用手册和长期知识整理成清晰的入口。
+        - $formkit: switch
+          name: enable_toc
+          label: 文档内容页显示目录
+          value: true
+        - $formkit: text
+          name: doc_eyebrow
+          label: 文档详情标签
+          value: Documentation
+        - $formkit: text
+          name: catalog_eyebrow
+          label: 文档目录标签
+          value: Catalog
+        - $formkit: text
+          name: toc_title
+          label: 文档目录标题
+          value: 目录
+        - $formkit: text
+          name: toc_empty_text
+          label: 文档无目录文案
+          value: 无目录
+        - $formkit: text
+          name: previous_label
+          label: 上一篇标签
+          value: 上一篇
+        - $formkit: text
+          name: next_label
+          label: 下一篇标签
+          value: 下一篇
+        - $formkit: text
+          name: doc_count_suffix
+          label: 文档数量后缀
+          value: 篇文档
+        - $formkit: text
+          name: empty_text
+          label: 文档中心空状态
+          value: 暂无文档项目
+        - $formkit: text
+          name: catalog_empty_title
+          label: 目录空状态标题
+          value: 目录暂时为空
+        - $formkit: text
+          name: catalog_empty_text
+          label: 目录空状态描述
+          value: plugin-docsme 已可用。在 Docsme 中添加子文档后，这里会显示目录入口。
+        - $formkit: text
+          name: unavailable_text
+          label: 文档不可用提示
+          value: 文档暂时不可用
+        - $formkit: text
+          name: unavailable_description
+          label: 文档不可用描述
+          value: plugin-docsme 已可用。请确认该文档存在、已发布，并且当前路由由 Docsme 正确提供。
+        - $formkit: text
+          name: catalog_unavailable_title
+          label: 目录不可用标题
+          value: 目录暂时不可用
+        - $formkit: text
+          name: catalog_unavailable_description
+          label: 目录不可用描述
+          value: plugin-docsme 已可用。请确认该目录存在、已发布，并且当前路由由 Docsme 正确提供。
+        - $formkit: switch
+          name: enable_comment
+          label: 启用文档页评论
+          value: true
+        - $formkit: text
+          name: comments_title
+          label: 评论标题
+          value: 评论
+        - $formkit: text
+          name: install_title
+          label: 未安装标题
+          value: 需要安装 Docsme 插件
+        - $formkit: textarea
+          name: install_text
+          label: 插件未安装提示
+          value: 需要安装并启用 plugin-docsme 1.4.0 或更高版本。安装后创建文档项目，这里会展示知识库入口。
+        - $formkit: text
+          name: upgrade_title
+          label: 版本过低标题
+          value: 需要升级 Docsme 插件
+        - $formkit: textarea
+          name: upgrade_text
+          label: 插件版本过低提示
+          value: 已检测到 plugin-docsme，但当前文档模板需要 1.4.0 或更高版本。升级后文档项目会在这里展示。
+        - $formkit: url
+          name: install_link
+          label: 插件安装链接
+          value: https://www.halo.run/store/apps/app-yffxw
+        - $formkit: text
+          name: install_link_label
+          label: 安装链接文案
+          value: 应用市场
+    - group: advanced
+      label: 高级
+      formSchema:
+        - $formkit: code
+          name: head_html
+          label: 自定义 Head HTML
+          language: html
+          value: ""
+        - $formkit: code
+          name: footer_html
+          label: 自定义页脚 HTML
+          language: html
+          value: ""
+        - $formkit: code
+          name: code_css
+          label: 自定义 CSS
+          language: css
+          value: ""
+        - $formkit: code
+          name: code_js
+          label: 自定义 JavaScript
+          language: javascript
+          value: ""
+        - $formkit: url
+          name: qr_service_url
+          label: 海报二维码服务
+          value: https://api.qrserver.com/v1/create-qr-code/
+          help: 需要支持 size、margin、data 查询参数。
+        - $formkit: number
+          name: steam_cache_ttl_minutes
+          label: Steam 前端缓存分钟数
+          value: 3
+          min: 0
+          max: 60
+          step: 1

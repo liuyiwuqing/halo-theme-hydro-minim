@@ -1,0 +1,131 @@
+<include src="layout.html">
+  <template name="head">
+    <title
+      th:text="${searchResult != null and not #strings.isEmpty(searchResult.keyword) ? '搜索结果：' + searchResult.keyword + ' - ' + site.title : (theme.config.search?.title ?: '搜索') + ' - ' + site.title}"
+    >
+      搜索
+    </title>
+  </template>
+
+  <section
+    class="hydro-search-page"
+    th:with="
+      searchConfig=${theme.config.search},
+      searchKeyword=${searchResult != null ? searchResult.keyword : ''},
+      hasKeyword=${not #strings.isEmpty(searchKeyword)},
+      searchHits=${searchResult != null ? searchResult.hits : null},
+      hasHits=${searchHits != null and not #lists.isEmpty(searchHits)},
+      searchTotal=${searchResult != null ? searchResult.total : 0},
+      searchLimit=${searchConfig == null or searchConfig.limit == null or searchConfig.limit < 1 ? 20 : searchConfig.limit},
+      recommendationSize=${searchConfig == null or searchConfig.recommendation_size == null or searchConfig.recommendation_size < 1 ? 3 : searchConfig.recommendation_size},
+      recommendedPosts=${postFinder.list({page: 1, size: recommendationSize, sort: {'spec.publishTime,desc'}}).items}
+    "
+  >
+    <div class="hydro-container">
+      <header class="hydro-search-hero">
+        <div class="hydro-search-hero__copy">
+          <p th:text="${searchConfig?.eyebrow ?: 'Hydro-Minim / Search'}">Hydro-Minim / Search</p>
+          <h1 th:text="${hasKeyword ? '搜索：' + searchKeyword : (searchConfig?.title ?: '搜索')}">搜索</h1>
+          <span th:text="${searchConfig?.description ?: '输入关键词，在站点内容里快速找到相关的想法、文章和记录。'}">
+            输入关键词，在站点内容里快速找到相关的想法、文章和记录。
+          </span>
+        </div>
+        <dl class="hydro-search-hero__meta">
+          <div>
+            <dt th:text="${searchConfig?.results_metric_label ?: 'Results'}">Results</dt>
+            <dd th:text="${searchTotal ?: 0}">0</dd>
+          </div>
+          <div>
+            <dt th:text="${searchConfig?.limit_metric_label ?: 'Limit'}">Limit</dt>
+            <dd th:text="${searchLimit}">20</dd>
+          </div>
+        </dl>
+      </header>
+
+      <form class="hydro-search-form" th:action="@{/search}" method="get">
+        <label>
+          <span>Keyword</span>
+          <input
+            name="keyword"
+            type="search"
+            th:value="${searchKeyword}"
+            th:placeholder="${searchConfig?.placeholder ?: '搜索文章...'}"
+            autocomplete="off"
+            required
+            autofocus
+          />
+        </label>
+        <input type="hidden" name="limit" th:value="${searchLimit}" />
+        <button type="submit" th:attr="aria-label=${searchConfig?.submit_label ?: '搜索'}">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="11" cy="11" r="7"></circle>
+            <path d="m20 20-3.5-3.5"></path>
+          </svg>
+          <span th:text="${searchConfig?.submit_label ?: '搜索'}">搜索</span>
+        </button>
+      </form>
+
+      <div class="hydro-search-summary" th:if="${hasKeyword and hasHits}">
+        <span th:text="${searchConfig?.found_label ?: 'Found'}">Found</span>
+        <strong th:text="|${searchTotal} ${searchConfig?.result_suffix ?: '个结果'}|">0 个结果</strong>
+      </div>
+
+      <div class="hydro-search-results" th:if="${hasHits}">
+        <article
+          class="hydro-search-result"
+          th:each="hit,stat : ${searchHits}"
+          th:style="|--search-order: ${stat.index};|"
+        >
+          <a th:href="@{${hit.permalink}}">
+            <span class="hydro-search-result__index" th:text="${#numbers.formatInteger(stat.count, 2)}">01</span>
+            <span class="hydro-search-result__body">
+              <strong th:utext="${hit.title}">搜索结果标题</strong>
+              <span th:if="${not #strings.isEmpty(hit.description)}" th:utext="${hit.description}">搜索结果摘要</span>
+              <time
+                th:if="${hit.creationTimestamp != null}"
+                th:datetime="${#dates.format(hit.creationTimestamp, 'yyyy-MM-dd')}"
+                th:text="${#dates.format(hit.creationTimestamp, 'yyyy.MM.dd')}"
+              >
+                2026.05.13
+              </time>
+            </span>
+            <span class="hydro-search-result__arrow" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M7 17 17 7M9 7h8v8"></path>
+              </svg>
+            </span>
+          </a>
+        </article>
+      </div>
+
+      <div class="hydro-search-state" th:if="${hasKeyword and not hasHits}">
+        <span th:text="${searchConfig?.no_results_label ?: 'No Results'}">No Results</span>
+        <strong th:text="${searchConfig?.empty_text ?: '没有搜索到文章，换个关键词再试试。'}">
+          没有搜索到文章，换个关键词再试试。
+        </strong>
+      </div>
+
+      <div class="hydro-search-state" th:if="${not hasKeyword}">
+        <span th:text="${searchConfig?.ready_label ?: 'Ready'}">Ready</span>
+        <strong th:text="${searchConfig?.idle_text ?: '输入关键词后开始搜索，也可以先看看最近更新。'}">
+          输入关键词后开始搜索，也可以先看看最近更新。
+        </strong>
+      </div>
+
+      <section
+        class="hydro-search-recommendations"
+        th:if="${(searchConfig == null or searchConfig.show_recommendations != false) and not #lists.isEmpty(recommendedPosts) and (not hasKeyword or not hasHits)}"
+      >
+        <div class="hydro-plugin-section__head">
+          <span th:text="${searchConfig?.recommendations_eyebrow ?: 'Recent'}">Recent</span>
+          <h2 th:text="${searchConfig?.recommendations_title ?: '最近更新'}">最近更新</h2>
+        </div>
+        <div class="hydro-list-grid">
+          <th:block th:each="post,stat : ${recommendedPosts}">
+            <th:block th:replace="~{modules/post-card :: post-card(${post},${stat.index})}" />
+          </th:block>
+        </div>
+      </section>
+    </div>
+  </section>
+</include>

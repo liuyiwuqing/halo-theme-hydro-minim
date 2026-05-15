@@ -1,24 +1,40 @@
-<footer class="hydro-footer" th:with="menu = ${menuFinder.getPrimary()}">
-  <div class="hydro-footer__marquee" aria-hidden="true">
+<footer
+  class="hydro-footer"
+  th:with="
+    menu = ${menuFinder.getPrimary()},
+    footerConfig = ${theme.config.footer},
+    footerMarqueeText = ${footerConfig == null or #strings.isEmpty(footerConfig.marquee_text) ? '氢' : footerConfig.marquee_text},
+    footerBrandText = ${footerConfig == null or #strings.isEmpty(footerConfig.brand_text) ? '氢' : footerConfig.brand_text},
+    footerDescription = ${footerConfig == null or #strings.isEmpty(footerConfig.description) ? (site.subtitle ?: '艺术的生活家。在结构化与自由之间，寻找设计的平衡。') : footerConfig.description},
+    footerCopyright = ${footerConfig == null or #strings.isEmpty(footerConfig.copyright) ? '© {year} {site}. 保留所有权利.' : footerConfig.copyright},
+    footerCopyrightYear = ${#strings.replace(footerCopyright, '{year}', #dates.format(#dates.createNow(), 'yyyy'))},
+    footerCopyrightText = ${#strings.replace(footerCopyrightYear, '{site}', site.title)},
+    footerBuildText = ${footerConfig == null or #strings.isEmpty(footerConfig.build_text) ? '用 ♥ 与氢气构建' : footerConfig.build_text},
+    socialLinks = ${theme.config.site?.social_links}
+  "
+>
+  <div
+    th:if="${footerConfig == null or footerConfig.show_marquee != false}"
+    class="hydro-footer__marquee"
+    aria-hidden="true"
+  >
     <div class="hydro-marquee-track">
-      <span>氢</span>
-      <span>氢</span>
-      <span>氢</span>
-      <span>氢</span>
+      <span th:text="${footerMarqueeText}">氢</span>
+      <span th:text="${footerMarqueeText}">氢</span>
+      <span th:text="${footerMarqueeText}">氢</span>
+      <span th:text="${footerMarqueeText}">氢</span>
     </div>
   </div>
 
   <div class="hydro-footer__inner">
     <div class="hydro-footer__grid">
       <div>
-        <a class="hydro-footer__brand" th:href="@{/}">氢</a>
-        <p th:text="${site.subtitle ?: '艺术的生活家。在结构化与自由之间，寻找设计的平衡。'}">
-          艺术的生活家。在结构化与自由之间，寻找设计的平衡。
-        </p>
+        <a class="hydro-footer__brand" th:href="@{/}" th:text="${footerBrandText}">氢</a>
+        <p th:text="${footerDescription}">艺术的生活家。在结构化与自由之间，寻找设计的平衡。</p>
       </div>
 
-      <div>
-        <h2>导航</h2>
+      <div th:if="${footerConfig == null or footerConfig.show_nav != false}">
+        <h2 th:text="${footerConfig?.nav_title ?: '导航'}">导航</h2>
         <ul>
           <th:block th:if="${menu != null} and ${not #lists.isEmpty(menu.menuItems)}">
             <li th:each="item : ${menu.menuItems}">
@@ -29,43 +45,49 @@
             </li>
           </th:block>
           <th:block th:unless="${menu != null} and ${not #lists.isEmpty(menu.menuItems)}">
-            <li>
-              <a class="hydro-wavy-link" href="#about">关于<include src="wavy-line.html" /></a>
-            </li>
-            <li>
-              <a class="hydro-wavy-link" href="#categories">分类<include src="wavy-line.html" /></a>
-            </li>
-            <li>
-              <a class="hydro-wavy-link" th:href="@{/archives}">归档<include src="wavy-line.html" /></a>
-            </li>
-            <li>
-              <a class="hydro-wavy-link" th:href="@{/rss.xml}">RSS<include src="wavy-line.html" /></a>
-            </li>
+            <th:block
+              th:if="${theme.config.navigation?.fallback_links != null and not #lists.isEmpty(theme.config.navigation.fallback_links)}"
+            >
+              <li th:each="item : ${theme.config.navigation.fallback_links}">
+                <a class="hydro-wavy-link" th:href="${item.url}">
+                  <span th:text="${item.label}">导航</span><include src="wavy-line.html" />
+                </a>
+              </li>
+            </th:block>
+            <th:block
+              th:unless="${theme.config.navigation?.fallback_links != null and not #lists.isEmpty(theme.config.navigation.fallback_links)}"
+            >
+              <li>
+                <a class="hydro-wavy-link" href="#about">关于<include src="wavy-line.html" /></a>
+              </li>
+              <li>
+                <a class="hydro-wavy-link" href="#categories">分类<include src="wavy-line.html" /></a>
+              </li>
+              <li>
+                <a class="hydro-wavy-link" th:href="@{/archives}">归档<include src="wavy-line.html" /></a>
+              </li>
+              <li>
+                <a class="hydro-wavy-link" th:href="@{/rss.xml}">RSS<include src="wavy-line.html" /></a>
+              </li>
+            </th:block>
           </th:block>
         </ul>
       </div>
 
-      <div>
-        <h2>社交</h2>
+      <div th:if="${footerConfig == null or footerConfig.show_social != false}">
+        <h2 th:text="${footerConfig?.social_title ?: '社交'}">社交</h2>
         <ul>
-          <li th:if="${not #strings.isEmpty(theme.config.social.twitter)}">
-            <a class="hydro-wavy-link" th:href="${theme.config.social.twitter}" target="_blank" rel="noreferrer">
-              Twitter<include src="wavy-line.html" />
-            </a>
-          </li>
-          <li th:if="${not #strings.isEmpty(theme.config.social.dribbble)}">
-            <a class="hydro-wavy-link" th:href="${theme.config.social.dribbble}" target="_blank" rel="noreferrer">
-              Dribbble<include src="wavy-line.html" />
-            </a>
-          </li>
-          <li th:if="${not #strings.isEmpty(theme.config.social.github)}">
-            <a class="hydro-wavy-link" th:href="${theme.config.social.github}" target="_blank" rel="noreferrer">
-              GitHub<include src="wavy-line.html" />
-            </a>
-          </li>
-          <li th:if="${not #strings.isEmpty(theme.config.social.email)}">
-            <a class="hydro-wavy-link" th:href="${theme.config.social.email}">
-              Email<include src="wavy-line.html" />
+          <li
+            th:each="item : ${socialLinks}"
+            th:if="${socialLinks != null and not #strings.isEmpty(item.url) and item.url != '#'}"
+          >
+            <a
+              class="hydro-wavy-link"
+              th:href="${item.url}"
+              th:target="${item.new_tab == true ? '_blank' : '_self'}"
+              rel="noreferrer"
+            >
+              <span th:text="${item.label}">Social</span><include src="wavy-line.html" />
             </a>
           </li>
         </ul>
@@ -73,10 +95,18 @@
     </div>
 
     <div class="hydro-footer__bar">
-      <p th:text="|© ${#dates.format(#dates.createNow(), 'yyyy')} ${site.title}. 保留所有权利.|">
-        © 2026 Hydro-Minim. 保留所有权利.
+      <p th:text="${footerCopyrightText}">© 2026 Hydro-Minim. 保留所有权利.</p>
+      <p th:text="${footerBuildText}">用 ♥ 与氢气构建</p>
+      <p th:if="${not #strings.isEmpty(theme.config.footer?.icp_text)}">
+        <a th:href="${theme.config.footer.icp_link ?: 'https://beian.miit.gov.cn/'}" target="_blank" rel="noreferrer">
+          <span th:text="${theme.config.footer.icp_text}">ICP 备案号</span>
+        </a>
       </p>
-      <p>用 <span>♥</span> 与氢气构建</p>
+      <p th:if="${not #strings.isEmpty(theme.config.footer?.gongan_text)}">
+        <a th:href="${theme.config.footer.gongan_link ?: '#'}" target="_blank" rel="noreferrer">
+          <span th:text="${theme.config.footer.gongan_text}">公安备案号</span>
+        </a>
+      </p>
     </div>
   </div>
 </footer>

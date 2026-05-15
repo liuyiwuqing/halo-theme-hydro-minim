@@ -1,19 +1,28 @@
 <section id="categories" class="hydro-section hydro-categories" data-categories-section>
   <div class="hydro-section-heading">
-    <h2 class="hydro-section-title">分类</h2>
+    <h2 class="hydro-section-title" th:text="${theme.config.home?.categories_title ?: '分类'}">分类</h2>
   </div>
 
-  <div class="hydro-category-slices" th:with="categories = ${categoryFinder.listAsTree()}">
+  <div
+    class="hydro-category-slices"
+    th:with="
+      categories = ${categoryFinder.listAsTree()},
+      categoriesSize=${theme.config.home?.categories_size == null or theme.config.home.categories_size < 1 ? 4 : theme.config.home.categories_size}
+    "
+  >
     <a
       class="hydro-category-slice"
       th:each="category,stat : ${categories}"
-      th:if="${stat.index < 4}"
+      th:if="${stat.index < categoriesSize}"
       th:href="@{${category.status.permalink}}"
     >
       <strong th:text="${category.spec.displayName}">设计</strong>
-      <em th:text="${category.spec.description ?: '继续探索这个分类下的内容'}">视觉艺术与界面设计的探索</em>
+      <em
+        th:text="${category.spec.description ?: (theme.config.home?.category_fallback_description ?: '继续探索这个分类下的内容')}"
+        >视觉艺术与界面设计的探索</em
+      >
       <span class="hydro-category-slice__cta">
-        探索
+        <span th:text="${theme.config.home?.categories_cta_label ?: '探索'}">探索</span>
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M5 12h14M13 5l7 7-7 7"></path>
         </svg>
@@ -22,10 +31,10 @@
     </a>
 
     <a class="hydro-category-slice hydro-category-slice--all" th:href="@{/archives}">
-      <strong>全部</strong>
-      <em>浏览所有文章内容</em>
+      <strong th:text="${theme.config.home?.categories_all_title ?: '全部'}">全部</strong>
+      <em th:text="${theme.config.home?.categories_all_description ?: '浏览所有文章内容'}">浏览所有文章内容</em>
       <span class="hydro-category-slice__cta">
-        探索
+        <span th:text="${theme.config.home?.categories_cta_label ?: '探索'}">探索</span>
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M5 12h14M13 5l7 7-7 7"></path>
         </svg>
@@ -34,5 +43,7 @@
     </a>
   </div>
 
-  <div class="hydro-cursor" data-hydro-cursor>查看</div>
+  <div class="hydro-cursor" data-hydro-cursor th:text="${theme.config.home?.categories_cursor_text ?: '查看'}">
+    查看
+  </div>
 </section>

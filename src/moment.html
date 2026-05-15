@@ -1,0 +1,180 @@
+<include src="layout.html">
+  <template name="head">
+    <title th:text="|${theme.config.moments?.detail_title ?: '瞬间详情'} - ${site.title}|">瞬间详情</title>
+  </template>
+
+  <section class="hydro-moment-detail-page" th:with="content=${moment.spec.content}">
+    <div class="hydro-container">
+      <nav class="hydro-moment-detail-back" aria-label="瞬间导航">
+        <a th:href="@{/moments}">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"></path></svg>
+          <span th:text="${theme.config.moments?.detail_back_label ?: '返回瞬间'}">返回瞬间</span>
+        </a>
+      </nav>
+
+      <header class="hydro-moment-detail-hero">
+        <p th:text="${theme.config.moments?.detail_eyebrow ?: 'Hydro-Minim / Moment'}">Hydro-Minim / Moment</p>
+        <h1 th:text="${theme.config.moments?.detail_title ?: '瞬间详情'}">瞬间详情</h1>
+        <dl>
+          <div>
+            <dt th:text="${theme.config.moments?.detail_release_label ?: 'Release'}">Release</dt>
+            <dd th:text="${#dates.format(moment.spec.releaseTime, 'yyyy.MM.dd HH:mm')}">2026.05.12 12:00</dd>
+          </div>
+          <div th:if="${moment.owner != null}">
+            <dt th:text="${theme.config.moments?.detail_author_label ?: 'Author'}">Author</dt>
+            <dd th:text="${moment.owner.displayName}">Hydro</dd>
+          </div>
+        </dl>
+      </header>
+
+      <div class="hydro-moment-detail-shell">
+        <article class="hydro-moment hydro-moment--detail is-visible" data-moment>
+          <aside class="hydro-moment__rail" aria-hidden="true">
+            <time th:text="${#dates.format(moment.spec.releaseTime, 'MM.dd')}">05.12</time>
+            <span></span>
+          </aside>
+
+          <div class="hydro-moment__card">
+            <header class="hydro-moment__header">
+              <div class="hydro-moment__author" th:if="${moment.owner != null}">
+                <img
+                  th:if="${moment.owner.avatar != null}"
+                  th:src="${moment.owner.avatar}"
+                  th:alt="${moment.owner.displayName}"
+                  loading="lazy"
+                />
+                <span th:text="${moment.owner.displayName}">Hydro</span>
+              </div>
+              <time
+                th:datetime="${moment.spec.releaseTime}"
+                th:text="${#dates.format(moment.spec.releaseTime, 'yyyy.MM.dd HH:mm')}"
+              >
+                2026.05.12 12:00
+              </time>
+            </header>
+
+            <div
+              class="hydro-moment__content hydro-prose"
+              th:if="${not #strings.isEmpty(content.html)}"
+              th:utext="${content.html}"
+            ></div>
+
+            <div class="hydro-moment__media" th:if="${not #lists.isEmpty(content.medium)}">
+              <div
+                class="hydro-moment__photos"
+                th:classappend="${#lists.size(content.medium) == 1 ? 'is-single' : (
+                  #lists.size(content.medium) == 2 ? 'is-double' : '')}"
+              >
+                <button
+                  class="hydro-moment__photo"
+                  th:each="media : ${content.medium}"
+                  th:if="${media.type.name == 'PHOTO'}"
+                  th:attr="data-src=${media.url},data-alt='瞬间图片'"
+                  data-lightbox-trigger
+                >
+                  <img th:src="${media.url}" alt="瞬间图片" loading="lazy" />
+                </button>
+              </div>
+
+              <div class="hydro-moment__attachments">
+                <figure
+                  class="hydro-moment__video"
+                  th:each="media : ${content.medium}"
+                  th:if="${media.type.name == 'VIDEO'}"
+                >
+                  <video th:src="${media.url}" controls preload="metadata"></video>
+                  <figcaption>Video</figcaption>
+                </figure>
+
+                <figure
+                  class="hydro-moment__audio"
+                  th:each="media : ${content.medium}"
+                  th:if="${media.type.name == 'AUDIO'}"
+                >
+                  <span aria-hidden="true">
+                    <svg viewBox="0 0 24 24">
+                      <path d="M9 18V5l10-2v13"></path>
+                      <circle cx="6" cy="18" r="3"></circle>
+                      <circle cx="16" cy="16" r="3"></circle>
+                    </svg>
+                  </span>
+                  <figcaption>Audio</figcaption>
+                  <audio th:src="${media.url}" controls></audio>
+                </figure>
+              </div>
+            </div>
+
+            <footer class="hydro-moment__footer">
+              <div class="hydro-moment__tags" th:if="${not #lists.isEmpty(moment.spec.tags)}">
+                <a th:each="tag : ${moment.spec.tags}" th:href="|/moments?tag=${tag}|">
+                  <span>#</span>
+                  <b th:text="${tag}">tag</b>
+                </a>
+              </div>
+              <div class="hydro-moment__actions">
+                <button
+                  th:if="${theme.config.moments == null or theme.config.moments.enable_upvote != false}"
+                  class="hydro-moment__action hydro-moment__upvote"
+                  type="button"
+                  th:attr="data-moment-upvote=${moment.metadata.name},aria-label=|点赞 ${moment.metadata.name}|"
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"
+                    ></path>
+                  </svg>
+                  <span th:attr="data-upvote-moment-name=${moment.metadata.name}" th:text="${moment.stats.upvote ?: 0}"
+                    >0</span
+                  >
+                </button>
+                <a
+                  th:if="${theme.config.moments == null or theme.config.moments.enable_comment != false}"
+                  class="hydro-moment__action"
+                  href="#comment"
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4Z"></path>
+                  </svg>
+                  <span th:text="${moment.stats.approvedComment ?: 0}">0</span>
+                </a>
+                <a
+                  th:if="${theme.config.moments == null or theme.config.moments.enable_share_poster != false}"
+                  class="hydro-moment__action"
+                  th:href="|/posterShare/moment/${moment.metadata.name}|"
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M7 17 17 7M9 7h8v8"></path>
+                  </svg>
+                  <span th:text="${theme.config.moments?.share_poster_label ?: '分享海报'}">分享海报</span>
+                </a>
+              </div>
+            </footer>
+
+            <section
+              id="comment"
+              class="hydro-moment__comment hydro-moment__comment--detail"
+              th:if="${theme.config.moments == null or theme.config.moments.enable_comment != false}"
+            >
+              <h2 th:text="${theme.config.moments?.comments_title ?: '评论'}">评论</h2>
+              <halo:comment group="moment.halo.run" kind="Moment" th:attr="name=${moment.metadata.name}" />
+            </section>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <div class="hydro-lightbox" data-lightbox aria-hidden="true">
+    <button class="hydro-lightbox__close" data-lightbox-close aria-label="关闭">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+    </button>
+    <button class="hydro-lightbox__prev" data-lightbox-prev aria-label="上一张">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18 9 12l6-6"></path></svg>
+    </button>
+    <img class="hydro-lightbox__img" data-lightbox-img src="" alt="" />
+    <button class="hydro-lightbox__next" data-lightbox-next aria-label="下一张">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"></path></svg>
+    </button>
+    <div class="hydro-lightbox__counter" data-lightbox-counter></div>
+  </div>
+</include>

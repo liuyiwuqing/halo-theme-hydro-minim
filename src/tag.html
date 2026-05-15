@@ -4,7 +4,7 @@
   </template>
 
   <th:block
-    th:with="eyebrow='Tag', title=${'#' + tag.spec.displayName}, description='标签归档'"
+    th:with="eyebrow=${theme.config.taxonomy?.tag_detail_eyebrow ?: 'Tag'}, title=${'#' + tag.spec.displayName}, description=${theme.config.taxonomy?.tag_detail_description ?: '标签归档'}"
     th:replace="~{modules/list-hero}"
   />
 
@@ -15,7 +15,13 @@
           <th:block th:replace="~{modules/post-card :: post-card(${post},${stat.index})}" />
         </th:block>
       </div>
-      <div th:if="${posts.total == 0}" class="hydro-empty">这个标签下还没有文章。</div>
+      <div
+        th:if="${posts.total == 0}"
+        class="hydro-empty"
+        th:text="${theme.config.taxonomy?.tag_detail_empty_text ?: '这个标签下还没有文章。'}"
+      >
+        这个标签下还没有文章。
+      </div>
       <th:block
         th:replace="~{modules/pagination :: pagination(${posts.prevUrl},${posts.nextUrl},${posts.totalPages},${posts.page},${posts.hasPrevious()},${posts.hasNext()})}"
       />

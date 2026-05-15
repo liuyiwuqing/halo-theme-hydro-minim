@@ -1,29 +1,61 @@
 <include src="layout.html">
   <template name="head">
-    <title th:text="|图库 - ${site.title}|">图库</title>
+    <title th:text="|${theme.config.photos?.title ?: '图库'} - ${site.title}|">图库</title>
   </template>
 
   <section class="hydro-list-hero">
     <div class="hydro-container">
-      <p>Gallery</p>
-      <h1>图库</h1>
-      <span>用镜头定格光影，每一帧都是时间的切片。</span>
+      <p th:text="${theme.config.photos?.eyebrow ?: 'Gallery'}">Gallery</p>
+      <h1 th:text="${theme.config.photos?.title ?: '图库'}">图库</h1>
+      <span th:text="${theme.config.photos?.description ?: '用镜头定格光影，每一帧都是时间的切片。'}">
+        用镜头定格光影，每一帧都是时间的切片。
+      </span>
     </div>
   </section>
 
   <section class="hydro-photos-section">
-    <div class="hydro-container">
-      <!-- 分组 Tab 导航 -->
-      <nav class="hydro-photos-tabs" th:with="photoGroups=${photoFinder.groupBy()}">
+    <div
+      class="hydro-container"
+      th:with="
+        hasPhotosPlugin=${pluginFinder.available('PluginPhotos') or pluginFinder.available('plugin-photos')},
+        isSinglePageRoute=${singlePage != null},
+        pageBaseUrl=${isSinglePageRoute ? singlePage.status.permalink : '/photos'},
+        currentGroup=${param.group != null and not #lists.isEmpty(param.group) ? param.group[0] : null},
+        photosPageSize=${theme.config.photos?.page_size == null or theme.config.photos.page_size < 1 ? 30 : theme.config.photos.page_size},
+        photoGroups=${hasPhotosPlugin and photoFinder != null ? photoFinder.groupBy() : null},
+        photosData=${photos != null ? photos : (hasPhotosPlugin and photoFinder != null ? photoFinder.list(1, photosPageSize, currentGroup) : null)},
+        hasPhotosData=${photosData != null and photosData.items != null and not #lists.isEmpty(photosData.items)}"
+    >
+      <div class="hydro-plugin-notice" th:if="${not hasPhotosPlugin}">
+        <strong th:text="${theme.config.photos?.install_title ?: '需要安装图库插件'}">需要安装图库插件</strong>
+        <span
+          class="hydro-plugin-notice__body"
+          th:text="${theme.config.photos?.install_text ?: '需要安装并启用 PluginPhotos。在 Halo Console -> 应用市场搜索“图库管理”，创建分组和图片后这里会展示瀑布流。'}"
+          >需要安装并启用 PluginPhotos。在 Halo Console ->
+          应用市场搜索“图库管理”，创建分组和图片后这里会展示瀑布流。</span
+        >
         <a
-          th:href="@{/photos}"
+          class="hydro-plugin-install-link"
+          th:href="${theme.config.photos?.install_link ?: 'https://www.halo.run/store/apps/app-BmQJW'}"
+          target="_blank"
+          rel="noreferrer noopener"
+          th:text="${theme.config.photos?.install_link_label ?: '应用市场'}"
+          >应用市场</a
+        >
+      </div>
+
+      <!-- 分组 Tab 导航 -->
+      <nav class="hydro-photos-tabs" th:if="${hasPhotosPlugin}" aria-label="图库分组">
+        <a
+          th:href="@{${pageBaseUrl}}"
           class="hydro-photos-tab"
           th:classappend="${#lists.isEmpty(param.group)} ? ' is-active' : ''"
+          th:text="${theme.config.photos?.all_group_label ?: '全部'}"
           >全部</a
         >
         <a
           th:each="group : ${photoGroups}"
-          th:href="@{|/photos?group=${group.metadata.name}|}"
+          th:href="@{${pageBaseUrl}(group=${group.metadata.name})}"
           class="hydro-photos-tab"
           th:classappend="${#lists.contains(param.group, group.metadata.name)} ? ' is-active' : ''"
           th:text="${group.spec.displayName}"
@@ -31,11 +63,8 @@
       </nav>
 
       <!-- 瀑布流图片 -->
-      <div class="hydro-photos-masonry" th:if="${not #lists.isEmpty(photos.items)}">
-        <div
-          class="hydro-photo-card"
-          th:each="photo : ${photos.items}"
-        >
+      <div class="hydro-photos-masonry" th:if="${hasPhotosData}">
+        <div class="hydro-photo-card" th:each="photo : ${photosData.items}">
           <button
             class="hydro-photo-card__inner"
             th:attr="data-src=${photo.spec.url},data-alt=${photo.spec.displayName}"
@@ -48,7 +77,9 @@
                   th:if="${not #strings.isEmpty(photo.spec.displayName)}"
                   th:text="${photo.spec.displayName}"
                   class="hydro-photo-card__title"
-                >图片名称</h3>
+                >
+                  图片名称
+                </h3>
                 <p
                   th:if="${not #strings.isEmpty(photo.spec.description)}"
                   th:text="${photo.spec.description}"
@@ -60,13 +91,59 @@
         </div>
       </div>
 
-      <div th:if="${#lists.isEmpty(photos.items)}" class="hydro-empty">暂无图片。</div>
+      <div th:if="${not hasPhotosPlugin}" class="hydro-plugin-empty hydro-plugin-empty--install">
+        <span th:text="${theme.config.photos?.eyebrow ?: 'Gallery'}">Gallery</span>
+        <strong th:text="${theme.config.photos?.install_title ?: '需要安装图库插件'}">需要安装图库插件</strong>
+        <p
+          th:text="${theme.config.photos?.install_text ?: '请安装 PluginPhotos，路径：Halo Console -> 应用市场 -> 搜索“图库管理”。'}"
+        >
+          请安装 PluginPhotos，路径：Halo Console -> 应用市场 -> 搜索“图库管理”。
+        </p>
+        <a
+          class="hydro-plugin-install-link"
+          th:href="${theme.config.photos?.install_link ?: 'https://www.halo.run/store/apps/app-BmQJW'}"
+          target="_blank"
+          rel="noreferrer noopener"
+          th:text="${theme.config.photos?.install_link_label ?: '查看插件'}"
+          >查看插件</a
+        >
+      </div>
 
-      <nav class="hydro-pagination" th:if="${photos.hasPrevious() || photos.hasNext()}">
-        <a th:if="${photos.hasPrevious()}" th:href="@{${photos.prevUrl}}">上一页</a>
-        <span th:text="|${photos.page} / ${photos.totalPages}|">1 / 1</span>
-        <a th:if="${photos.hasNext()}" th:href="@{${photos.nextUrl}}">下一页</a>
+      <div
+        th:if="${hasPhotosPlugin and not hasPhotosData}"
+        class="hydro-empty"
+        th:text="${theme.config.photos?.empty_available_text ?: (theme.config.photos?.empty_text ?: '暂无图片。')}"
+      >
+        暂无图片。
+      </div>
+
+      <nav
+        class="hydro-pagination"
+        th:if="${not isSinglePageRoute and photosData != null and (photosData.hasPrevious() or photosData.hasNext())}"
+      >
+        <a
+          th:if="${photosData.hasPrevious()}"
+          th:href="@{${photosData.prevUrl}}"
+          th:text="${theme.config.navigation?.pagination_previous_label ?: '上一页'}"
+          >上一页</a
+        >
+        <span th:text="|${photosData.page} / ${photosData.totalPages}|">1 / 1</span>
+        <a
+          th:if="${photosData.hasNext()}"
+          th:href="@{${photosData.nextUrl}}"
+          th:text="${theme.config.navigation?.pagination_next_label ?: '下一页'}"
+          >下一页</a
+        >
       </nav>
+
+      <section
+        id="comment"
+        class="hydro-plugin-comments"
+        th:if="${(theme.config.photos == null or theme.config.photos.enable_comment != false) and haloCommentEnabled and singlePage != null}"
+      >
+        <h2 th:text="${theme.config.photos?.comments_title ?: '评论'}">评论</h2>
+        <halo:comment group="content.halo.run" kind="SinglePage" th:attr="name=${singlePage.metadata.name}" />
+      </section>
     </div>
   </section>
 

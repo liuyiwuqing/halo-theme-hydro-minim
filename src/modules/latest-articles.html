@@ -1,9 +1,14 @@
 <section id="articles" class="hydro-section hydro-latest" data-reveal-section>
   <div class="hydro-section-heading">
-    <h2 class="hydro-section-title" data-reveal-title>最新文章</h2>
+    <h2 class="hydro-section-title" data-reveal-title th:text="${theme.config.home?.latest_title ?: '最新文章'}">
+      最新文章
+    </h2>
   </div>
 
-  <div class="hydro-container">
+  <div
+    class="hydro-container"
+    th:with="latestSize=${theme.config.home?.latest_size == null or theme.config.home.latest_size < 1 ? 3 : theme.config.home.latest_size}"
+  >
     <div
       class="hydro-article-grid"
       th:classappend="${posts.total == 1} ? ' hydro-article-grid--single' : ''"
@@ -13,9 +18,9 @@
         class="hydro-card"
         data-tilt-card
         th:each="post,stat : ${posts.items}"
-        th:if="${stat.index < 3}"
+        th:if="${stat.index < latestSize}"
         th:with="
-          fallbackCover=${stat.index % 3 == 0 ? theme.config.assets.article_cover_1 : (stat.index % 3 == 1 ? theme.config.assets.article_cover_2 : theme.config.assets.article_cover_3)},
+          fallbackCover=${stat.index % 3 == 0 ? theme.config.site?.article_cover_1 : (stat.index % 3 == 1 ? theme.config.site?.article_cover_2 : theme.config.site?.article_cover_3)},
           cover=${#strings.isEmpty(post.spec.cover) ? fallbackCover : post.spec.cover},
           optimizedCover=${#strings.contains(cover, 'images.unsplash.com') ? cover + (#strings.contains(cover, '?') ? '&w=960&fit=crop&auto=format' : '?w=960&fit=crop&auto=format') : cover}
         "
@@ -54,11 +59,17 @@
       </article>
     </div>
 
-    <div th:if="${posts.total == 0}" class="hydro-empty">还没有发布文章。</div>
+    <div
+      th:if="${posts.total == 0}"
+      class="hydro-empty"
+      th:text="${theme.config.home?.latest_empty_text ?: '还没有发布文章。'}"
+    >
+      还没有发布文章。
+    </div>
 
     <div class="hydro-section-action">
       <a class="hydro-pill-link" th:href="@{/archives}">
-        查看全部文章
+        <span th:text="${theme.config.home?.latest_action_label ?: '查看全部文章'}">查看全部文章</span>
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M7 17 17 7M8 7h9v9"></path>
         </svg>

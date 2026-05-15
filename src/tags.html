@@ -1,24 +1,31 @@
 <include src="layout.html">
   <template name="head">
-    <title th:text="|标签 - ${site.title}|">标签</title>
+    <title th:text="|${theme.config.taxonomy?.tag_title ?: '标签'} - ${site.title}|">标签</title>
   </template>
 
   <section class="hydro-tags-page">
     <div class="hydro-container">
       <header class="hydro-tags-hero">
         <div class="hydro-tags-hero__copy">
-          <p>Hydro-Minim / Tags</p>
-          <h1>标签</h1>
-          <span>把散落的文章压缩成一组轻量关键词，从一个符号进入另一条阅读路径。</span>
+          <p th:text="${theme.config.taxonomy?.tag_eyebrow ?: 'Hydro-Minim / Tags'}">Hydro-Minim / Tags</p>
+          <h1 th:text="${theme.config.taxonomy?.tag_title ?: '标签'}">标签</h1>
+          <span
+            th:text="${theme.config.taxonomy?.tag_description ?: '把散落的文章压缩成一组轻量关键词，从一个符号进入另一条阅读路径。'}"
+          >
+            把散落的文章压缩成一组轻量关键词，从一个符号进入另一条阅读路径。
+          </span>
         </div>
-        <dl class="hydro-tags-hero__meta" th:if="${not #lists.isEmpty(tags)}">
+        <dl
+          class="hydro-tags-hero__meta"
+          th:if="${(theme.config.taxonomy == null or theme.config.taxonomy.tag_show_meta != false) and not #lists.isEmpty(tags)}"
+        >
           <div>
-            <dt>Keywords</dt>
+            <dt th:text="${theme.config.taxonomy?.tag_keywords_metric_label ?: 'Keywords'}">Keywords</dt>
             <dd th:text="${#lists.size(tags)}">0</dd>
           </div>
           <div>
-            <dt>Shape</dt>
-            <dd>Cloud</dd>
+            <dt th:text="${theme.config.taxonomy?.tag_shape_metric_label ?: 'Shape'}">Shape</dt>
+            <dd th:text="${theme.config.taxonomy?.tag_shape_value ?: 'Cloud'}">Cloud</dd>
           </div>
         </dl>
       </header>
@@ -37,7 +44,13 @@
           </a>
         </div>
       </div>
-      <div th:if="${#lists.isEmpty(tags)}" class="hydro-empty">还没有创建标签。</div>
+      <div
+        th:if="${#lists.isEmpty(tags)}"
+        class="hydro-empty"
+        th:text="${theme.config.taxonomy?.tag_empty_text ?: '还没有创建标签。'}"
+      >
+        还没有创建标签。
+      </div>
     </div>
   </section>
 </include>

@@ -1,0 +1,82 @@
+<include src="layout.html">
+  <template name="head">
+    <title th:text="|${theme.config.home?.about_title ?: singlePage.spec.title} - ${site.title}|">关于</title>
+  </template>
+
+  <article class="hydro-about-page">
+    <section class="hydro-list-hero hydro-about-page__hero">
+      <div class="hydro-container">
+        <p th:text="${theme.config.page?.about_eyebrow ?: 'About'}">About</p>
+        <h1 th:text="${theme.config.home?.about_title ?: singlePage.spec.title}">关于</h1>
+        <span th:text="${theme.config.home?.about_subtitle ?: '艺术的生活家'}">艺术的生活家</span>
+      </div>
+    </section>
+
+    <section class="hydro-about-page__body">
+      <div class="hydro-container">
+        <div class="hydro-about-page__intro">
+          <div class="hydro-about-page__statement">
+            <p th:text="${theme.config.home?.about_paragraph_1}">氢风格博客诞生于对简约美学的追求。</p>
+            <p th:text="${theme.config.home?.about_paragraph_2}">在这里，我们分享关于设计、科技与生活方式的思考。</p>
+            <p th:text="${theme.config.home?.about_paragraph_3}">33% 的自由，66% 的内容。</p>
+          </div>
+
+          <dl
+            class="hydro-about-page__stats"
+            th:if="${theme.config.page == null or theme.config.page.about_show_stats != false}"
+            th:with="siteStats=${siteStatsFinder.getStats()}"
+          >
+            <div>
+              <dt th:text="${theme.config.home?.about_articles_label ?: 'Articles'}">Articles</dt>
+              <dd th:text="${siteStats?.post ?: 0}">0</dd>
+            </div>
+            <div>
+              <dt th:text="${theme.config.home?.about_categories_label ?: 'Categories'}">Categories</dt>
+              <dd th:text="${siteStats?.category ?: 0}">0</dd>
+            </div>
+            <div>
+              <dt th:text="${theme.config.home?.about_readers_label ?: 'Readers'}">Readers</dt>
+              <dd th:text="${theme.config.home?.about_readers ?: '2.4k'}">2.4k</dd>
+            </div>
+          </dl>
+        </div>
+
+        <div class="hydro-about-page__content" th:if="${not #strings.isEmpty(singlePage.content.content)}">
+          <div class="hydro-prose" th:utext="${singlePage.content.content}"></div>
+        </div>
+
+        <section class="hydro-about-page__social">
+          <div class="hydro-plugin-section__head">
+            <span th:text="${theme.config.page?.about_contact_eyebrow ?: 'Connect'}">Connect</span>
+            <h2 th:text="${theme.config.page?.about_contact_title ?: '保持联系'}">保持联系</h2>
+          </div>
+          <div class="hydro-about-links">
+            <a
+              th:each="item : ${theme.config.site?.social_links}"
+              th:if="${not #strings.isEmpty(item.url) and item.url != '#'}"
+              th:href="${item.url}"
+              th:target="${item.new_tab == true ? '_blank' : '_self'}"
+              rel="noreferrer noopener"
+            >
+              <span th:text="${item.label}">Social</span>
+              <strong
+                th:text="${#strings.substringAfter(item.url, '//') ?: #strings.substringAfter(item.url, ':') ?: item.url}"
+              >
+                Social
+              </strong>
+            </a>
+          </div>
+        </section>
+
+        <section
+          id="comment"
+          class="hydro-comments"
+          th:if="${(theme.config.page == null or theme.config.page.about_enable_comment != false) and haloCommentEnabled}"
+        >
+          <h2 th:text="${theme.config.page?.comments_title ?: '评论'}">评论</h2>
+          <halo:comment group="content.halo.run" kind="SinglePage" th:attr="name=${singlePage.metadata.name}" />
+        </section>
+      </div>
+    </section>
+  </article>
+</include>

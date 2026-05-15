@@ -3,14 +3,22 @@
     <title th:text="|${singlePage.spec.title} - ${site.title}|">页面</title>
   </template>
 
-  <article class="hydro-content-page">
+  <article
+    class="hydro-content-page"
+    th:with="
+      pageConfig=${theme.config.page},
+      showPageCover=${pageConfig == null or pageConfig.show_cover != false},
+      showPagePublishTime=${pageConfig == null or pageConfig.show_publish_time != false},
+      enablePageComment=${pageConfig == null or pageConfig.enable_comment != false}
+    "
+  >
     <header
       class="hydro-content-cover"
-      th:if="${not #strings.isEmpty(singlePage.spec.cover)}"
+      th:if="${showPageCover and not #strings.isEmpty(singlePage.spec.cover)}"
       th:style="|background-image: url('${singlePage.spec.cover}')|"
     >
       <div>
-        <span>Page</span>
+        <span th:text="${pageConfig?.eyebrow ?: 'Page'}">Page</span>
         <h1 th:text="${singlePage.spec.title}">页面标题</h1>
       </div>
     </header>
@@ -18,15 +26,19 @@
     <div class="hydro-content-shell">
       <header class="hydro-content-header">
         <div class="hydro-content-kicker">
-          <time th:text="${#dates.format(singlePage.spec.publishTime, 'yyyy.MM.dd')}">2024.01.15</time>
+          <time th:if="${showPagePublishTime}" th:text="${#dates.format(singlePage.spec.publishTime, 'yyyy.MM.dd')}"
+            >2024.01.15</time
+          >
         </div>
-        <h1 th:if="${#strings.isEmpty(singlePage.spec.cover)}" th:text="${singlePage.spec.title}">页面标题</h1>
+        <h1 th:if="${not showPageCover or #strings.isEmpty(singlePage.spec.cover)}" th:text="${singlePage.spec.title}">
+          页面标题
+        </h1>
       </header>
 
       <div class="hydro-prose" th:utext="${singlePage.content.content}"></div>
 
-      <section id="comment" class="hydro-comments" th:if="${haloCommentEnabled}">
-        <h2>评论</h2>
+      <section id="comment" class="hydro-comments" th:if="${enablePageComment and haloCommentEnabled}">
+        <h2 th:text="${pageConfig?.comments_title ?: '评论'}">评论</h2>
         <halo:comment group="content.halo.run" kind="SinglePage" th:attr="name=${singlePage.metadata.name}" />
       </section>
     </div>

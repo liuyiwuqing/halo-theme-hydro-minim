@@ -1,0 +1,177 @@
+<include src="layout.html">
+  <template name="head">
+    <title th:text="|${docTree?.spec?.title ?: '文档'} - ${project?.spec?.displayName ?: 'Docsme'} - ${site.title}|">
+      文档
+    </title>
+    <th:block th:if="${pluginFinder.available('plugin-docsme', '>=1.4.0')}">
+      <th:block th:replace="~{plugin:plugin-docsme:modules/prism}" />
+    </th:block>
+  </template>
+
+  <section
+    class="hydro-doc-shell"
+    th:with="hasDocsPlugin=${pluginFinder.available('plugin-docsme')},hasDocsCompatible=${pluginFinder.available('plugin-docsme', '>=1.4.0')},hasDocPayload=${project != null and docTree != null and docInfo != null}"
+    th:classappend="${not hasDocsCompatible or not hasDocPayload} ? ' hydro-doc-shell--empty' : ''"
+  >
+    <th:block th:if="${hasDocsCompatible and hasDocPayload}">
+      <aside class="hydro-doc-sidebar" th:if="${docTrees != null}">
+        <a class="hydro-doc-project" th:href="${project.status.permalink}">
+          <span th:text="${theme.config.docs?.eyebrow ?: 'Docs'}">Docs</span>
+          <strong th:text="${project.spec.displayName}">文档项目</strong>
+        </a>
+
+        <nav class="hydro-doc-tree" aria-label="文档导航">
+          <th:block th:replace="~{doc :: hydro-doc-tree(docTrees=${docTrees})}" />
+        </nav>
+      </aside>
+
+      <article class="hydro-doc-main">
+        <nav class="hydro-doc-breadcrumb" aria-label="面包屑">
+          <a th:href="${project.status.permalink}" th:text="${project.spec.displayName}">文档首页</a>
+          <th:block th:each="crumb : ${crumbs}">
+            <span>/</span>
+            <a th:href="${crumb.status.permalink}" th:text="${crumb.spec.title}">目录</a>
+          </th:block>
+        </nav>
+
+        <header class="hydro-doc-header">
+          <p th:text="${theme.config.docs?.doc_eyebrow ?: 'Documentation'}">Documentation</p>
+          <h1 th:text="${docTree.spec.title}">文档标题</h1>
+        </header>
+
+        <div id="hydro-doc-content" class="hydro-prose hydro-doc-content" th:utext="${docInfo.content.content}">
+          文档内容
+        </div>
+
+        <nav class="hydro-doc-nav" th:if="${linkNavigation}">
+          <a th:if="${linkNavigation.hasPrevious}" th:href="${linkNavigation.previous.link}">
+            <span th:text="${theme.config.docs?.previous_label ?: '上一篇'}">上一篇</span>
+            <strong th:text="${linkNavigation.previous.title}">上一篇</strong>
+          </a>
+          <a th:if="${linkNavigation.hasNext}" th:href="${linkNavigation.next.link}">
+            <span th:text="${theme.config.docs?.next_label ?: '下一篇'}">下一篇</span>
+            <strong th:text="${linkNavigation.next.title}">下一篇</strong>
+          </a>
+        </nav>
+
+        <section
+          class="hydro-comments"
+          th:if="${(theme.config.docs == null or theme.config.docs.enable_comment != false) and project?.spec?.enableComment == true}"
+        >
+          <h2 th:text="${theme.config.docs?.comments_title ?: '评论'}">评论</h2>
+          <halo:comment group="run.halo.docsme" kind="Doc" th:attr="name=${docInfo.doc.metadata.name}" />
+        </section>
+      </article>
+
+      <aside class="hydro-doc-toc" th:if="${theme.config.docs == null or theme.config.docs.enable_toc != false}">
+        <h2 th:text="${theme.config.docs?.toc_title ?: '目录'}">目录</h2>
+        <nav data-hydro-doc-toc></nav>
+      </aside>
+    </th:block>
+
+    <article class="hydro-doc-main hydro-doc-main--empty" th:if="${not hasDocsPlugin}">
+      <div class="hydro-plugin-notice">
+        <strong th:text="${theme.config.docs?.install_title ?: '需要安装 Docsme 插件'}">需要安装 Docsme 插件</strong>
+        <span
+          class="hydro-plugin-notice__body"
+          th:text="${theme.config.docs?.install_text ?: '需要安装并启用 plugin-docsme 1.4.0 或更高版本，文档内容页才能加载代码高亮、目录和文档正文。'}"
+          >需要安装并启用 plugin-docsme 1.4.0 或更高版本，文档内容页才能加载代码高亮、目录和文档正文。</span
+        >
+        <a
+          class="hydro-plugin-install-link"
+          th:href="${theme.config.docs?.install_link ?: 'https://www.halo.run/store/apps/app-yffxw'}"
+          target="_blank"
+          rel="noreferrer noopener"
+          th:text="${theme.config.docs?.install_link_label ?: '应用市场'}"
+          >应用市场</a
+        >
+      </div>
+      <div class="hydro-plugin-empty hydro-plugin-empty--install">
+        <span th:text="${theme.config.docs?.doc_eyebrow ?: 'Documentation'}">Documentation</span>
+        <strong th:text="${theme.config.docs?.install_title ?: '需要安装 Docsme 插件'}">需要安装 Docsme 插件</strong>
+        <p
+          th:text="${theme.config.docs?.install_text ?: '请安装 plugin-docsme 1.4.0 或更高版本，路径：Halo Console -> 应用市场 -> 搜索“Docsme”。'}"
+        >
+          请安装 plugin-docsme 1.4.0 或更高版本，路径：Halo Console -> 应用市场 -> 搜索“Docsme”。
+        </p>
+      </div>
+    </article>
+
+    <article class="hydro-doc-main hydro-doc-main--empty" th:if="${hasDocsPlugin and not hasDocsCompatible}">
+      <div class="hydro-plugin-notice">
+        <strong th:text="${theme.config.docs?.upgrade_title ?: '需要升级 Docsme 插件'}">需要升级 Docsme 插件</strong>
+        <span
+          class="hydro-plugin-notice__body"
+          th:text="${theme.config.docs?.upgrade_text ?: '已检测到 plugin-docsme，但当前文档模板需要 1.4.0 或更高版本。'}"
+          >已检测到 plugin-docsme，但当前文档模板需要 1.4.0 或更高版本。</span
+        >
+        <a
+          class="hydro-plugin-install-link"
+          th:href="${theme.config.docs?.install_link ?: 'https://www.halo.run/store/apps/app-yffxw'}"
+          target="_blank"
+          rel="noreferrer noopener"
+          th:text="${theme.config.docs?.install_link_label ?: '应用市场'}"
+          >应用市场</a
+        >
+      </div>
+      <div class="hydro-plugin-empty hydro-plugin-empty--install">
+        <span th:text="${theme.config.docs?.doc_eyebrow ?: 'Documentation'}">Documentation</span>
+        <strong th:text="${theme.config.docs?.upgrade_title ?: '需要升级 Docsme 插件'}">需要升级 Docsme 插件</strong>
+        <p
+          th:text="${theme.config.docs?.upgrade_text ?: '请将 plugin-docsme 升级到 1.4.0 或更高版本，升级后再刷新文档内容页。'}"
+        >
+          请将 plugin-docsme 升级到 1.4.0 或更高版本，升级后再刷新文档内容页。
+        </p>
+      </div>
+    </article>
+
+    <article class="hydro-doc-main hydro-doc-main--empty" th:if="${hasDocsCompatible and not hasDocPayload}">
+      <div class="hydro-plugin-empty">
+        <span th:text="${theme.config.docs?.doc_eyebrow ?: 'Documentation'}">Documentation</span>
+        <strong th:text="${theme.config.docs?.unavailable_text ?: '文档暂时不可用'}">文档暂时不可用</strong>
+        <p
+          th:text="${theme.config.docs?.unavailable_description ?: 'plugin-docsme 已可用。请确认该文档存在、已发布，并且当前路由由 Docsme 正确提供。'}"
+        >
+          plugin-docsme 已可用。请确认该文档存在、已发布，并且当前路由由 Docsme 正确提供。
+        </p>
+      </div>
+    </article>
+  </section>
+
+  <th:block th:if="${pluginFinder.available('plugin-docsme', '>=1.4.0')}">
+    <script>
+      window.docsme = { disableThemeFunction: true };
+    </script>
+    <th:block th:replace="~{plugin:plugin-docsme:modules/plugin-scripts}" />
+  </th:block>
+</include>
+
+<th:block th:fragment="hydro-doc-tree(docTrees)">
+  <ul>
+    <li th:each="currentDocTree : ${docTrees}">
+      <a
+        th:if="${currentDocTree.spec.type == 'DOC'}"
+        th:href="${currentDocTree.status.permalink}"
+        th:classappend="${currentDocTree.metadata.name == docTree.metadata.name} ? 'is-active' : ''"
+        th:text="${currentDocTree.spec.title}"
+        >文档</a
+      >
+      <details
+        th:if="${currentDocTree.spec.type == 'TREE'}"
+        th:open="${#lists.contains(crumbs, currentDocTree) or currentDocTree.metadata.name == docTree.metadata.name}"
+      >
+        <summary>
+          <a
+            th:href="${currentDocTree.status.permalink}"
+            th:classappend="${currentDocTree.metadata.name == docTree.metadata.name} ? 'is-active' : ''"
+            th:text="${currentDocTree.spec.title}"
+            >目录</a
+          >
+        </summary>
+        <th:block th:if="${currentDocTree.children != null and not #lists.isEmpty(currentDocTree.children)}">
+          <th:block th:replace="~{doc :: hydro-doc-tree(docTrees=${currentDocTree.children})}" />
+        </th:block>
+      </details>
+    </li>
+  </ul>
+</th:block>

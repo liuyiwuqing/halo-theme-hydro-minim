@@ -4,18 +4,30 @@
 <meta
   name="theme-color"
   media="(prefers-color-scheme: light)"
-  th:content="${theme.config.style.background_color ?: '#F3F3F3'}"
+  th:content="${theme.config.appearance?.background_color ?: '#F3F3F3'}"
 />
 <meta
   name="theme-color"
   media="(prefers-color-scheme: dark)"
-  th:content="${theme.config.style.dark_background_color ?: '#101112'}"
+  th:content="${theme.config.appearance?.dark_background_color ?: '#101112'}"
 />
-<link rel="preload" th:href="${theme.config.hero.cover ?: #theme.assets('/images/hero-featured.jpg')}" as="image" />
+<link
+  rel="preload"
+  th:href="${theme.config.home?.hero_cover ?: #theme.assets('/images/hero-featured.jpg')}"
+  as="image"
+/>
+<th:block
+  th:if="${not #strings.isEmpty(theme.config.advanced?.head_html)}"
+  th:utext="${theme.config.advanced.head_html}"
+/>
+<style
+  th:if="${not #strings.isEmpty(theme.config.advanced?.code_css)}"
+  th:utext="${theme.config.advanced.code_css}"
+></style>
 <script th:inline="javascript">
   (() => {
     const root = document.documentElement;
-    const defaultMode = root.dataset.themeDefault || /*[[${theme.config.style.color_scheme ?: 'auto'}]]*/ "auto";
+    const defaultMode = root.dataset.themeDefault || /*[[${theme.config.appearance?.color_scheme ?: 'auto'}]]*/ "auto";
     let storedMode = null;
     try {
       storedMode = window.localStorage.getItem("hydro-color-scheme");

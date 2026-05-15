@@ -1,0 +1,159 @@
+<include src="layout.html">
+  <template name="head">
+    <title th:text="|${theme.config.steam?.title ?: 'Steam 游戏库'} - ${site.title}|">Steam 游戏库</title>
+  </template>
+
+  <section class="hydro-list-hero">
+    <div class="hydro-container">
+      <p th:text="${theme.config.steam?.eyebrow ?: 'Steam'}">Steam</p>
+      <h1 th:text="${theme.config.steam?.title ?: 'Steam 游戏库'}">Steam 游戏库</h1>
+      <span th:text="${theme.config.steam?.description ?: '用一张轻盈的游戏清单，记录最近的游玩状态与收藏。'}"
+        >用一张轻盈的游戏清单，记录最近的游玩状态与收藏。</span
+      >
+    </div>
+  </section>
+
+  <section
+    class="hydro-plugin-page hydro-steam-page"
+    th:with="hasSteamPlugin=${pluginFinder.available('steam') or pluginFinder.available('halo-plugin-steam') or pluginFinder.available('PluginSteam')}"
+    th:attr="
+      data-hydro-steam=${hasSteamPlugin ? 'true' : null},
+      data-recent-limit=${theme.config.steam?.recent_limit ?: 8},
+      data-page-size=${theme.config.steam?.game_page_size ?: 18},
+      data-enable-game-link=${theme.config.steam == null or theme.config.steam.enable_game_link != false},
+      data-empty-text=${theme.config.steam?.empty_text ?: '暂无 Steam 游戏数据'},
+      data-error-text=${theme.config.steam?.error_text ?: 'Steam 数据暂时不可用'},
+      data-sync-hint-text=${theme.config.steam?.sync_hint_text ?: '请确认 plugin-steam 已同步账号数据。'},
+      data-config-hint-text=${theme.config.steam?.config_hint_text ?: '请确认 plugin-steam 已启用，并已填写 Steam ID/API 配置。'},
+      data-library-loading-text=${theme.config.steam?.library_loading_text ?: '正在加载游戏库。'},
+      data-cache-ttl-minutes=${theme.config.advanced?.steam_cache_ttl_minutes ?: 3}
+    "
+  >
+    <div class="hydro-container">
+      <div class="hydro-plugin-notice" th:if="${not hasSteamPlugin}">
+        <strong th:text="${theme.config.steam?.install_title ?: '需要安装 Steam 插件'}">需要安装 Steam 插件</strong>
+        <span
+          class="hydro-plugin-notice__body"
+          th:text="${theme.config.steam?.install_text ?: '需要安装并启用 plugin-steam。在 Halo Console -> 应用市场搜索“Steam 游戏库”，配置 Steam 账号后这里会自动读取。'}"
+          >需要安装并启用 plugin-steam。在 Halo Console -> 应用市场搜索“Steam 游戏库”，配置 Steam
+          账号后这里会自动读取。</span
+        >
+        <a
+          class="hydro-plugin-install-link"
+          th:href="${theme.config.steam?.install_link ?: 'https://www.halo.run/store/apps/app-0ojqyzfh'}"
+          target="_blank"
+          rel="noreferrer noopener"
+          th:text="${theme.config.steam?.install_link_label ?: '应用市场'}"
+          >应用市场</a
+        >
+      </div>
+
+      <div class="hydro-plugin-notice" data-steam-error hidden>
+        <strong>Steam API</strong>
+        <span class="hydro-plugin-notice__body" th:text="${theme.config.steam?.error_text ?: 'Steam 数据暂时不可用'}"
+          >Steam 数据暂时不可用</span
+        >
+      </div>
+
+      <div th:if="${not hasSteamPlugin}" class="hydro-plugin-empty hydro-plugin-empty--install">
+        <span th:text="${theme.config.steam?.eyebrow ?: 'Steam Library'}">Steam Library</span>
+        <strong th:text="${theme.config.steam?.install_title ?: '需要安装 Steam 插件'}">需要安装 Steam 插件</strong>
+        <p
+          th:text="${theme.config.steam?.install_text ?: '请安装 plugin-steam，路径：Halo Console -> 应用市场 -> 搜索“Steam 游戏库”。'}"
+        >
+          请安装 plugin-steam，路径：Halo Console -> 应用市场 -> 搜索“Steam 游戏库”。
+        </p>
+        <a
+          class="hydro-plugin-install-link"
+          th:href="${theme.config.steam?.install_link ?: 'https://www.halo.run/store/apps/app-0ojqyzfh'}"
+          target="_blank"
+          rel="noreferrer noopener"
+          th:text="${theme.config.steam?.install_link_label ?: '查看插件'}"
+          >查看插件</a
+        >
+      </div>
+
+      <div th:if="${hasSteamPlugin}" class="hydro-plugin-empty" data-steam-empty hidden>
+        <span th:text="${theme.config.steam?.eyebrow ?: 'Steam Library'}">Steam Library</span>
+        <strong th:text="${theme.config.steam?.empty_text ?: '暂无 Steam 游戏数据'}">暂无 Steam 游戏数据</strong>
+        <p
+          th:text="${theme.config.steam?.empty_available_text ?: 'plugin-steam 已可用。同步账号数据后，这里会展示最近游玩和游戏库。'}"
+        >
+          plugin-steam 已可用。同步账号数据后，这里会展示最近游玩和游戏库。
+        </p>
+      </div>
+
+      <div th:if="${hasSteamPlugin}" class="hydro-steam-profile" data-steam-profile>
+        <div class="hydro-steam-profile__avatar" data-steam-avatar></div>
+        <div class="hydro-steam-profile__body">
+          <span data-steam-status th:text="${theme.config.steam?.profile_loading_status ?: 'Loading'}">Loading</span>
+          <h2 data-steam-name th:text="${theme.config.steam?.profile_loading_name ?: '正在读取 Steam 资料'}">
+            正在读取 Steam 资料
+          </h2>
+        </div>
+        <div class="hydro-steam-profile__level" data-steam-level>Lv. --</div>
+      </div>
+
+      <div th:if="${hasSteamPlugin}" class="hydro-steam-stats">
+        <div>
+          <span th:text="${theme.config.steam?.games_metric_label ?: 'Games'}">Games</span>
+          <strong data-steam-stat="games">--</strong>
+        </div>
+        <div>
+          <span th:text="${theme.config.steam?.total_time_metric_label ?: 'Total Time'}">Total Time</span>
+          <strong data-steam-stat="total">--</strong>
+        </div>
+        <div>
+          <span th:text="${theme.config.steam?.recent_metric_label ?: 'Recent'}">Recent</span>
+          <strong data-steam-stat="recent">--</strong>
+        </div>
+      </div>
+
+      <section th:if="${hasSteamPlugin}" class="hydro-plugin-section">
+        <div class="hydro-plugin-section__head">
+          <span th:text="${theme.config.steam?.recent_section_eyebrow ?: 'Recent'}">Recent</span>
+          <h2 th:text="${theme.config.steam?.recent_section_title ?: '最近游玩'}">最近游玩</h2>
+        </div>
+        <div class="hydro-game-grid" data-steam-recent>
+          <div
+            class="hydro-plugin-empty hydro-plugin-empty--small"
+            th:text="${theme.config.steam?.recent_loading_text ?: '正在加载最近游玩。'}"
+          >
+            正在加载最近游玩。
+          </div>
+        </div>
+      </section>
+
+      <section th:if="${hasSteamPlugin}" class="hydro-plugin-section">
+        <div class="hydro-plugin-section__head">
+          <span th:text="${theme.config.steam?.library_section_eyebrow ?: 'Library'}">Library</span>
+          <h2 th:text="${theme.config.steam?.library_section_title ?: '游戏库'}">游戏库</h2>
+        </div>
+        <div class="hydro-game-grid" data-steam-games>
+          <div
+            class="hydro-plugin-empty hydro-plugin-empty--small"
+            th:text="${theme.config.steam?.library_loading_text ?: '正在加载游戏库。'}"
+          >
+            正在加载游戏库。
+          </div>
+        </div>
+        <nav class="hydro-pagination hydro-steam-pagination" data-steam-pagination hidden>
+          <button type="button" data-steam-prev th:text="${theme.config.steam?.previous_label ?: '上一页'}">
+            上一页
+          </button>
+          <span data-steam-page>1 / 1</span>
+          <button type="button" data-steam-next th:text="${theme.config.steam?.next_label ?: '下一页'}">下一页</button>
+        </nav>
+      </section>
+
+      <section
+        id="comment"
+        class="hydro-plugin-comments"
+        th:if="${(theme.config.steam == null or theme.config.steam.enable_comment != false) and haloCommentEnabled and singlePage != null}"
+      >
+        <h2 th:text="${theme.config.steam?.comments_title ?: '评论'}">评论</h2>
+        <halo:comment group="content.halo.run" kind="SinglePage" th:attr="name=${singlePage.metadata.name}" />
+      </section>
+    </div>
+  </section>
+</include>

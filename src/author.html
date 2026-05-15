@@ -7,7 +7,7 @@
     <div class="hydro-container">
       <header class="hydro-author-hero">
         <div class="hydro-author-hero__copy">
-          <p>Hydro-Minim / Author</p>
+          <p th:text="${theme.config.page?.author_eyebrow ?: 'Hydro-Minim / Author'}">Hydro-Minim / Author</p>
           <h1 th:text="${author.spec.displayName}">作者名</h1>
         </div>
       </header>
@@ -38,11 +38,11 @@
             <div class="hydro-author-card__stats">
               <div>
                 <strong th:text="${posts.total}">0</strong>
-                <span>文章</span>
+                <span th:text="${theme.config.page?.author_articles_label ?: '文章'}">文章</span>
               </div>
               <div>
                 <strong th:text="${#dates.format(author.metadata.creationTimestamp, 'yyyy')}">2024</strong>
-                <span>加入</span>
+                <span th:text="${theme.config.page?.author_joined_label ?: '加入'}">加入</span>
               </div>
             </div>
           </div>
@@ -51,8 +51,11 @@
         <!-- 主内容：文章列表 -->
         <div class="hydro-author-main">
           <div class="hydro-author-articles__head">
-            <h2>文章</h2>
-            <span th:text="|共 ${posts.total} 篇|">共 0 篇</span>
+            <h2 th:text="${theme.config.page?.author_articles_label ?: '文章'}">文章</h2>
+            <span
+              th:text="|${theme.config.page?.author_count_prefix ?: '共'} ${posts.total} ${theme.config.page?.author_count_suffix ?: '篇'}|"
+              >共 0 篇</span
+            >
           </div>
           <div class="hydro-author-articles__list" th:if="${posts.total gt 0}">
             <a
@@ -78,7 +81,13 @@
               </span>
             </a>
           </div>
-          <div th:if="${posts.total == 0}" class="hydro-empty">这位作者还没有文章。</div>
+          <div
+            th:if="${posts.total == 0}"
+            class="hydro-empty"
+            th:text="${theme.config.page?.author_empty_text ?: '这位作者还没有文章。'}"
+          >
+            这位作者还没有文章。
+          </div>
           <th:block
             th:replace="~{modules/pagination :: pagination(${posts.prevUrl},${posts.nextUrl},${posts.totalPages},${posts.page},${posts.hasPrevious()},${posts.hasNext()})}"
           />

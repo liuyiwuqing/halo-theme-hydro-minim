@@ -1,0 +1,160 @@
+<include src="layout.html">
+  <template name="head">
+    <title th:text="|${theme.config.bangumi?.title ?: '追番'} - ${site.title}|">追番</title>
+  </template>
+
+  <section class="hydro-list-hero">
+    <div class="hydro-container">
+      <p th:text="${theme.config.bangumi?.eyebrow ?: 'Bangumi'}">Bangumi</p>
+      <h1 th:text="${theme.config.bangumi?.title ?: '追番'}">追番</h1>
+      <span th:text="${theme.config.bangumi?.description ?: '把看过、想看和正在看的故事安静地陈列起来。'}"
+        >把看过、想看和正在看的故事安静地陈列起来。</span
+      >
+    </div>
+  </section>
+
+  <section
+    class="hydro-plugin-page hydro-bangumi-page"
+    th:with="
+      currentType=${param.typeNum != null and not #lists.isEmpty(param.typeNum) ? param.typeNum[0] : 1},
+      currentStatus=${param.status != null and not #lists.isEmpty(param.status) ? param.status[0] : 0},
+      isSinglePageRoute=${singlePage != null},
+      pageBaseUrl=${isSinglePageRoute ? singlePage.status.permalink : '/bangumis'},
+      bangumiLimit=${theme.config.bangumi?.item_limit == null or theme.config.bangumi.item_limit < 1 ? 36 : theme.config.bangumi.item_limit},
+      hasBangumiPlugin=${pluginFinder.available('plugin-bilibili-bangumi') or pluginFinder.available('PluginBilibiliBangumi')},
+      bangumiData=${hasBangumiPlugin and bangumiFinder != null ? bangumiFinder.getBiliDataAll(currentType, currentStatus) : null},
+      hasBangumiData=${bangumiData != null and not #lists.isEmpty(bangumiData)}"
+  >
+    <div class="hydro-container">
+      <div class="hydro-plugin-notice" th:if="${not hasBangumiPlugin}">
+        <strong th:text="${theme.config.bangumi?.install_title ?: '需要安装追番插件'}">需要安装追番插件</strong>
+        <span
+          class="hydro-plugin-notice__body"
+          th:text="${theme.config.bangumi?.install_text ?: '需要安装并启用 plugin-bilibili-bangumi。在 Halo Console -> 应用市场搜索“Bilibili 追番”，同步账号数据后这里会展示海报墙。'}"
+          >需要安装并启用 plugin-bilibili-bangumi。在 Halo Console -> 应用市场搜索“Bilibili
+          追番”，同步账号数据后这里会展示海报墙。</span
+        >
+        <a
+          class="hydro-plugin-install-link"
+          th:href="${theme.config.bangumi?.install_link ?: 'https://www.halo.run/store/apps/app-OTFPN'}"
+          target="_blank"
+          rel="noreferrer noopener"
+          th:text="${theme.config.bangumi?.install_link_label ?: '应用市场'}"
+          >应用市场</a
+        >
+      </div>
+
+      <nav class="hydro-plugin-tabs hydro-plugin-tabs--split" aria-label="追番筛选">
+        <a
+          th:href="@{${pageBaseUrl}(typeNum=1, status=${currentStatus})}"
+          th:classappend="${currentType == 1 or currentType == '1'} ? 'is-active' : ''"
+          th:text="${theme.config.bangumi?.anime_tab_label ?: '追番'}"
+          >追番</a
+        >
+        <a
+          th:href="@{${pageBaseUrl}(typeNum=2, status=${currentStatus})}"
+          th:classappend="${currentType == 2 or currentType == '2'} ? 'is-active' : ''"
+          th:text="${theme.config.bangumi?.drama_tab_label ?: '追剧'}"
+          >追剧</a
+        >
+        <span></span>
+        <a
+          th:href="@{${pageBaseUrl}(typeNum=${currentType}, status=0)}"
+          th:classappend="${currentStatus == 0 or currentStatus == '0'} ? 'is-active' : ''"
+          th:text="${theme.config.bangumi?.all_status_label ?: '全部'}"
+          >全部</a
+        >
+        <a
+          th:href="@{${pageBaseUrl}(typeNum=${currentType}, status=1)}"
+          th:classappend="${currentStatus == 1 or currentStatus == '1'} ? 'is-active' : ''"
+          th:text="${theme.config.bangumi?.wish_status_label ?: '想看'}"
+          >想看</a
+        >
+        <a
+          th:href="@{${pageBaseUrl}(typeNum=${currentType}, status=2)}"
+          th:classappend="${currentStatus == 2 or currentStatus == '2'} ? 'is-active' : ''"
+          th:text="${theme.config.bangumi?.watching_status_label ?: '在看'}"
+          >在看</a
+        >
+        <a
+          th:href="@{${pageBaseUrl}(typeNum=${currentType}, status=3)}"
+          th:classappend="${currentStatus == 3 or currentStatus == '3'} ? 'is-active' : ''"
+          th:text="${theme.config.bangumi?.watched_status_label ?: '已看'}"
+          >已看</a
+        >
+      </nav>
+
+      <div th:if="${hasBangumiData}" class="hydro-bangumi-grid">
+        <a
+          class="hydro-bangumi-card"
+          th:each="bangumi,bangumiStat : ${bangumiData}"
+          th:if="${bangumiStat.index < bangumiLimit}"
+          th:href="${bangumi.spec.url}"
+          target="_blank"
+          rel="noreferrer noopener"
+        >
+          <span class="hydro-bangumi-card__index" th:text="${#numbers.formatInteger(bangumiStat.index + 1, 2)}"
+            >01</span
+          >
+          <span
+            class="hydro-bangumi-card__score"
+            th:if="${not #strings.isEmpty(bangumi.spec.score)}"
+            th:text="${bangumi.spec.score}"
+            >9.5</span
+          >
+          <img
+            th:if="${not #strings.isEmpty(bangumi.spec.cover)}"
+            th:src="${#strings.contains(bangumi.spec.cover, '@') ? #strings.substringBefore(bangumi.spec.cover, '@') : bangumi.spec.cover}"
+            th:alt="${bangumi.spec.title}"
+            loading="lazy"
+            referrerpolicy="no-referrer"
+          />
+          <strong th:text="${bangumi.spec.title}">番剧名称</strong>
+          <span th:if="${not #strings.isEmpty(bangumi.spec.totalCount)}" th:text="${bangumi.spec.totalCount}"
+            >全 12 话</span
+          >
+        </a>
+      </div>
+
+      <div
+        th:if="${not hasBangumiPlugin and not hasBangumiData}"
+        class="hydro-plugin-empty hydro-plugin-empty--install"
+      >
+        <span th:text="${theme.config.bangumi?.eyebrow ?: 'Bangumi'}">Bangumi</span>
+        <strong th:text="${theme.config.bangumi?.install_title ?: '需要安装追番插件'}">需要安装追番插件</strong>
+        <p
+          th:text="${theme.config.bangumi?.install_text ?: '请安装 plugin-bilibili-bangumi，路径：Halo Console -> 应用市场 -> 搜索“Bilibili 追番”。'}"
+        >
+          请安装 plugin-bilibili-bangumi，路径：Halo Console -> 应用市场 -> 搜索“Bilibili 追番”。
+        </p>
+        <a
+          class="hydro-plugin-install-link"
+          th:href="${theme.config.bangumi?.install_link ?: 'https://www.halo.run/store/apps/app-OTFPN'}"
+          target="_blank"
+          rel="noreferrer noopener"
+          th:text="${theme.config.bangumi?.install_link_label ?: '查看插件'}"
+          >查看插件</a
+        >
+      </div>
+
+      <div th:if="${hasBangumiPlugin and not hasBangumiData}" class="hydro-plugin-empty">
+        <span th:text="${theme.config.bangumi?.eyebrow ?: 'Bangumi'}">Bangumi</span>
+        <strong th:text="${theme.config.bangumi?.empty_text ?: '暂无追番数据'}">暂无追番数据</strong>
+        <p
+          th:text="${theme.config.bangumi?.empty_available_text ?: 'plugin-bilibili-bangumi 已可用。完成账号绑定与数据同步后，Hydro 会用低饱和海报墙呈现观看记录。'}"
+        >
+          plugin-bilibili-bangumi 已可用。完成账号绑定与数据同步后，Hydro 会用低饱和海报墙呈现观看记录。
+        </p>
+      </div>
+
+      <section
+        id="comment"
+        class="hydro-plugin-comments"
+        th:if="${(theme.config.bangumi == null or theme.config.bangumi.enable_comment != false) and haloCommentEnabled and singlePage != null}"
+      >
+        <h2 th:text="${theme.config.bangumi?.comments_title ?: '评论'}">评论</h2>
+        <halo:comment group="content.halo.run" kind="SinglePage" th:attr="name=${singlePage.metadata.name}" />
+      </section>
+    </div>
+  </section>
+</include>

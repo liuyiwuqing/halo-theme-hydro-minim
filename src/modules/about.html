@@ -2,80 +2,54 @@
   <div class="hydro-container">
     <div class="hydro-about__grid" th:with="categories = ${categoryFinder.listAsTree()}">
       <div class="hydro-about__intro">
-        <span class="hydro-about__eyebrow about-text-line">About</span>
+        <span class="hydro-about__eyebrow about-text-line" th:text="${theme.config.home?.about_eyebrow ?: 'About'}">
+          About
+        </span>
         <h2 class="hydro-about__title">
-          <span class="about-text-line" th:text="${theme.config.about.title ?: '关于'}">关于</span>
-          <span class="about-text-line" th:text="${theme.config.about.subtitle ?: '艺术的生活家'}">艺术的生活家</span>
+          <span class="about-text-line" th:text="${theme.config.home?.about_title ?: '关于'}">关于</span>
+          <span class="about-text-line" th:text="${theme.config.home?.about_subtitle ?: '艺术的生活家'}">
+            艺术的生活家
+          </span>
         </h2>
-        <p class="hydro-about__lead about-text-line" th:text="${theme.config.about.paragraph_1}"></p>
+        <p class="hydro-about__lead about-text-line" th:text="${theme.config.home?.about_paragraph_1}"></p>
       </div>
 
       <div class="hydro-about__content">
         <div class="hydro-about__statement about-text-line">
-          <p th:text="${theme.config.about.paragraph_2}"></p>
-          <p th:text="${theme.config.about.paragraph_3}"></p>
+          <p th:text="${theme.config.home?.about_paragraph_2}"></p>
+          <p th:text="${theme.config.home?.about_paragraph_3}"></p>
         </div>
 
         <div class="hydro-about__stats about-text-line">
           <div>
             <strong th:text="${posts.total ?: 0}">63</strong>
-            <span>篇文章</span>
+            <span th:text="${theme.config.home?.about_articles_label ?: '篇文章'}">篇文章</span>
           </div>
           <div>
             <strong th:text="${#lists.size(categories)}">12</strong>
-            <span>个分类</span>
+            <span th:text="${theme.config.home?.about_categories_label ?: '个分类'}">个分类</span>
           </div>
           <div>
-            <strong th:text="${theme.config.about.readers ?: '2.4k'}">2.4k</strong>
-            <span>位读者</span>
+            <strong th:text="${theme.config.home?.about_readers ?: '2.4k'}">2.4k</strong>
+            <span th:text="${theme.config.home?.about_readers_label ?: '位读者'}">位读者</span>
           </div>
         </div>
 
-        <div class="hydro-socials about-text-line">
+        <div
+          class="hydro-socials about-text-line"
+          th:if="${theme.config.home == null or theme.config.home.about_show_socials != false}"
+        >
           <a
-            th:if="${not #strings.isEmpty(theme.config.social.twitter)}"
-            th:href="${theme.config.social.twitter}"
-            aria-label="Twitter"
-            target="_blank"
-            rel="noreferrer"
+            th:each="item : ${theme.config.site?.social_links}"
+            th:if="${not #strings.isEmpty(item.url) and item.url != '#'}"
+            th:href="${item.url}"
+            th:attr="aria-label=${item.label}"
+            th:target="${item.new_tab == true ? '_blank' : '_self'}"
+            rel="noreferrer noopener"
           >
-            <svg viewBox="0 0 24 24" aria-hidden="true">
+            <th:block th:if="${not #strings.isEmpty(item.icon)}" th:utext="${item.icon}" />
+            <svg th:if="${#strings.isEmpty(item.icon)}" viewBox="0 0 24 24" aria-hidden="true">
               <path d="M4 4l16 16M20 4 4 20"></path>
-            </svg>
-          </a>
-          <a
-            th:if="${not #strings.isEmpty(theme.config.social.github)}"
-            th:href="${theme.config.social.github}"
-            aria-label="GitHub"
-            target="_blank"
-            rel="noreferrer"
-          >
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path
-                d="M12 2a10 10 0 0 0-3 19c.5.1.7-.2.7-.5v-2c-3 .7-3.6-1.2-3.6-1.2-.4-1-1-1.3-1-1.3-.9-.6.1-.6.1-.6 1 0 1.5 1 1.5 1 .9 1.5 2.4 1 3 .8.1-.6.4-1 .7-1.3-2.4-.3-4.9-1.2-4.9-5.3 0-1.2.4-2.1 1-2.9-.1-.3-.4-1.4.1-2.8 0 0 .8-.3 2.9 1.1a10 10 0 0 1 5.2 0c2-1.4 2.9-1.1 2.9-1.1.5 1.4.2 2.5.1 2.8.7.8 1 1.7 1 2.9 0 4.1-2.5 5-4.9 5.3.4.3.8 1 .8 2v2.6c0 .3.2.6.8.5A10 10 0 0 0 12 2z"
-              ></path>
-            </svg>
-          </a>
-          <a
-            th:if="${not #strings.isEmpty(theme.config.social.dribbble)}"
-            th:href="${theme.config.social.dribbble}"
-            aria-label="Dribbble"
-            target="_blank"
-            rel="noreferrer"
-          >
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <circle cx="12" cy="12" r="10"></circle>
-              <path d="M4 15c4-2 9-2 16 1M9 3c4 5 6 10 7 18M20 8c-5 2-10 2-15 0"></path>
-            </svg>
-          </a>
-          <a
-            th:if="${not #strings.isEmpty(theme.config.social.email)}"
-            th:href="${theme.config.social.email}"
-            aria-label="Email"
-          >
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M4 6h16v12H4z"></path>
-              <path d="m4 7 8 6 8-6"></path>
             </svg>
           </a>
         </div>

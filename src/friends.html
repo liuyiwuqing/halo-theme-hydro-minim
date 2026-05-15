@@ -1,0 +1,142 @@
+<include src="layout.html">
+  <template name="head">
+    <title th:text="|${theme.config.friends?.title ?: '朋友圈'} - ${site.title}|">朋友圈</title>
+  </template>
+
+  <section class="hydro-list-hero">
+    <div class="hydro-container">
+      <p th:text="${theme.config.friends?.eyebrow ?: 'Friends'}">Friends</p>
+      <h1 th:text="${theme.config.friends?.title ?: '朋友圈'}">朋友圈</h1>
+      <span th:text="${theme.config.friends?.description ?: '订阅朋友们的最新动态，让创作者之间保持轻盈连接。'}"
+        >订阅朋友们的最新动态，让创作者之间保持轻盈连接。</span
+      >
+    </div>
+  </section>
+
+  <section
+    class="hydro-plugin-page hydro-friends-page"
+    th:with="
+      hasFriendsPlugin=${pluginFinder.available('plugin-friends') or pluginFinder.available('PluginFriends')},
+      isSinglePageRoute=${singlePage != null},
+      friendsPageSize=${theme.config.friends?.page_size == null or theme.config.friends.page_size < 1 ? 20 : theme.config.friends.page_size},
+      friendsData=${friends != null ? friends : (hasFriendsPlugin and friendFinder != null ? friendFinder.list(1, friendsPageSize) : null)},
+      hasFriendsData=${friendsData != null and friendsData.items != null and not #lists.isEmpty(friendsData.items)}"
+  >
+    <div class="hydro-container">
+      <div class="hydro-plugin-notice" th:if="${not hasFriendsPlugin}">
+        <strong th:text="${theme.config.friends?.install_title ?: '需要安装朋友圈插件'}">需要安装朋友圈插件</strong>
+        <span
+          class="hydro-plugin-notice__body"
+          th:text="${theme.config.friends?.install_text ?: '需要安装并启用 plugin-friends。在 Halo Console -> 应用市场搜索“朋友圈”，添加订阅源后这里会展示朋友们的新文章。'}"
+          >需要安装并启用 plugin-friends。在 Halo Console ->
+          应用市场搜索“朋友圈”，添加订阅源后这里会展示朋友们的新文章。</span
+        >
+        <a
+          class="hydro-plugin-install-link"
+          th:href="${theme.config.friends?.install_link ?: 'https://www.halo.run/store/apps/app-yISsV'}"
+          target="_blank"
+          rel="noreferrer noopener"
+          th:text="${theme.config.friends?.install_link_label ?: '应用市场'}"
+          >应用市场</a
+        >
+      </div>
+
+      <div class="hydro-friends-feed" th:if="${hasFriendsData}">
+        <article
+          class="hydro-friend-row"
+          th:each="friend,friendStat : ${friendsData.items}"
+          th:with="spec=${friend.spec}"
+        >
+          <a th:href="${spec.postLink}" target="_blank" rel="noreferrer noopener">
+            <span class="hydro-friend-row__index" th:text="${#numbers.formatInteger(friendStat.index + 1, 2)}">01</span>
+            <span class="hydro-friend-row__avatar">
+              <img th:if="${not #strings.isEmpty(spec.logo)}" th:src="${spec.logo}" th:alt="|${spec.author} 头像|" />
+              <b
+                th:if="${#strings.isEmpty(spec.logo)}"
+                th:text="${#strings.isEmpty(spec.author) ? 'F' : #strings.substring(spec.author,0,1)}"
+                >F</b
+              >
+            </span>
+            <span class="hydro-friend-row__body">
+              <span class="hydro-friend-row__meta">
+                <strong th:text="${spec.author}">作者</strong>
+                <time th:if="${spec.pubDate}" th:text="${#dates.format(spec.pubDate, 'yyyy.MM.dd HH:mm')}"
+                  >2026.05.13</time
+                >
+              </span>
+              <span class="hydro-friend-row__title" th:text="${spec.title}">文章标题</span>
+              <span
+                th:if="${not #strings.isEmpty(spec.description)}"
+                class="hydro-friend-row__desc"
+                th:text="${spec.description}"
+                >描述</span
+              >
+            </span>
+            <span class="hydro-friend-row__arrow" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M7 17 17 7M8 7h9v9"></path></svg>
+            </span>
+          </a>
+        </article>
+      </div>
+
+      <div
+        th:if="${not hasFriendsPlugin and not hasFriendsData}"
+        class="hydro-plugin-empty hydro-plugin-empty--install"
+      >
+        <span th:text="${theme.config.friends?.eyebrow ?: 'Friends Feed'}">Friends Feed</span>
+        <strong th:text="${theme.config.friends?.install_title ?: '需要安装朋友圈插件'}">需要安装朋友圈插件</strong>
+        <p
+          th:text="${theme.config.friends?.install_text ?: '请安装 plugin-friends，路径：Halo Console -> 应用市场 -> 搜索“朋友圈”。'}"
+        >
+          请安装 plugin-friends，路径：Halo Console -> 应用市场 -> 搜索“朋友圈”。
+        </p>
+        <a
+          class="hydro-plugin-install-link"
+          th:href="${theme.config.friends?.install_link ?: 'https://www.halo.run/store/apps/app-yISsV'}"
+          target="_blank"
+          rel="noreferrer noopener"
+          th:text="${theme.config.friends?.install_link_label ?: '查看插件'}"
+          >查看插件</a
+        >
+      </div>
+
+      <div th:if="${hasFriendsPlugin and not hasFriendsData}" class="hydro-plugin-empty">
+        <span th:text="${theme.config.friends?.eyebrow ?: 'Friends Feed'}">Friends Feed</span>
+        <strong th:text="${theme.config.friends?.empty_text ?: '暂无朋友动态'}">暂无朋友动态</strong>
+        <p
+          th:text="${theme.config.friends?.empty_available_text ?: 'plugin-friends 已可用。添加订阅源并完成同步后，这里会按时间流展示新文章。'}"
+        >
+          plugin-friends 已可用。添加订阅源并完成同步后，这里会按时间流展示新文章。
+        </p>
+      </div>
+
+      <nav
+        class="hydro-pagination"
+        th:if="${not isSinglePageRoute and friendsData != null and (friendsData.hasPrevious or friendsData.hasNext)}"
+      >
+        <a
+          th:if="${friendsData.hasPrevious}"
+          th:href="@{${friendsData.prevUrl}}"
+          th:text="${theme.config.navigation?.pagination_previous_label ?: '上一页'}"
+          >上一页</a
+        >
+        <span th:text="|${friendsData.page} / ${friendsData.totalPages}|">1 / 1</span>
+        <a
+          th:if="${friendsData.hasNext}"
+          th:href="@{${friendsData.nextUrl}}"
+          th:text="${theme.config.navigation?.pagination_next_label ?: '下一页'}"
+          >下一页</a
+        >
+      </nav>
+
+      <section
+        id="comment"
+        class="hydro-plugin-comments"
+        th:if="${(theme.config.friends == null or theme.config.friends.enable_comment != false) and haloCommentEnabled and singlePage != null}"
+      >
+        <h2 th:text="${theme.config.friends?.comments_title ?: '评论'}">评论</h2>
+        <halo:comment group="content.halo.run" kind="SinglePage" th:attr="name=${singlePage.metadata.name}" />
+      </section>
+    </div>
+  </section>
+</include>

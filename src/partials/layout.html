@@ -1,7 +1,18 @@
 <!doctype html>
 <html
   th:lang="${#locale.toLanguageTag}"
-  th:attr="data-theme-default=${theme.config.style.color_scheme ?: 'auto'}"
+  th:style="|--hydro-light-bg:${theme.config.appearance?.background_color ?: '#F3F3F3'}; --hydro-dark-bg:${theme.config.appearance?.dark_background_color ?: '#101112'}; --hydro-coral-light:${theme.config.appearance?.accent_color ?: '#FF6B6B'}; --hydro-coral-dark:${theme.config.appearance?.dark_accent_color ?: theme.config.appearance?.accent_color ?: '#FF8A8A'};|"
+  th:attr="
+    data-theme-default=${theme.config.appearance?.color_scheme ?: 'auto'},
+    data-hydro-smooth-scroll=${theme.config.appearance == null or theme.config.appearance.smooth_scroll != false},
+    data-hydro-motion=${(theme.config.appearance == null or theme.config.appearance.enable_motion != false) ? 'on' : 'off'},
+    data-hydro-theme-transition=${theme.config.appearance == null or theme.config.appearance.enable_theme_transition != false},
+    data-hydro-hero-motion=${theme.config.appearance == null or theme.config.appearance.enable_hero_motion != false},
+    data-hydro-card-hover=${theme.config.appearance == null or theme.config.appearance.enable_card_hover != false},
+    data-hydro-scroll-tilt=${theme.config.appearance == null or theme.config.appearance.enable_scroll_tilt != false},
+    data-hydro-text-scramble=${theme.config.appearance == null or theme.config.appearance.enable_text_scramble != false},
+    data-hydro-lightbox=${theme.config.appearance == null or theme.config.appearance.enable_lightbox != false}
+  "
   xmlns:th="http://www.thymeleaf.org"
 >
   <head>
@@ -12,25 +23,53 @@
   </head>
   <body
     class="hydro-page"
-    th:style="|--hydro-light-bg:${theme.config.style.background_color ?: '#F3F3F3'}; --hydro-dark-bg:${theme.config.style.dark_background_color ?: '#101112'}; --hydro-coral:${theme.config.style.accent_color ?: '#FF6B6B'};|"
-    th:attr="data-smooth-scroll=${theme.config.style.smooth_scroll},data-enable-motion=${theme.config.style.enable_motion}"
+    th:attr="
+      data-smooth-scroll=${theme.config.appearance == null or theme.config.appearance.smooth_scroll != false},
+      data-enable-motion=${theme.config.appearance == null or theme.config.appearance.enable_motion != false},
+      data-theme-transition=${theme.config.appearance == null or theme.config.appearance.enable_theme_transition != false},
+      data-enable-hero-motion=${theme.config.appearance == null or theme.config.appearance.enable_hero_motion != false},
+      data-enable-card-hover=${theme.config.appearance == null or theme.config.appearance.enable_card_hover != false},
+      data-enable-scroll-tilt=${theme.config.appearance == null or theme.config.appearance.enable_scroll_tilt != false},
+      data-enable-text-scramble=${theme.config.appearance == null or theme.config.appearance.enable_text_scramble != false},
+      data-enable-lightbox=${theme.config.appearance == null or theme.config.appearance.enable_lightbox != false},
+      data-theme-to-light-label=${theme.config.appearance?.theme_to_light_label ?: '切换为浅色模式'},
+      data-theme-to-dark-label=${theme.config.appearance?.theme_to_dark_label ?: '切换为深色模式'},
+      data-allow-color-switch=${theme.config.navigation == null or theme.config.navigation.allow_color_switch != false},
+      data-back-to-top-threshold=${theme.config.navigation?.back_to_top_threshold ?: 100},
+      data-share-copied-text=${theme.config.share?.copied_text ?: '已复制'},
+      data-share-copy-prompt-title=${theme.config.share?.copy_prompt_title ?: '复制链接'},
+      data-post-share-copied-text=${theme.config.post?.share_copied_text ?: '已复制'},
+      data-post-share-copy-prompt-title=${theme.config.post?.copy_prompt_title ?: '复制链接'},
+      data-post-upvote-error-text=${theme.config.post?.upvote_error_text ?: '点赞失败，请稍后再试'},
+      data-moment-upvote-error-text=${theme.config.moments?.upvote_error_text ?: (theme.config.post?.upvote_error_text ?: '点赞失败，请稍后再试')},
+      data-doc-toc-empty-text=${theme.config.docs?.toc_empty_text ?: '无目录'},
+      data-qr-service-url=${theme.config.advanced?.qr_service_url ?: 'https://api.qrserver.com/v1/create-qr-code/'}
+    "
   >
-    <div th:if="${theme.config.style.grain}" class="grain-overlay" aria-hidden="true"></div>
+    <div
+      th:if="${theme.config.appearance == null or theme.config.appearance.show_grain != false}"
+      class="grain-overlay"
+      aria-hidden="true"
+    ></div>
 
     <th:block th:replace="~{modules/header}" />
 
-    <main class="tilt-on-scroll" style="transform-style: preserve-3d">
+    <main>
       <slot />
     </main>
 
     <th:block th:replace="~{modules/footer}" />
 
     <!-- FAB + 返回顶部 -->
-    <div class="hydro-fab-group" aria-label="快捷操作">
+    <div class="hydro-fab-group" th:attr="aria-label=${theme.config.navigation?.fab_label ?: '快捷操作'}">
       <!-- FAB 快捷项（仅在启用时渲染） -->
-      <div th:if="${theme.config.fab.enabled}" class="hydro-fab-menu" data-hydro-fab>
+      <div
+        th:if="${theme.config.navigation != null and theme.config.navigation.fab_enabled == true}"
+        class="hydro-fab-menu"
+        data-hydro-fab
+      >
         <div class="hydro-fab-items">
-          <th:block th:each="item : ${theme.config.fab.items}">
+          <th:block th:each="item : ${theme.config.navigation.fab_items}">
             <a
               class="hydro-fab-item"
               th:href="${item.url}"
@@ -42,7 +81,12 @@
             </a>
           </th:block>
         </div>
-        <button class="hydro-fab-trigger" data-hydro-fab-trigger aria-label="快捷操作" aria-expanded="false">
+        <button
+          class="hydro-fab-trigger"
+          data-hydro-fab-trigger
+          th:attr="aria-label=${theme.config.navigation?.fab_label ?: '快捷操作'}"
+          aria-expanded="false"
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="18"
@@ -61,7 +105,12 @@
         </button>
       </div>
       <!-- 返回顶部 -->
-      <button class="hydro-back-to-top" data-hydro-back-to-top aria-label="返回顶部" title="返回顶部">
+      <button
+        th:if="${theme.config.navigation == null or theme.config.navigation.show_back_to_top != false}"
+        class="hydro-back-to-top"
+        data-hydro-back-to-top
+        th:attr="aria-label=${theme.config.navigation?.back_to_top_label ?: '返回顶部'},title=${theme.config.navigation?.back_to_top_label ?: '返回顶部'}"
+      >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="18"
@@ -80,5 +129,13 @@
     </div>
 
     <halo:footer />
+    <th:block
+      th:if="${not #strings.isEmpty(theme.config.advanced?.footer_html)}"
+      th:utext="${theme.config.advanced.footer_html}"
+    />
+    <script
+      th:if="${not #strings.isEmpty(theme.config.advanced?.code_js)}"
+      th:utext="${theme.config.advanced.code_js}"
+    ></script>
   </body>
 </html>

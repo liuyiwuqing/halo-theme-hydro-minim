@@ -1,0 +1,202 @@
+<include src="layout.html">
+  <template name="head">
+    <title th:text="|${theme.config.share?.title ?: '分享海报'} - ${site.title}|">分享海报</title>
+  </template>
+
+  <section
+    class="hydro-poster-page"
+    data-hydro-poster-page
+    th:attr="
+      data-copied-text=${theme.config.share?.copied_text ?: '已复制'},
+      data-copy-prompt-title=${theme.config.share?.copy_prompt_title ?: '复制链接'}
+    "
+    th:with="
+      isPost=${type == 'post'},
+      isMoment=${type == 'moment'},
+      hasMomentsPlugin=${pluginFinder.available('PluginMoments') or pluginFinder.available('plugin-moments')},
+      sharePost=${isPost ? postFinder.getByName(name) : null},
+      shareMoment=${isMoment and hasMomentsPlugin and momentFinder != null ? momentFinder.get(name) : null}
+    "
+  >
+    <div class="hydro-container">
+      <header class="hydro-poster-hero">
+        <p th:text="${theme.config.share?.eyebrow ?: 'Hydro-Minim / Poster'}">Hydro-Minim / Poster</p>
+        <h1 th:text="${theme.config.share?.title ?: '分享海报'}">分享海报</h1>
+        <span
+          th:if="${isPost}"
+          th:text="${theme.config.share?.post_description ?: '把文章整理成一张适合保存与转发的轻量海报。'}"
+          >把文章整理成一张适合保存与转发的轻量海报。</span
+        >
+        <span
+          th:if="${isMoment}"
+          th:text="${theme.config.share?.moment_description ?: '把瞬间整理成一张适合保存与转发的轻量海报。'}"
+          >把瞬间整理成一张适合保存与转发的轻量海报。</span
+        >
+        <span
+          th:if="${not isPost and not isMoment}"
+          th:text="${theme.config.share?.unsupported_description ?: '当前分享类型暂未支持。'}"
+          >当前分享类型暂未支持。</span
+        >
+      </header>
+
+      <div class="hydro-poster-layout">
+        <article
+          id="hydro-poster-card"
+          class="hydro-poster-card"
+          th:if="${isPost and sharePost != null}"
+          th:with="
+            fallbackCover=${theme.config.site?.article_cover_1},
+            cover=${#strings.isEmpty(sharePost.spec.cover) ? fallbackCover : sharePost.spec.cover}
+          "
+        >
+          <div class="hydro-poster-card__cover" th:style="|background-image: url('${cover}')|"></div>
+          <div class="hydro-poster-card__body">
+            <p class="hydro-poster-card__eyebrow" th:text="${theme.config.share?.post_card_eyebrow ?: 'Post'}">Post</p>
+            <h2 th:text="${sharePost.spec.title}">文章标题</h2>
+            <p
+              class="hydro-poster-card__excerpt"
+              th:if="${not #strings.isEmpty(sharePost.status.excerpt)}"
+              th:text="${sharePost.status.excerpt}"
+            >
+              文章摘要
+            </p>
+
+            <div class="hydro-poster-card__chips" th:if="${not #lists.isEmpty(sharePost.categories)}">
+              <span th:each="category : ${sharePost.categories}" th:text="${category.spec.displayName}">分类</span>
+            </div>
+
+            <footer class="hydro-poster-card__footer">
+              <div class="hydro-poster-qr">
+                <img
+                  data-hydro-poster-qr
+                  th:attr="data-url=@{${sharePost.status.permalink}}"
+                  th:alt="${theme.config.share?.qr_alt ?: '分享二维码'}"
+                  loading="lazy"
+                />
+              </div>
+              <div class="hydro-poster-site">
+                <img th:if="${not #strings.isEmpty(site.logo)}" th:src="${site.logo}" th:alt="${site.title}" />
+                <div>
+                  <strong th:text="${site.title}">Hydro-Minim</strong>
+                  <span th:text="${#dates.format(sharePost.spec.publishTime, 'yyyy.MM.dd')}">2026.05.12</span>
+                </div>
+              </div>
+            </footer>
+          </div>
+        </article>
+
+        <article
+          id="hydro-poster-card"
+          class="hydro-poster-card hydro-poster-card--moment"
+          th:if="${isMoment and shareMoment != null}"
+          th:with="
+            content=${shareMoment.spec.content},
+            media=${content.medium},
+            hasMedia=${not #lists.isEmpty(media)},
+            cover=${hasMedia ? media[0].url : theme.config.site?.article_cover_2}
+          "
+        >
+          <div class="hydro-poster-card__cover" th:style="|background-image: url('${cover}')|"></div>
+          <div class="hydro-poster-card__body">
+            <p class="hydro-poster-card__eyebrow" th:text="${theme.config.share?.moment_card_eyebrow ?: 'Moment'}">
+              Moment
+            </p>
+            <h2 th:text="${shareMoment.owner != null ? shareMoment.owner.displayName : site.title}">瞬间</h2>
+            <div
+              class="hydro-poster-card__excerpt hydro-poster-card__excerpt--html"
+              th:if="${content != null and not #strings.isEmpty(content.html)}"
+              th:utext="${content.html}"
+            ></div>
+
+            <div class="hydro-poster-card__chips" th:if="${not #lists.isEmpty(shareMoment.spec.tags)}">
+              <span th:each="tag : ${shareMoment.spec.tags}" th:text="|#${tag}|">#tag</span>
+            </div>
+
+            <footer class="hydro-poster-card__footer">
+              <div class="hydro-poster-qr">
+                <img
+                  data-hydro-poster-qr
+                  th:attr="data-url=|/moments/${shareMoment.metadata.name}|"
+                  th:alt="${theme.config.share?.qr_alt ?: '分享二维码'}"
+                  loading="lazy"
+                />
+              </div>
+              <div class="hydro-poster-site">
+                <img th:if="${not #strings.isEmpty(site.logo)}" th:src="${site.logo}" th:alt="${site.title}" />
+                <div>
+                  <strong th:text="${site.title}">Hydro-Minim</strong>
+                  <span th:text="${#dates.format(shareMoment.spec.releaseTime, 'yyyy.MM.dd')}">2026.05.12</span>
+                </div>
+              </div>
+            </footer>
+          </div>
+        </article>
+
+        <aside class="hydro-poster-panel">
+          <div class="hydro-poster-panel__section">
+            <span th:text="${theme.config.share?.panel_eyebrow ?: 'Share'}">Share</span>
+            <h2 th:text="${theme.config.share?.panel_title ?: '生成与分享'}">生成与分享</h2>
+            <p
+              th:text="${theme.config.share?.panel_description ?: '二维码会在浏览器中按当前链接生成；如果二维码服务无法访问，也可以直接复制链接分享。'}"
+            >
+              二维码会在浏览器中按当前链接生成；如果二维码服务无法访问，也可以直接复制链接分享。
+            </p>
+          </div>
+
+          <div class="hydro-poster-actions" th:if="${isPost and sharePost != null}">
+            <a
+              data-hydro-poster-url
+              th:href="@{${sharePost.status.permalink}}"
+              th:text="@{${sharePost.status.permalink}}"
+            >
+              /archives/post
+            </a>
+            <button type="button" data-hydro-poster-copy th:attr="data-url=@{${sharePost.status.permalink}}">
+              <span th:text="${theme.config.share?.copy_label ?: '复制链接'}">复制链接</span>
+            </button>
+            <button type="button" data-hydro-poster-print th:text="${theme.config.share?.print_label ?: '打印/保存'}">
+              打印/保存
+            </button>
+          </div>
+
+          <div class="hydro-poster-actions" th:if="${isMoment and shareMoment != null}">
+            <a
+              data-hydro-poster-url
+              th:href="|/moments/${shareMoment.metadata.name}|"
+              th:text="|/moments/${shareMoment.metadata.name}|"
+            >
+              /moments/name
+            </a>
+            <button type="button" data-hydro-poster-copy th:attr="data-url=|/moments/${shareMoment.metadata.name}|">
+              <span th:text="${theme.config.share?.copy_label ?: '复制链接'}">复制链接</span>
+            </button>
+            <button type="button" data-hydro-poster-print th:text="${theme.config.share?.print_label ?: '打印/保存'}">
+              打印/保存
+            </button>
+          </div>
+
+          <div
+            class="hydro-poster-empty"
+            th:if="${(isPost and sharePost == null) or (isMoment and shareMoment == null) or (not isPost and not isMoment)}"
+          >
+            <strong th:text="${theme.config.share?.empty_title ?: '没有找到可生成海报的内容。'}">
+              没有找到可生成海报的内容。
+            </strong>
+            <span th:text="${theme.config.share?.empty_description ?: '请检查分享类型和内容名称是否正确。'}">
+              请检查分享类型和内容名称是否正确。
+            </span>
+          </div>
+
+          <button
+            type="button"
+            class="hydro-poster-back"
+            data-hydro-poster-back
+            th:text="${theme.config.share?.back_label ?: '返回上一页'}"
+          >
+            返回上一页
+          </button>
+        </aside>
+      </div>
+    </div>
+  </section>
+</include>

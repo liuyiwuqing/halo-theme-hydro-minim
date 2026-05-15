@@ -2,7 +2,7 @@
   th:fragment="post-card(post, index)"
   class="hydro-list-card"
   th:with="
-    fallbackCover=${index % 3 == 0 ? theme.config.assets.article_cover_1 : (index % 3 == 1 ? theme.config.assets.article_cover_2 : theme.config.assets.article_cover_3)},
+    fallbackCover=${index % 3 == 0 ? theme.config.site?.article_cover_1 : (index % 3 == 1 ? theme.config.site?.article_cover_2 : theme.config.site?.article_cover_3)},
     cover=${#strings.isEmpty(post.spec.cover) ? fallbackCover : post.spec.cover}
   "
 >

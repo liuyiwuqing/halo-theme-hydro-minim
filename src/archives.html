@@ -1,23 +1,30 @@
 <include src="layout.html">
   <template name="head">
-    <title th:text="|归档 - ${site.title}|">归档</title>
+    <title th:text="|${theme.config.archive?.title ?: '归档'} - ${site.title}|">归档</title>
   </template>
 
   <section class="hydro-archive-page">
     <div class="hydro-container">
       <header class="hydro-archive-hero">
         <div class="hydro-archive-hero__copy">
-          <p class="hydro-archive-hero__kicker">Hydro-Minim / Archives</p>
-          <h1>归档</h1>
-          <span>文章按发布时间归入年份和月份，方便回看往期内容。</span>
+          <p class="hydro-archive-hero__kicker" th:text="${theme.config.archive?.eyebrow ?: 'Hydro-Minim / Archives'}">
+            Hydro-Minim / Archives
+          </p>
+          <h1 th:text="${theme.config.archive?.title ?: '归档'}">归档</h1>
+          <span th:text="${theme.config.archive?.description ?: '文章按发布时间归入年份和月份，方便回看往期内容。'}">
+            文章按发布时间归入年份和月份，方便回看往期内容。
+          </span>
         </div>
-        <dl class="hydro-archive-hero__meta" th:if="${archives.total gt 0}">
+        <dl
+          class="hydro-archive-hero__meta"
+          th:if="${(theme.config.archive == null or theme.config.archive.show_meta != false) and archives.total gt 0}"
+        >
           <div>
-            <dt>Articles</dt>
+            <dt th:text="${theme.config.archive?.articles_metric_label ?: 'Articles'}">Articles</dt>
             <dd th:text="${archives.total}">0</dd>
           </div>
           <div>
-            <dt>Page</dt>
+            <dt th:text="${theme.config.archive?.page_metric_label ?: 'Page'}">Page</dt>
             <dd th:text="|${archives.page}/${archives.totalPages}|">1/1</dd>
           </div>
         </dl>
@@ -27,16 +34,22 @@
         <th:block th:each="archive : ${archives.items}">
           <section class="hydro-archive__year">
             <div class="hydro-archive__year-head">
-              <p>Year</p>
+              <p th:text="${theme.config.archive?.year_label ?: 'Year'}">Year</p>
               <h2 th:text="${archive.year}">2026</h2>
-              <span th:text="|${#lists.size(archive.months)} 个月份|">3 个月份</span>
+              <span th:text="|${#lists.size(archive.months)} ${theme.config.archive?.month_unit ?: '个月份'}|">
+                3 个月份
+              </span>
             </div>
 
             <div class="hydro-archive__months">
               <section class="hydro-archive__month" th:each="month : ${archive.months}">
                 <div class="hydro-archive__month-head">
-                  <h3 th:text="|${#numbers.formatInteger(month.month, 2)} 月|">04 月</h3>
-                  <span th:text="|${#lists.size(month.posts)} 篇|">4 篇</span>
+                  <h3
+                    th:text="|${#numbers.formatInteger(month.month, 2)} ${theme.config.archive?.month_suffix ?: '月'}|"
+                  >
+                    04 月
+                  </h3>
+                  <span th:text="|${#lists.size(month.posts)} ${theme.config.archive?.post_unit ?: '篇'}|">4 篇</span>
                 </div>
 
                 <div class="hydro-archive__items">
@@ -62,6 +75,7 @@
                     </span>
                     <span
                       th:if="${not #strings.isEmpty(post.spec.cover)}"
+                      th:unless="${theme.config.archive != null and theme.config.archive.show_post_cover == false}"
                       class="hydro-archive__item-cover"
                       aria-hidden="true"
                     >
@@ -79,7 +93,13 @@
           </section>
         </th:block>
       </div>
-      <div th:if="${archives.total == 0}" class="hydro-empty">还没有归档文章。</div>
+      <div
+        th:if="${archives.total == 0}"
+        class="hydro-empty"
+        th:text="${theme.config.archive?.empty_text ?: '还没有归档文章。'}"
+      >
+        还没有归档文章。
+      </div>
       <th:block
         th:replace="~{modules/pagination :: pagination(${archives.prevUrl},${archives.nextUrl},${archives.totalPages},${archives.page},${archives.hasPrevious()},${archives.hasNext()})}"
       />

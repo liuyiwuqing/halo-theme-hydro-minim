@@ -16,6 +16,32 @@ spec:
   configMapName: "halo-theme-hydro-minim-configMap"
   version: 1.0.0
   requires: ">=2.20.0"
+  customTemplates:
+    page:
+      - name: Hydro 关于页
+        description: 氢风格关于页，展示站点统计、正文和社交链接
+        file: page_about.html
+      - name: Hydro 追番页
+        description: 追番插件页面模板；未安装插件时显示安装提示
+        file: bangumis.html
+      - name: Hydro 文档中心
+        description: Docsme 文档中心入口模板；文档详情仍由 Docsme 路由提供
+        file: docs.html
+      - name: Hydro 装备页
+        description: 装备插件页面模板；未安装插件时显示安装提示
+        file: equipments.html
+      - name: Hydro 朋友圈页
+        description: 朋友圈插件页面模板；未安装插件时显示安装提示
+        file: friends.html
+      - name: Hydro 瞬间页
+        description: 瞬间插件页面模板；未安装插件时显示安装提示
+        file: moments.html
+      - name: Hydro 图库页
+        description: 图库插件页面模板；未安装插件时显示安装提示
+        file: photos.html
+      - name: Hydro Steam 页
+        description: Steam 插件页面模板；未安装插件时显示安装提示
+        file: steam.html
   license:
     - name: "GPL-3.0"
       url: "https://www.gnu.org/licenses/gpl-3.0.html"

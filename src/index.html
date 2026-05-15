@@ -3,8 +3,17 @@
     <title th:text="|${site.title} - Hydro-Minim|">Hydro-Minim</title>
   </template>
 
-  <th:block th:replace="~{modules/hero}" />
-  <th:block th:replace="~{modules/latest-articles}" />
-  <th:block th:replace="~{modules/categories-showcase}" />
-  <th:block th:replace="~{modules/about}" />
+  <th:block th:if="${theme.config.home == null or theme.config.home.show_hero != false}" th:replace="~{modules/hero}" />
+  <th:block
+    th:if="${theme.config.home == null or theme.config.home.show_latest != false}"
+    th:replace="~{modules/latest-articles}"
+  />
+  <th:block
+    th:if="${theme.config.home == null or theme.config.home.show_categories != false}"
+    th:replace="~{modules/categories-showcase}"
+  />
+  <th:block
+    th:if="${theme.config.home == null or theme.config.home.show_about != false}"
+    th:replace="~{modules/about}"
+  />
 </include>

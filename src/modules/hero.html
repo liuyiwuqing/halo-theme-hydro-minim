@@ -1,35 +1,38 @@
 <section
   class="hydro-hero"
-  th:with="heroCover = ${#strings.isEmpty(theme.config.hero.cover) ? #theme.assets('/images/hero-featured.jpg') : theme.config.hero.cover}"
+  th:with="
+    heroCover = ${#strings.isEmpty(theme.config.home?.hero_cover) ? #theme.assets('/images/hero-featured.jpg') : theme.config.home.hero_cover},
+    heroFeaturedSize = ${theme.config.home?.hero_featured_size == null or theme.config.home.hero_featured_size < 1 ? 4 : theme.config.home.hero_featured_size}
+  "
   data-hydro-hero
 >
   <div class="hydro-hero__image">
     <div class="hydro-hero__image-inner" data-hydro-hero-image>
       <div class="hydro-hero__image-motion" data-hydro-hero-motion>
-        <img th:src="${heroCover}" th:alt="${theme.config.hero.label ?: 'Hydro-Minim'}" />
+        <img th:src="${heroCover}" th:alt="${theme.config.home?.hero_label ?: 'Hydro-Minim'}" />
         <div class="hydro-hero__fade" aria-hidden="true"></div>
       </div>
     </div>
-    <div class="hydro-hero__label" th:text="${theme.config.hero.label ?: '氢视窗'}">氢视窗</div>
+    <div class="hydro-hero__label" th:text="${theme.config.home?.hero_label ?: '氢视窗'}">氢视窗</div>
   </div>
 
   <div class="hydro-hero__content">
     <div class="hydro-container">
       <div class="hydro-hero__grid">
         <div>
-          <h1 class="hydro-hero__title" data-split-title th:text="${theme.config.hero.title ?: '探索'}">探索</h1>
-          <p th:text="${theme.config.hero.description}">
+          <h1 class="hydro-hero__title" data-split-title th:text="${theme.config.home?.hero_title ?: '探索'}">探索</h1>
+          <p th:text="${theme.config.home?.hero_description}">
             精选的想法、故事和创意，全部汇集于此。如氢气般轻快、简洁、流畅的体验。
           </p>
           <div class="hydro-scroll-hint">
             <span aria-hidden="true"></span>
-            <strong>向下滚动</strong>
+            <strong th:text="${theme.config.home?.hero_scroll_hint ?: '向下滚动'}">向下滚动</strong>
           </div>
         </div>
 
         <div>
           <ul class="hydro-hero-list">
-            <li class="hydro-list-item" th:each="post,stat : ${posts.items}" th:if="${stat.index < 4}">
+            <li class="hydro-list-item" th:each="post,stat : ${posts.items}" th:if="${stat.index < heroFeaturedSize}">
               <a th:href="@{${post.status.permalink}}">
                 <span th:text="${#numbers.formatInteger(stat.index + 1, 2)}">01</span>
                 <strong th:text="${post.spec.title}">数字设计的未来</strong>
@@ -40,7 +43,13 @@
               </a>
             </li>
           </ul>
-          <div th:if="${posts.total == 0}" class="hydro-empty">还没有发布文章。</div>
+          <div
+            th:if="${posts.total == 0}"
+            class="hydro-empty"
+            th:text="${theme.config.home?.hero_empty_text ?: '还没有发布文章。'}"
+          >
+            还没有发布文章。
+          </div>
         </div>
       </div>
     </div>

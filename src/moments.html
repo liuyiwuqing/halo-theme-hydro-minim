@@ -1,39 +1,74 @@
 <include src="layout.html">
   <template name="head">
-    <title th:text="|瞬间 - ${site.title}|">瞬间</title>
+    <title th:text="|${theme.config.moments?.title ?: '瞬间'} - ${site.title}|">瞬间</title>
   </template>
 
   <section
     class="hydro-moments-page"
-    th:with="allMoments=${momentFinder.list({size: 1})},allMomentTotal=${allMoments.total ?: moments.total ?: 0}"
+    th:with="
+      hasMomentsPlugin=${pluginFinder.available('PluginMoments') or pluginFinder.available('plugin-moments')},
+      isSinglePageRoute=${singlePage != null},
+      pageBaseUrl=${isSinglePageRoute ? singlePage.status.permalink : '/moments'},
+      currentTag=${param.tag != null and not #lists.isEmpty(param.tag) ? param.tag[0] : null},
+      momentsPageSize=${theme.config.moments?.page_size == null or theme.config.moments.page_size < 1 ? 10 : theme.config.moments.page_size},
+      momentsData=${moments != null ? moments : (hasMomentsPlugin and momentFinder != null ? (currentTag != null ? momentFinder.listByTag(1, momentsPageSize, currentTag) : momentFinder.list(1, momentsPageSize)) : null)},
+      momentTags=${tags != null ? tags : (hasMomentsPlugin and momentFinder != null ? momentFinder.listAllTags() : null)},
+      allMoments=${hasMomentsPlugin and momentFinder != null ? momentFinder.list(1, 1) : null},
+      allMomentTotal=${allMoments != null ? allMoments.total : (momentsData != null ? momentsData.total : 0)},
+      hasMomentsData=${momentsData != null and momentsData.items != null and not #lists.isEmpty(momentsData.items)}"
   >
     <div class="hydro-container">
       <header class="hydro-moments-hero">
         <div class="hydro-moments-hero__copy">
-          <p>Hydro-Minim / Moments</p>
-          <h1>瞬间</h1>
-          <span>像朋友圈一样记录正在发生的碎片：图片、视频、声音、音乐和一句短短的心情。</span>
+          <p th:text="${theme.config.moments?.eyebrow ?: 'Hydro-Minim / Moments'}">Hydro-Minim / Moments</p>
+          <h1 th:text="${theme.config.moments?.title ?: '瞬间'}">瞬间</h1>
+          <span
+            th:text="${theme.config.moments?.description ?: '像朋友圈一样记录正在发生的碎片：图片、视频、声音、音乐和一句短短的心情。'}"
+          >
+            像朋友圈一样记录正在发生的碎片：图片、视频、声音、音乐和一句短短的心情。
+          </span>
         </div>
-        <dl class="hydro-moments-hero__meta" th:if="${moments != null}">
+        <dl class="hydro-moments-hero__meta" th:if="${momentsData != null}">
           <div>
-            <dt>Total</dt>
-            <dd th:text="${moments.total ?: 0}">0</dd>
+            <dt th:text="${theme.config.moments?.total_metric_label ?: 'Total'}">Total</dt>
+            <dd th:text="${momentsData.total ?: 0}">0</dd>
           </div>
           <div>
-            <dt>Page</dt>
-            <dd th:text="|${moments.page ?: 1}/${moments.totalPages ?: 1}|">1/1</dd>
+            <dt th:text="${theme.config.moments?.page_metric_label ?: 'Page'}">Page</dt>
+            <dd th:text="|${momentsData.page ?: 1}/${momentsData.totalPages ?: 1}|">1/1</dd>
           </div>
         </dl>
       </header>
 
-      <nav class="hydro-moments-tags" th:if="${not #lists.isEmpty(tags)}" aria-label="瞬间标签">
-        <a th:href="@{/moments}" th:classappend="${#lists.isEmpty(param.tag)} ? 'is-active' : ''">
-          <span>全部</span>
+      <div class="hydro-plugin-notice" th:if="${not hasMomentsPlugin}">
+        <strong th:text="${theme.config.moments?.install_title ?: '需要安装瞬间插件'}">需要安装瞬间插件</strong>
+        <span
+          class="hydro-plugin-notice__body"
+          th:text="${theme.config.moments?.install_text ?: '需要安装并启用 PluginMoments。安装后发布瞬间，这里会展示时间线、图片和评论入口。'}"
+          >需要安装并启用 PluginMoments。安装后发布瞬间，这里会展示时间线、图片和评论入口。</span
+        >
+        <a
+          class="hydro-plugin-install-link"
+          th:href="${theme.config.moments?.install_link ?: 'https://www.halo.run/store/apps/app-SnwWD'}"
+          target="_blank"
+          rel="noreferrer noopener"
+          th:text="${theme.config.moments?.install_link_label ?: '应用市场'}"
+          >应用市场</a
+        >
+      </div>
+
+      <nav
+        class="hydro-moments-tags"
+        th:if="${momentTags != null and not #lists.isEmpty(momentTags)}"
+        aria-label="瞬间标签"
+      >
+        <a th:href="@{${pageBaseUrl}}" th:classappend="${#lists.isEmpty(param.tag)} ? 'is-active' : ''">
+          <span th:text="${theme.config.moments?.all_tag_label ?: '全部'}">全部</span>
           <sup th:text="${allMomentTotal}">0</sup>
         </a>
         <a
-          th:each="tag : ${tags}"
-          th:href="|/moments?tag=${tag.name}|"
+          th:each="tag : ${momentTags}"
+          th:href="@{${pageBaseUrl}(tag=${tag.name})}"
           th:classappend="${#lists.contains(param.tag, tag.name)} ? 'is-active' : ''"
         >
           <span th:text="${tag.name}">标签</span>
@@ -41,10 +76,10 @@
         </a>
       </nav>
 
-      <div class="hydro-moments-feed" th:if="${not #lists.isEmpty(moments.items)}">
+      <div class="hydro-moments-feed" th:if="${hasMomentsData}">
         <article
           class="hydro-moment"
-          th:each="moment,stat : ${moments.items}"
+          th:each="moment,stat : ${momentsData.items}"
           th:with="content=${moment.spec.content}"
           th:style="|--moment-order: ${stat.index};|"
           data-moment
@@ -126,13 +161,14 @@
 
             <footer class="hydro-moment__footer">
               <div class="hydro-moment__tags" th:if="${not #lists.isEmpty(moment.spec.tags)}">
-                <a th:each="tag : ${moment.spec.tags}" th:href="|/moments?tag=${tag}|">
+                <a th:each="tag : ${moment.spec.tags}" th:href="@{${pageBaseUrl}(tag=${tag})}">
                   <span>#</span>
                   <b th:text="${tag}">tag</b>
                 </a>
               </div>
               <div class="hydro-moment__actions">
                 <button
+                  th:if="${theme.config.moments == null or theme.config.moments.enable_upvote != false}"
                   class="hydro-moment__action hydro-moment__upvote"
                   type="button"
                   th:attr="data-moment-upvote=${moment.metadata.name},aria-label=|点赞 ${moment.metadata.name}|"
@@ -147,6 +183,7 @@
                   >
                 </button>
                 <button
+                  th:if="${theme.config.moments == null or theme.config.moments.enable_comment != false}"
                   class="hydro-moment__action"
                   type="button"
                   th:attr="data-moment-comment-toggle=${moment.metadata.name},aria-expanded='false',aria-controls=|moment-comment-${moment.metadata.name}|"
@@ -156,16 +193,21 @@
                   </svg>
                   <span th:text="${moment.stats.approvedComment ?: 0}">0</span>
                 </button>
-                <a class="hydro-moment__action hydro-moment__permalink" th:href="|/moments/${moment.metadata.name}|">
+                <a
+                  th:if="${theme.config.moments == null or theme.config.moments.show_detail_link != false}"
+                  class="hydro-moment__action hydro-moment__permalink"
+                  th:href="|/moments/${moment.metadata.name}|"
+                >
                   <svg viewBox="0 0 24 24" aria-hidden="true">
                     <path d="M7 17 17 7M9 7h8v8"></path>
                   </svg>
-                  <span>查看瞬间</span>
+                  <span th:text="${theme.config.moments?.detail_link_label ?: '查看瞬间'}">查看瞬间</span>
                 </a>
               </div>
             </footer>
             <div
               class="hydro-moment__comment"
+              th:if="${theme.config.moments == null or theme.config.moments.enable_comment != false}"
               hidden
               th:id="|moment-comment-${moment.metadata.name}|"
               th:attr="data-moment-comment=${moment.metadata.name}"
@@ -176,12 +218,49 @@
         </article>
       </div>
 
-      <div th:if="${#lists.isEmpty(moments.items)}" class="hydro-empty">暂无瞬间。</div>
+      <div th:if="${not hasMomentsPlugin}" class="hydro-plugin-empty hydro-plugin-empty--install">
+        <span th:text="${theme.config.moments?.eyebrow ?: 'Moments'}">Moments</span>
+        <strong th:text="${theme.config.moments?.install_title ?: '需要安装瞬间插件'}">需要安装瞬间插件</strong>
+        <p
+          th:text="${theme.config.moments?.install_text ?: '请安装 PluginMoments，路径：Halo Console -> 应用市场 -> 搜索“瞬间”。'}"
+        >
+          请安装 PluginMoments，路径：Halo Console -> 应用市场 -> 搜索“瞬间”。
+        </p>
+        <a
+          class="hydro-plugin-install-link"
+          th:href="${theme.config.moments?.install_link ?: 'https://www.halo.run/store/apps/app-SnwWD'}"
+          target="_blank"
+          rel="noreferrer noopener"
+          th:text="${theme.config.moments?.install_link_label ?: '查看插件'}"
+          >查看插件</a
+        >
+      </div>
 
-      <nav class="hydro-pagination" th:if="${moments.hasPrevious || moments.hasNext}">
-        <a th:if="${moments.hasPrevious}" th:href="@{${moments.prevUrl}}">上一页</a>
-        <span th:text="|${moments.page} / ${moments.totalPages}|">1 / 1</span>
-        <a th:if="${moments.hasNext}" th:href="@{${moments.nextUrl}}">下一页</a>
+      <div
+        th:if="${hasMomentsPlugin and not hasMomentsData}"
+        class="hydro-empty"
+        th:text="${theme.config.moments?.empty_available_text ?: (theme.config.moments?.empty_text ?: '暂无瞬间。')}"
+      >
+        暂无瞬间。
+      </div>
+
+      <nav
+        class="hydro-pagination"
+        th:if="${not isSinglePageRoute and momentsData != null and (momentsData.hasPrevious or momentsData.hasNext)}"
+      >
+        <a
+          th:if="${momentsData.hasPrevious}"
+          th:href="@{${momentsData.prevUrl}}"
+          th:text="${theme.config.navigation?.pagination_previous_label ?: '上一页'}"
+          >上一页</a
+        >
+        <span th:text="|${momentsData.page} / ${momentsData.totalPages}|">1 / 1</span>
+        <a
+          th:if="${momentsData.hasNext}"
+          th:href="@{${momentsData.nextUrl}}"
+          th:text="${theme.config.navigation?.pagination_next_label ?: '下一页'}"
+          >下一页</a
+        >
       </nav>
     </div>
   </section>

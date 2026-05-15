@@ -42,5 +42,5 @@ dist/halo-theme-hydro-minim-1.0.0.zip
 继续开发前请先阅读：
 
 - [AGENTS.md](./AGENTS.md)：本主题的 Agent 入口，项目身份、约束、视觉不变量和关键交互。
-- [docs/ai-development-guide.md](./docs/ai-development-guide.md)：本主题的深度技术文档，Halo 数据映射、深浅色实现细节、交互状态机、常见陷阱。
+- [docs/ai-development-guide.md](./docs/ai-development-guide.md)：本主题的深度开发指南，当前源码地图、参考主题索引、交互/模板开发路线和常见陷阱。
 - [../AI-THEME-DEV-GUIDE.md](../AI-THEME-DEV-GUIDE.md)：工作区级 Halo 主题开发通用指南，整合所有参考主题的模式、Thymeleaf 规范、Finder API、Annotation Setting、前端选型和反模式速查。
