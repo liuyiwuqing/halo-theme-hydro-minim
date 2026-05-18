@@ -20,9 +20,12 @@ const momentUpvoteStorageKey = "halo.upvoted.moment.names";
 const postUpvoteStorageKey = "halo.upvoted.post.names";
 type ColorSchemeMode = "auto" | "dark" | "light";
 type HydroLenis = {
+  animatedScroll?: number;
+  scroll?: number;
   scrollTo?: (target: number) => void;
   start?: () => void;
   stop?: () => void;
+  targetScroll?: number;
 };
 type LinkSubmitVerifyType = "email" | "captcha" | "none";
 type LinkSubmitGroup = {
@@ -262,7 +265,10 @@ function initLenis() {
   });
 
   (window as unknown as { __lenis?: typeof lenis }).__lenis = lenis;
-  lenis.on("scroll", () => ScrollTrigger.update());
+  lenis.on("scroll", () => {
+    ScrollTrigger.update();
+    window.dispatchEvent(new Event("hydro:scroll"));
+  });
   gsap.ticker.add((time) => lenis.raf(time * 1000));
   gsap.ticker.lagSmoothing(0);
 }
@@ -403,162 +409,477 @@ function initNavigation() {
   const searchPanel = document.querySelector<HTMLElement>("[data-hydro-search-panel]");
   const mobileToggle = document.querySelector<HTMLButtonElement>("[data-hydro-mobile-toggle]");
   const mobileMenu = document.querySelector<HTMLElement>("[data-hydro-mobile-menu]");
-  const animateNav = motionEnabled && !prefersReducedMotion.matches;
-  let navMode: "top" | "pill" = window.scrollY > 100 ? "pill" : "top";
-  let navTimers: number[] = [];
-  let lastScrollY = window.scrollY;
-  let lastTime = performance.now();
-  let scrollVelocity = 0;
+  type NavMode = "top" | "pill";
+  type NavVisual = {
+    backgroundAlpha: number;
+    backdropBlur: number;
+    borderAlpha: number;
+    borderRadius: number;
+    shadowAlpha: number;
+    shadowBlur: number;
+    shadowY: number;
+  };
+  type NavSnapshot = NavVisual & {
+    actionsGap: number;
+    iconBackdropBlur: number;
+    iconBackgroundAlpha: number;
+    iconBorderAlpha: number;
+    iconSize: number;
+    iconSvgSize: number;
+    innerGap: number;
+    innerPaddingBottom: number;
+    innerPaddingLeft: number;
+    innerPaddingRight: number;
+    innerPaddingTop: number;
+    left: number;
+    logoMinHeight: number;
+    logoWidth: number;
+    textFontSize: number;
+    textMaxWidth: number;
+    top: number;
+    width: number;
+  };
+
+  const NAV_MORPH_DISTANCE = 100;
+  const NAV_PROGRESS_EPSILON = 0.001;
+  const MOBILE_NAV_QUERY = "(max-width: 720px)";
+  const NAV_SLOW_DURATION = 1.65;
+  const NAV_FAST_DURATION = 0.14;
+  const NAV_SLOW_VELOCITY = 0.8;
+  const NAV_FAST_VELOCITY = 4.2;
+  const NAV_WHEEL_VELOCITY_TTL = 260;
+  const NAV_SCROLL_IDLE_GAP = 180;
+
+  const inner = nav?.querySelector<HTMLElement>(".hydro-nav__inner") ?? null;
+  const logo = nav?.querySelector<HTMLElement>(".hydro-logo") ?? null;
+  const logoText = nav?.querySelector<HTMLElement>(".hydro-logo__text") ?? null;
+  const actions = nav?.querySelector<HTMLElement>(".hydro-nav__actions") ?? null;
+  const firstIcon = nav?.querySelector<HTMLElement>(".hydro-icon-button") ?? null;
+  const firstIconSvg = firstIcon?.querySelector<SVGElement>("svg") ?? null;
+
+  let navMode: NavMode = window.scrollY >= NAV_MORPH_DISTANCE ? "pill" : "top";
+  let navTopSnapshot: NavSnapshot | null = null;
+  let navPillSnapshot: NavSnapshot | null = null;
+  let navProgress = navMode === "pill" ? 1 : 0;
   let rafId: number | null = null;
-
-  const clearNavTimers = () => {
-    navTimers.forEach((timer) => window.clearTimeout(timer));
-    navTimers = [];
-  };
-
-  const resetNavTransitionClasses = () => {
-    nav?.classList.remove(
-      "is-nav-transitioning",
-      "is-exiting-top",
-      "is-entering-pill",
-      "is-leaving-pill",
-      "is-entering-top",
-    );
-  };
+  let morphRafId: number | null = null;
+  let morphFrameTime = performance.now();
+  let navTargetProgress = navProgress;
+  let lastScrollY = window.scrollY;
+  let lastScrollTime = performance.now();
+  let scrollVelocity = 0;
+  let wheelVelocity = 0;
+  let lastWheelTime = 0;
+  let lastWheelSampleTime = 0;
 
   if (navMode === "pill") {
     nav?.classList.add("is-scrolled");
   }
 
-  const updateVelocity = () => {
-    const currentTime = performance.now();
-    const currentScrollY = window.scrollY;
-    // 使用 Math.max 避免极罕见情况下 deltaTime 为 0 导致除以 0 的问题
-    const deltaTime = Math.max(1, currentTime - lastTime);
-    const deltaY = Math.abs(currentScrollY - lastScrollY);
+  function canMorphNav(): boolean {
+    return motionEnabled;
+  }
 
-    if (deltaTime > 50) {
-      // 距离上次滚动较久，视为新的滚动动作的起点
-      // 单格鼠标滚轮大概产生 100px 位移，为了让单格滚动被识别为“慢”，
-      // 我们用 500 作为除数，这样 100/500 = 0.2（极慢速）
-      const instantVelocity = deltaY / 500;
-      scrollVelocity = instantVelocity;
-    } else {
-      // 连续滚动，计算真实即时速度（像素/毫秒）
-      const instantVelocity = deltaY / deltaTime;
-      // 采用更平滑的加权计算，但保持较高的瞬时灵敏度
-      scrollVelocity = scrollVelocity * 0.7 + instantVelocity * 0.3;
+  function clampProgress(value: number): number {
+    if (value <= 0) return 0;
+    if (value >= 1) return 1;
+    return value;
+  }
+
+  function mix(from: number, to: number, progress: number): number {
+    return from + (to - from) * progress;
+  }
+
+  function cssNumber(styles: CSSStyleDeclaration, property: string, fallback = 0): number {
+    const value = Number.parseFloat(styles.getPropertyValue(property));
+    return Number.isFinite(value) ? value : fallback;
+  }
+
+  function normalizeWheelDelta(event: WheelEvent): number {
+    if (event.deltaMode === WheelEvent.DOM_DELTA_LINE) {
+      return event.deltaY * 16;
     }
 
-    lastScrollY = currentScrollY;
-    lastTime = currentTime;
-  };
+    if (event.deltaMode === WheelEvent.DOM_DELTA_PAGE) {
+      return event.deltaY * window.innerHeight;
+    }
 
-  const syncNav = () => {
+    return event.deltaY;
+  }
+
+  function recordWheelVelocity(event: WheelEvent): void {
+    const now = performance.now();
+    const elapsed = lastWheelTime > 0 ? now - lastWheelTime : NAV_SCROLL_IDLE_GAP * 2;
+    const safeElapsed = Math.max(16, elapsed > NAV_SCROLL_IDLE_GAP ? NAV_SCROLL_IDLE_GAP * 2 : elapsed);
+    const instantVelocity = Math.abs(normalizeWheelDelta(event)) / safeElapsed;
+
+    wheelVelocity =
+      wheelVelocity === 0 || elapsed > NAV_SCROLL_IDLE_GAP
+        ? instantVelocity
+        : wheelVelocity * 0.45 + instantVelocity * 0.55;
+    lastWheelTime = now;
+    lastWheelSampleTime = now;
+  }
+
+  function recordScrollVelocity(): void {
+    const now = performance.now();
+    const currentY = window.scrollY;
+    const elapsed = now - lastScrollTime;
+    const dy = Math.abs(currentY - lastScrollY);
+
+    if (elapsed > NAV_SCROLL_IDLE_GAP) {
+      scrollVelocity = 0;
+    } else if (dy > 0) {
+      const instantVelocity = dy / Math.max(16, elapsed);
+      scrollVelocity = scrollVelocity === 0 ? instantVelocity : scrollVelocity * 0.65 + instantVelocity * 0.35;
+    }
+
+    lastScrollY = currentY;
+    lastScrollTime = now;
+  }
+
+  function getNavInputVelocity(): number {
+    const now = performance.now();
+
+    if (now - lastWheelSampleTime <= NAV_WHEEL_VELOCITY_TTL) {
+      return wheelVelocity;
+    }
+
+    return scrollVelocity;
+  }
+
+  function getNavMorphDuration(): number {
+    const velocity = getNavInputVelocity();
+
+    if (velocity <= NAV_SLOW_VELOCITY) {
+      return NAV_SLOW_DURATION;
+    }
+
+    if (velocity >= NAV_FAST_VELOCITY) {
+      return NAV_FAST_DURATION;
+    }
+
+    const progress = (velocity - NAV_SLOW_VELOCITY) / (NAV_FAST_VELOCITY - NAV_SLOW_VELOCITY);
+    const easedProgress = 1 - Math.pow(1 - progress, 2.2);
+    return NAV_SLOW_DURATION - easedProgress * (NAV_SLOW_DURATION - NAV_FAST_DURATION);
+  }
+
+  function viewportIsMobile(): boolean {
+    return window.matchMedia(MOBILE_NAV_QUERY).matches;
+  }
+
+  function getNavVisual(mode: NavMode): NavVisual {
+    const mobile = viewportIsMobile();
+
+    if (mode === "top") {
+      return mobile
+        ? {
+            backgroundAlpha: 0,
+            backdropBlur: 0,
+            borderAlpha: 0,
+            borderRadius: 0,
+            shadowAlpha: 0,
+            shadowBlur: 0,
+            shadowY: 0,
+          }
+        : {
+            backgroundAlpha: 34,
+            backdropBlur: 18,
+            borderAlpha: 5,
+            borderRadius: 999,
+            shadowAlpha: 0,
+            shadowBlur: 0,
+            shadowY: 0,
+          };
+    }
+
+    return mobile
+      ? {
+          backgroundAlpha: 98,
+          backdropBlur: 0,
+          borderAlpha: 8,
+          borderRadius: 999,
+          shadowAlpha: 14,
+          shadowBlur: 30,
+          shadowY: 10,
+        }
+      : {
+          backgroundAlpha: 84,
+          backdropBlur: 22,
+          borderAlpha: 7,
+          borderRadius: 999,
+          shadowAlpha: 9,
+          shadowBlur: 34,
+          shadowY: 12,
+        };
+  }
+
+  function clearNavMorphStyles(): void {
     if (!nav) return;
 
-    updateVelocity();
+    [
+      "top",
+      "left",
+      "right",
+      "width",
+      "min-width",
+      "padding",
+      "border",
+      "border-radius",
+      "background",
+      "box-shadow",
+      "backdrop-filter",
+      "-webkit-backdrop-filter",
+    ].forEach((property) => nav.style.removeProperty(property));
 
-    const shouldBePill = window.scrollY > 100;
+    [
+      "--hydro-nav-progress",
+      "--hydro-nav-inner-padding",
+      "--hydro-nav-inner-gap",
+      "--hydro-nav-logo-width",
+      "--hydro-nav-logo-min-height",
+      "--hydro-nav-lockup-opacity",
+      "--hydro-nav-lockup-scale",
+      "--hydro-nav-mark-opacity",
+      "--hydro-nav-mark-scale",
+      "--hydro-nav-text-max-width",
+      "--hydro-nav-text-font-size",
+      "--hydro-nav-actions-gap",
+      "--hydro-nav-icon-size",
+      "--hydro-nav-icon-background-alpha",
+      "--hydro-nav-icon-border-alpha",
+      "--hydro-nav-icon-backdrop-blur",
+      "--hydro-nav-icon-svg-size",
+    ].forEach((property) => nav.style.removeProperty(property));
+  }
 
-    // 重新构建极端的倍率映射规则以实现明显的"快慢差"：
-    // scrollVelocity (像素/毫秒) 的区间映射：
-    // < 0.1 (极慢滑动) -> 倍率 4.0 (极慢动画)
-    // = 0.5 (普通滑动) -> 倍率 1.0 (正常动画)
-    // > 2.0 (极快滑动) -> 倍率 0.25 (极速闪切)
-    let speedMultiplier = 1;
-    if (scrollVelocity <= 0.1) {
-      speedMultiplier = 4.0;
-    } else if (scrollVelocity <= 0.5) {
-      // 0.1 -> 0.5 映射到 4.0 -> 1.0
-      speedMultiplier = 4.0 - ((scrollVelocity - 0.1) / 0.4) * 3.0;
-    } else if (scrollVelocity <= 2.0) {
-      // 0.5 -> 2.0 映射到 1.0 -> 0.25
-      speedMultiplier = 1.0 - ((scrollVelocity - 0.5) / 1.5) * 0.75;
-    } else {
-      speedMultiplier = 0.25;
-    }
+  function captureNavSnapshot(mode: NavMode): NavSnapshot | null {
+    if (!nav || !inner) return null;
 
-    // 当倍率较大（动画较慢）时，换用平滑的 ease-out 曲线
-    // 否则极端的 cubic-bezier(0.16, 1, 0.3, 1) 会让动画在前半段瞬间完成，失去慢速效果
-    const easing = speedMultiplier > 1.2 ? "ease-out" : "cubic-bezier(0.16, 1, 0.3, 1)";
+    nav.classList.toggle("is-scrolled", mode === "pill");
+    const navRect = nav.getBoundingClientRect();
+    const innerRect = inner.getBoundingClientRect();
+    const sourceRect = mode === "top" && !viewportIsMobile() ? innerRect : navRect;
+    const navStyles = window.getComputedStyle(nav);
+    const innerStyles = window.getComputedStyle(inner);
+    const paddingStyles = mode === "top" && !viewportIsMobile() ? innerStyles : navStyles;
+    const logoStyles = logo ? window.getComputedStyle(logo) : null;
+    const logoRect = logo?.getBoundingClientRect();
+    const textStyles = logoText ? window.getComputedStyle(logoText) : null;
+    const textRect = logoText?.getBoundingClientRect();
+    const actionsStyles = actions ? window.getComputedStyle(actions) : null;
+    const iconRect = firstIcon?.getBoundingClientRect();
+    const iconSvgStyles = firstIconSvg ? window.getComputedStyle(firstIconSvg) : null;
+    const visual = getNavVisual(mode);
 
-    if (shouldBePill && navMode !== "pill") {
-      clearNavTimers();
-      resetNavTransitionClasses();
-      navMode = "pill";
+    return {
+      ...visual,
+      actionsGap: actionsStyles ? cssNumber(actionsStyles, "gap") : 0,
+      iconBackdropBlur: mode === "top" && viewportIsMobile() ? 18 : 0,
+      iconBackgroundAlpha: mode === "top" && viewportIsMobile() ? 58 : 0,
+      iconBorderAlpha: mode === "top" && viewportIsMobile() ? 7 : 0,
+      iconSize: iconRect?.width ?? 0,
+      iconSvgSize: iconSvgStyles ? cssNumber(iconSvgStyles, "width") : 0,
+      innerGap: cssNumber(innerStyles, "gap"),
+      innerPaddingBottom: cssNumber(paddingStyles, "padding-bottom"),
+      innerPaddingLeft: cssNumber(paddingStyles, "padding-left"),
+      innerPaddingRight: cssNumber(paddingStyles, "padding-right"),
+      innerPaddingTop: cssNumber(paddingStyles, "padding-top"),
+      left: sourceRect.left,
+      logoMinHeight: logoStyles ? cssNumber(logoStyles, "min-height", logoRect?.height ?? 0) : 0,
+      logoWidth: logoRect?.width ?? 0,
+      textFontSize: textStyles ? cssNumber(textStyles, "font-size") : 0,
+      textMaxWidth: textStyles ? cssNumber(textStyles, "max-width", textRect?.width ?? 0) : 0,
+      top: sourceRect.top,
+      width: sourceRect.width,
+    };
+  }
 
-      if (!animateNav) {
-        nav.classList.add("is-scrolled");
-        return;
-      }
+  function measureNavSnapshots(): void {
+    if (!nav || !inner) return;
 
-      // 阶段1：旧状态退场 (顶部菜单消失)
-      // 基础退场时间 150ms
-      const exitDuration = Math.round(150 * speedMultiplier);
-      nav.style.setProperty("--nav-exit-duration", `${exitDuration}ms`);
-      nav.classList.add("is-nav-transitioning", "is-exiting-top");
+    const targetMode = navProgress >= 1 - NAV_PROGRESS_EPSILON ? "pill" : "top";
+    nav.classList.remove("is-nav-morphing");
+    clearNavMorphStyles();
 
-      navTimers.push(
-        window.setTimeout(() => {
-          nav.classList.remove("is-exiting-top");
-          
-          // 在旧状态退场后，赋予新状态的布局，并开始入场动画
-          nav.classList.add("is-scrolled");
+    navTopSnapshot = captureNavSnapshot("top");
+    navPillSnapshot = captureNavSnapshot("pill");
 
-          // 阶段2：新状态入场 (胶囊菜单滑入)
-          // 基础时间 500ms
-          const enterDuration = Math.round(500 * speedMultiplier);
-          nav.style.setProperty("--nav-enter-duration", `${enterDuration}ms`);
-          nav.style.setProperty("--nav-enter-ease", easing);
-          nav.classList.add("is-entering-pill");
+    nav.classList.toggle("is-scrolled", targetMode === "pill");
+    applyNavProgress(navProgress, false);
+  }
 
-          navTimers.push(
-            window.setTimeout(() => {
-              nav.classList.remove("is-entering-pill", "is-nav-transitioning");
-            }, enterDuration),
-          );
-        }, exitDuration),
-      );
+  function setNavVar(name: string, value: number, unit = "px"): void {
+    nav?.style.setProperty(name, `${Number(value.toFixed(3))}${unit}`);
+  }
+
+  function applyNavProgress(rawProgress: number, allowMeasure = true): void {
+    if (!nav) return;
+
+    const progress = clampProgress(rawProgress);
+    navProgress = progress;
+    const targetMode: NavMode = progress >= 1 - NAV_PROGRESS_EPSILON ? "pill" : "top";
+    navMode = targetMode;
+
+    if (!canMorphNav()) {
+      nav.classList.remove("is-nav-morphing");
+      clearNavMorphStyles();
+      nav.classList.toggle("is-scrolled", targetMode === "pill");
       return;
     }
 
-    if (!shouldBePill && navMode !== "top") {
-      clearNavTimers();
-      resetNavTransitionClasses();
-      navMode = "top";
-
-      if (!animateNav) {
-        nav.classList.remove("is-scrolled");
-        return;
+    if (!navTopSnapshot || !navPillSnapshot) {
+      if (allowMeasure) {
+        measureNavSnapshots();
       }
-
-      // 阶段1：旧状态退场 (胶囊菜单消失)
-      // 基础退场时间 200ms
-      const exitDuration = Math.round(200 * speedMultiplier);
-      nav.style.setProperty("--nav-exit-duration", `${exitDuration}ms`);
-      nav.classList.add("is-nav-transitioning", "is-leaving-pill");
-
-      navTimers.push(
-        window.setTimeout(() => {
-          nav.classList.remove("is-leaving-pill", "is-scrolled"); // 移除胶囊布局
-          
-          // 阶段2：新状态入场 (顶部菜单滑入)
-          // 基础时间 400ms
-          const enterDuration = Math.round(400 * speedMultiplier);
-          nav.style.setProperty("--nav-enter-duration", `${enterDuration}ms`);
-          nav.style.setProperty("--nav-enter-ease", easing);
-          nav.classList.add("is-entering-top");
-
-          navTimers.push(
-            window.setTimeout(() => {
-              nav.classList.remove("is-entering-top", "is-nav-transitioning");
-            }, enterDuration),
-          );
-        }, exitDuration),
-      );
+      return;
     }
-  };
+
+    if (progress <= NAV_PROGRESS_EPSILON || progress >= 1 - NAV_PROGRESS_EPSILON) {
+      nav.classList.remove("is-nav-morphing");
+      nav.style.setProperty("--hydro-nav-logo-duration", "0ms");
+      clearNavMorphStyles();
+      nav.classList.toggle("is-scrolled", targetMode === "pill");
+      return;
+    }
+
+    const from = navTopSnapshot;
+    const to = navPillSnapshot;
+    const top = mix(from.top, to.top, progress);
+    const left = mix(from.left, to.left, progress);
+    const width = mix(from.width, to.width, progress);
+    const backgroundAlpha = mix(from.backgroundAlpha, to.backgroundAlpha, progress);
+    const borderAlpha = mix(from.borderAlpha, to.borderAlpha, progress);
+    const borderRadius = mix(from.borderRadius, to.borderRadius, progress);
+    const shadowY = mix(from.shadowY, to.shadowY, progress);
+    const shadowBlur = mix(from.shadowBlur, to.shadowBlur, progress);
+    const shadowAlpha = mix(from.shadowAlpha, to.shadowAlpha, progress);
+    const backdropBlur = mix(from.backdropBlur, to.backdropBlur, progress);
+
+    nav.classList.add("is-nav-morphing");
+    nav.classList.remove("is-scrolled");
+    nav.style.top = `${top.toFixed(3)}px`;
+    nav.style.left = `${left.toFixed(3)}px`;
+    nav.style.right = "auto";
+    nav.style.width = `${width.toFixed(3)}px`;
+    nav.style.minWidth = "0";
+    nav.style.padding = "0";
+    nav.style.border = `1px solid rgb(var(--hydro-ink-rgb) / ${borderAlpha.toFixed(3)}%)`;
+    nav.style.borderRadius = `${borderRadius.toFixed(3)}px`;
+    nav.style.background = `rgb(var(--hydro-paper-rgb) / ${backgroundAlpha.toFixed(3)}%)`;
+    nav.style.boxShadow = `0 ${shadowY.toFixed(3)}px ${shadowBlur.toFixed(3)}px rgb(var(--hydro-shadow-rgb) / ${shadowAlpha.toFixed(3)}%)`;
+
+    const backdropValue = backdropBlur > 0.01 ? `blur(${backdropBlur.toFixed(3)}px)` : "none";
+    nav.style.backdropFilter = backdropValue;
+    nav.style.setProperty("-webkit-backdrop-filter", backdropValue);
+
+    nav.style.setProperty("--hydro-nav-progress", progress.toFixed(4));
+    nav.style.setProperty(
+      "--hydro-nav-inner-padding",
+      `${mix(from.innerPaddingTop, to.innerPaddingTop, progress).toFixed(3)}px ${mix(
+        from.innerPaddingRight,
+        to.innerPaddingRight,
+        progress,
+      ).toFixed(3)}px ${mix(from.innerPaddingBottom, to.innerPaddingBottom, progress).toFixed(3)}px ${mix(
+        from.innerPaddingLeft,
+        to.innerPaddingLeft,
+        progress,
+      ).toFixed(3)}px`,
+    );
+    setNavVar("--hydro-nav-inner-gap", mix(from.innerGap, to.innerGap, progress));
+    setNavVar("--hydro-nav-logo-width", mix(from.logoWidth, to.logoWidth, progress));
+    setNavVar("--hydro-nav-logo-min-height", mix(from.logoMinHeight, to.logoMinHeight, progress));
+    nav.style.setProperty("--hydro-nav-lockup-opacity", (1 - progress).toFixed(4));
+    nav.style.setProperty("--hydro-nav-lockup-scale", mix(1, 0.86, progress).toFixed(4));
+    nav.style.setProperty("--hydro-nav-mark-opacity", progress.toFixed(4));
+    nav.style.setProperty("--hydro-nav-mark-scale", mix(0.78, 1, progress).toFixed(4));
+
+    if (from.textMaxWidth > 0 || to.textMaxWidth > 0) {
+      setNavVar("--hydro-nav-text-max-width", mix(from.textMaxWidth, to.textMaxWidth, progress));
+    }
+    if (from.textFontSize > 0 || to.textFontSize > 0) {
+      setNavVar("--hydro-nav-text-font-size", mix(from.textFontSize, to.textFontSize, progress));
+    }
+
+    setNavVar("--hydro-nav-actions-gap", mix(from.actionsGap, to.actionsGap, progress));
+    setNavVar("--hydro-nav-icon-size", mix(from.iconSize, to.iconSize, progress));
+    setNavVar(
+      "--hydro-nav-icon-background-alpha",
+      mix(from.iconBackgroundAlpha, to.iconBackgroundAlpha, progress),
+      "%",
+    );
+    setNavVar("--hydro-nav-icon-border-alpha", mix(from.iconBorderAlpha, to.iconBorderAlpha, progress), "%");
+    setNavVar("--hydro-nav-icon-backdrop-blur", mix(from.iconBackdropBlur, to.iconBackdropBlur, progress));
+    setNavVar("--hydro-nav-icon-svg-size", mix(from.iconSvgSize, to.iconSvgSize, progress));
+  }
+
+  function getNavScrollPosition(): number {
+    const lenis = getHydroLenis();
+    const targetScroll = lenis?.targetScroll;
+
+    if (typeof targetScroll === "number" && Number.isFinite(targetScroll)) {
+      return targetScroll;
+    }
+
+    return window.scrollY;
+  }
+
+  function getScrollProgress(): number {
+    return clampProgress(getNavScrollPosition() / NAV_MORPH_DISTANCE);
+  }
+
+  function stopMorphLoop(): void {
+    if (morphRafId === null) return;
+    window.cancelAnimationFrame(morphRafId);
+    morphRafId = null;
+  }
+
+  function stepNavMorph(now: number): void {
+    morphRafId = null;
+    const deltaTime = Math.min(64, Math.max(16, now - morphFrameTime));
+    morphFrameTime = now;
+
+    const distance = navTargetProgress - navProgress;
+    if (Math.abs(distance) <= NAV_PROGRESS_EPSILON) {
+      applyNavProgress(navTargetProgress, false);
+      return;
+    }
+
+    const duration = getNavMorphDuration();
+    const maxStep = Math.max(NAV_PROGRESS_EPSILON, deltaTime / (duration * 1000));
+    const nextProgress =
+      Math.abs(distance) <= maxStep ? navTargetProgress : navProgress + Math.sign(distance) * maxStep;
+
+    applyNavProgress(nextProgress, false);
+
+    if (Math.abs(navTargetProgress - navProgress) > NAV_PROGRESS_EPSILON) {
+      morphRafId = window.requestAnimationFrame(stepNavMorph);
+    }
+  }
+
+  function startMorphLoop(): void {
+    if (morphRafId !== null) return;
+    morphFrameTime = performance.now();
+    morphRafId = window.requestAnimationFrame(stepNavMorph);
+  }
+
+  function setNavTargetProgress(targetProgress: number, immediate = false): void {
+    navTargetProgress = clampProgress(targetProgress);
+
+    if (immediate || !canMorphNav()) {
+      stopMorphLoop();
+      applyNavProgress(navTargetProgress, false);
+      return;
+    }
+
+    startMorphLoop();
+  }
+
+  function syncNav(immediate = false): void {
+    if (!nav) return;
+    recordScrollVelocity();
+    setNavTargetProgress(getScrollProgress(), immediate);
+  }
 
   const onScroll = () => {
     if (rafId) return;
@@ -568,8 +889,30 @@ function initNavigation() {
     });
   };
 
-  syncNav();
+  measureNavSnapshots();
+  syncNav(true);
+  window.addEventListener("wheel", recordWheelVelocity, { passive: true });
   window.addEventListener("scroll", onScroll, { passive: true });
+  window.addEventListener("hydro:scroll", onScroll);
+
+  window.addEventListener("resize", () => {
+    measureNavSnapshots();
+    syncNav(true);
+  });
+
+  window.addEventListener(
+    "load",
+    () => {
+      measureNavSnapshots();
+      syncNav(true);
+    },
+    { once: true },
+  );
+
+  prefersReducedMotion.addEventListener("change", () => {
+    measureNavSnapshots();
+    syncNav(true);
+  });
 
   searchToggle?.addEventListener("click", () => {
     const isOpen = searchPanel?.classList.toggle("is-open");
