@@ -230,6 +230,12 @@ input {
   backdrop-filter: blur(22px);
 }
 
+.hydro-login-page {
+  align-items: flex-start;
+  min-height: 100svh;
+  padding-top: calc(8.5rem + env(safe-area-inset-top));
+}
+
 .hydro-nav__inner {
   display: flex;
   align-items: center;
@@ -6344,6 +6350,10 @@ html[data-hydro-lightbox="false"] .hydro-lightbox {
 
   .hydro-section {
     padding: 3.75rem 0;
+  }
+
+  .hydro-login-page {
+    padding-top: calc(7.5rem + env(safe-area-inset-top));
   }
 
   .hydro-home--without-hero > .hydro-section:first-child {

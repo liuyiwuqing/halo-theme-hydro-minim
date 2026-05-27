@@ -1,0 +1,304 @@
+<include src="layout.html">
+  <template name="head">
+    <title th:text="|登录 - ${site.title}|">登录</title>
+    <!-- 引入系统必须的登录逻辑脚本和默认样式 -->
+    <th:block th:replace="~{gateway_fragments/common::basicStaticResources}" />
+    <!-- 针对 Halo 默认的表单结构进行“氢风格”样式覆盖 -->
+    <style>
+      .halo-form-wrapper {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        width: 100%;
+      }
+      .halo-form .form-item {
+        margin-bottom: 1.25rem;
+        text-align: left;
+      }
+      .halo-form .form-item-group {
+        display: flex;
+        flex-direction: row;
+        gap: 1rem;
+        margin-bottom: 1.25rem;
+      }
+      @media (max-width: 640px) {
+        .halo-form .form-item-group {
+          flex-direction: column;
+        }
+      }
+      .halo-form .form-item-group .form-item {
+        margin-bottom: 0;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+      }
+      .halo-form .form-input-group {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+      .halo-form .form-input-group .form-input {
+        flex: 1;
+      }
+      .halo-form .form-input-group button {
+        height: 3.25rem;
+        box-sizing: border-box;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 1rem !important;
+        border: 1px solid rgb(var(--hydro-ink-rgb) / 8%) !important;
+        background-color: var(--hydro-bg) !important;
+        color: var(--hydro-text) !important;
+        padding: 0 1.25rem;
+        font-weight: 600;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        white-space: nowrap;
+      }
+      .halo-form .form-input-group button:hover {
+        background-color: rgb(var(--hydro-ink-rgb) / 4%) !important;
+      }
+      .halo-form .form-item-compact {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        min-height: 2.75rem;
+        margin: 0.35rem 0 1.5rem;
+        padding: 0.75rem 0.95rem;
+        border: 1px solid rgb(var(--hydro-ink-rgb) / 8%);
+        border-radius: 1rem;
+        background: rgb(var(--hydro-ink-rgb) / 3%);
+        font-size: 0.875rem;
+        color: var(--hydro-muted);
+        transition:
+          background-color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+          border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .halo-form .form-item-compact:hover {
+        border-color: rgb(var(--hydro-ink-rgb) / 14%);
+        background: rgb(var(--hydro-ink-rgb) / 5%);
+      }
+      .halo-form .form-item-compact label {
+        flex: 1;
+        cursor: pointer;
+        line-height: 1.4;
+        user-select: none;
+      }
+      .halo-form .form-label {
+        color: rgb(var(--hydro-ink-rgb) / 70%);
+        font-weight: 600;
+        font-size: 0.8125rem;
+        letter-spacing: 0.04em;
+        margin-bottom: 0.6rem;
+        display: inline-block;
+      }
+      .halo-form .form-input {
+        display: flex;
+        align-items: center;
+        box-sizing: border-box;
+        width: 100%;
+        height: 3.25rem;
+        background-color: rgb(var(--hydro-ink-rgb) / 4%) !important;
+        border: 1px solid rgb(var(--hydro-ink-rgb) / 8%) !important;
+        border-radius: 1rem !important;
+        padding: 0 1.25rem;
+        color: var(--hydro-text) !important;
+        font-size: 0.95rem;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .halo-form .form-input:hover {
+        background-color: rgb(var(--hydro-ink-rgb) / 6%) !important;
+      }
+      .halo-form .form-input:focus-within,
+      .halo-form .form-input:focus {
+        background-color: var(--hydro-bg) !important;
+        border-color: var(--hydro-coral) !important;
+        box-shadow: 0 0 0 3px rgb(var(--hydro-coral-rgb) / 15%) !important;
+        outline: none;
+      }
+      .halo-form .form-item input {
+        color: var(--hydro-text) !important;
+        width: 100%;
+        background: transparent !important;
+        border: none !important;
+        outline: none !important;
+        padding: 0;
+        margin: 0;
+      }
+      .halo-form .form-item input::placeholder {
+        color: var(--hydro-muted) !important;
+      }
+      .halo-form button[type="submit"] {
+        width: 100%;
+        height: 3.25rem;
+        border-radius: 9999px !important;
+        border: none !important;
+        background: var(--hydro-text) !important;
+        color: var(--hydro-bg) !important;
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        margin-top: 1rem;
+        cursor: pointer;
+        will-change: transform, box-shadow;
+      }
+      .halo-form button[type="submit"]:hover {
+        opacity: 0.9;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgb(var(--hydro-ink-rgb) / 15%) !important;
+      }
+      .halo-form button[type="submit"]:active {
+        transform: translateY(0);
+      }
+      .halo-form .form-item-extra-link {
+        color: var(--hydro-coral) !important;
+        font-size: 0.875rem;
+        text-decoration: none;
+        transition: opacity 0.3s ease;
+      }
+      .halo-form .form-item-extra-link:hover {
+        text-decoration: underline;
+        opacity: 0.8;
+      }
+      .halo-form input[type="checkbox"] {
+        appearance: none;
+        -webkit-appearance: none;
+        position: relative;
+        flex: 0 0 1.15rem;
+        width: 1.15rem !important;
+        height: 1.15rem;
+        margin: 0 !important;
+        border: 1px solid rgb(var(--hydro-ink-rgb) / 18%) !important;
+        border-radius: 0.4rem !important;
+        background: rgb(var(--hydro-paper-rgb) / 70%) !important;
+        cursor: pointer;
+        transition:
+          background-color 0.2s ease,
+          border-color 0.2s ease,
+          box-shadow 0.2s ease,
+          transform 0.2s ease;
+      }
+      .halo-form input[type="checkbox"]:checked {
+        border-color: var(--hydro-text) !important;
+        background: var(--hydro-text) !important;
+        box-shadow: 0 8px 18px rgb(var(--hydro-ink-rgb) / 14%);
+      }
+      .halo-form input[type="checkbox"]::after {
+        content: "";
+        position: absolute;
+        left: 0.34rem;
+        top: 0.15rem;
+        width: 0.38rem;
+        height: 0.65rem;
+        border: solid var(--hydro-bg);
+        border-width: 0 2px 2px 0;
+        transform: rotate(45deg) scale(0);
+        transform-origin: center;
+        transition: transform 0.18s ease;
+      }
+      .halo-form input[type="checkbox"]:checked::after {
+        transform: rotate(45deg) scale(1);
+      }
+      .halo-form input[type="checkbox"]:focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 3px rgb(var(--hydro-ink-rgb) / 10%);
+      }
+      .halo-form input[type="checkbox"]:active {
+        transform: scale(0.94);
+      }
+      .divider-wrapper {
+        color: var(--hydro-muted);
+        margin: 2rem 0;
+        position: relative;
+        text-align: center;
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+      }
+      .divider-wrapper hr {
+        border-color: rgb(var(--hydro-ink-rgb) / 8%);
+        position: absolute;
+        width: 100%;
+        top: 50%;
+        margin: 0;
+        z-index: -1;
+      }
+      .divider-wrapper span {
+        background: var(--hydro-bg);
+        padding: 0 1rem;
+      }
+      .pill-items {
+        display: flex;
+        flex-direction: column;
+        gap: 0.875rem;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+      .pill-items li {
+        width: 100%;
+        border-radius: 1rem !important;
+        border: 1px solid rgb(var(--hydro-ink-rgb) / 8%) !important;
+        background-color: transparent !important;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .pill-items li:hover {
+        border-color: rgb(var(--hydro-ink-rgb) / 20%) !important;
+        background-color: rgb(var(--hydro-ink-rgb) / 4%) !important;
+      }
+      .pill-items li a,
+      .pill-items li button {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        padding: 0.875rem;
+        color: var(--hydro-text) !important;
+        text-decoration: none;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-weight: 500;
+        font-size: 0.875rem;
+      }
+      .alert {
+        background-color: rgb(var(--hydro-coral-rgb) / 8%);
+        border: 1px solid rgb(var(--hydro-coral-rgb) / 15%);
+        color: var(--hydro-coral);
+        padding: 0.875rem 1.25rem;
+        border-radius: 1rem;
+        font-size: 0.875rem;
+        margin-bottom: 1.5rem;
+        text-align: left;
+      }
+    </style>
+  </template>
+
+  <main class="hydro-login-page flex min-h-[60vh] items-center justify-center px-6 pb-20 pt-20">
+    <div class="w-full max-w-sm">
+      <div class="mb-8 text-center">
+        <h1 class="mb-2 text-4xl font-bold text-[var(--hydro-text)]" th:text="${site.title}">氢</h1>
+        <p class="text-[var(--hydro-muted)]">欢迎回来</p>
+      </div>
+
+      <div class="halo-form-wrapper">
+        <!-- 引入 Halo 的内置登录表单片段（用户名密码登录、验证码登录等） -->
+        <th:block th:replace="~{gateway_fragments/login::form}" />
+        <th:block th:replace="~{gateway_fragments/login::formAuthProviders}" />
+        <th:block th:replace="~{gateway_fragments/common::socialAuthProviders}" />
+      </div>
+
+      <!-- 根据是否开放注册展示对应的提示 -->
+      <p class="mt-6 text-center text-sm text-[var(--hydro-muted)]" th:if="${site.allowRegistration}">
+        还没有账号？<a th:href="@{/signup}" class="font-medium text-[var(--hydro-coral)] hover:underline">免费注册</a>
+      </p>
+      <p class="mt-6 text-center text-sm text-[var(--hydro-muted)] opacity-70" th:unless="${site.allowRegistration}">
+        当前站点暂未开放注册
+      </p>
+    </div>
+  </main>
+</include>

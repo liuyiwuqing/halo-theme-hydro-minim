@@ -1,0 +1,188 @@
+<include src="../../partials/layout.html">
+  <template name="head">
+    <title th:text="|找回密码 - ${site.title}|">找回密码</title>
+    <th:block th:replace="~{gateway_fragments/common::basicStaticResources}" />
+    <style>
+      .halo-form-wrapper {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        width: 100%;
+      }
+      .halo-form-wrapper form,
+      .halo-form-wrapper .space-y-5 {
+        display: grid;
+        gap: 1.25rem;
+      }
+      .halo-form-wrapper .space-y-2 {
+        display: grid;
+        gap: 0.6rem;
+      }
+      .halo-form-wrapper .pt-2 {
+        padding-top: 0.25rem;
+      }
+      .halo-form-wrapper label,
+      .halo-form .form-label {
+        display: inline-block;
+        color: rgb(var(--hydro-ink-rgb) / 70%);
+        font-size: 0.8125rem;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+      }
+      .halo-form .form-input,
+      .halo-form-wrapper .premium-input {
+        box-sizing: border-box;
+        width: 100%;
+        height: 3.25rem;
+        border: 1px solid rgb(var(--hydro-ink-rgb) / 8%) !important;
+        border-radius: 1rem !important;
+        background: rgb(var(--hydro-ink-rgb) / 4%) !important;
+        color: var(--hydro-text) !important;
+        padding: 0 1.25rem;
+        font-size: 0.95rem;
+        outline: none !important;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .halo-form .form-input:hover,
+      .halo-form-wrapper .premium-input:hover {
+        background: rgb(var(--hydro-ink-rgb) / 6%) !important;
+      }
+      .halo-form .form-input:focus,
+      .halo-form-wrapper .premium-input:focus {
+        border-color: var(--hydro-coral) !important;
+        background: var(--hydro-bg) !important;
+        box-shadow: 0 0 0 3px rgb(var(--hydro-coral-rgb) / 15%) !important;
+      }
+      .halo-form .form-input:focus-within {
+        border-color: var(--hydro-coral) !important;
+        background: var(--hydro-bg) !important;
+        box-shadow: 0 0 0 3px rgb(var(--hydro-coral-rgb) / 15%) !important;
+      }
+      .halo-form .form-input input {
+        width: 100%;
+        height: 100%;
+        border: none !important;
+        background: transparent !important;
+        color: var(--hydro-text) !important;
+        padding: 0 !important;
+        outline: none !important;
+      }
+      .halo-form-wrapper input::placeholder {
+        color: var(--hydro-muted) !important;
+      }
+      .halo-form-wrapper button[type="submit"],
+      .halo-form-wrapper .premium-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        min-height: 3.25rem;
+        border: 1px solid var(--hydro-text) !important;
+        border-radius: 9999px !important;
+        background: var(--hydro-text) !important;
+        color: var(--hydro-bg) !important;
+        padding: 0 1.5rem;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        will-change: transform, box-shadow;
+      }
+      .halo-form-wrapper button[type="submit"]:hover,
+      .halo-form-wrapper .premium-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 26px rgb(var(--hydro-ink-rgb) / 16%) !important;
+      }
+      .halo-form-wrapper button[type="submit"]:active,
+      .halo-form-wrapper .premium-btn:active {
+        transform: translateY(0);
+      }
+      .halo-form-wrapper button[type="submit"]:focus-visible,
+      .halo-form-wrapper .premium-btn:focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 3px rgb(var(--hydro-ink-rgb) / 10%) !important;
+      }
+      .halo-form-wrapper [role="alert"],
+      .halo-form-wrapper .alert {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        border: 1px solid rgb(var(--hydro-coral-rgb) / 20%);
+        border-radius: 1rem;
+        background: rgb(var(--hydro-coral-rgb) / 8%);
+        color: var(--hydro-coral);
+        padding: 0.9rem 1rem;
+        font-size: 0.875rem;
+        line-height: 1.6;
+      }
+      .halo-form-wrapper .text-error {
+        color: var(--hydro-coral) !important;
+        font-size: 0.78rem;
+      }
+      .hydro-password-reset-note {
+        margin: 0 0 1.35rem;
+        border: 1px solid rgb(var(--hydro-ink-rgb) / 8%);
+        border-radius: 1rem;
+        background: rgb(var(--hydro-ink-rgb) / 3%);
+        color: var(--hydro-muted);
+        padding: 0.9rem 1rem;
+        font-size: 0.82rem;
+        line-height: 1.7;
+      }
+      .hydro-password-reset-state {
+        margin-bottom: 1.5rem;
+        border: 1px solid rgb(var(--hydro-ink-rgb) / 10%);
+        border-radius: 1.25rem;
+        background: rgb(var(--hydro-ink-rgb) / 4%);
+        padding: 1rem 1.1rem;
+        text-align: left;
+      }
+      .hydro-password-reset-state strong {
+        display: block;
+        color: var(--hydro-text);
+        font-size: 0.95rem;
+        margin-bottom: 0.35rem;
+      }
+      .hydro-password-reset-state span {
+        color: var(--hydro-muted);
+        font-size: 0.82rem;
+        line-height: 1.7;
+      }
+      .hydro-password-reset-page [halo\:captcha],
+      .hydro-password-reset-page div[halo\:captcha] {
+        width: 100%;
+      }
+    </style>
+  </template>
+
+  <main
+    class="hydro-login-page hydro-password-reset-page flex min-h-[60vh] items-center justify-center px-6 pb-20 pt-20"
+  >
+    <div class="w-full max-w-sm">
+      <div class="mb-8 text-center">
+        <h1 class="mb-2 text-4xl font-bold text-[var(--hydro-text)]" th:text="${site.title}">氢</h1>
+        <p class="text-[var(--hydro-muted)]" th:if="${sent}">邮件已发送</p>
+        <p class="text-[var(--hydro-muted)]" th:unless="${sent}">找回密码</p>
+      </div>
+
+      <div class="hydro-password-reset-state" th:if="${sent}">
+        <strong>请检查你的邮箱</strong>
+        <span>重置链接已经发送，若短时间内没有收到，可以检查垃圾邮件文件夹。</span>
+      </div>
+      <p class="hydro-password-reset-note" th:unless="${sent}">
+        输入注册邮箱，我们会发送一封密码重置邮件。链接有时效限制，请尽快完成操作。
+      </p>
+
+      <div class="halo-form-wrapper">
+        <form th:replace="~{gateway_fragments/password_reset_email_send::form}"></form>
+        <div th:replace="~{gateway_fragments/common::passwordResetMethods}"></div>
+      </div>
+
+      <p class="mt-6 text-center text-sm text-[var(--hydro-muted)]">
+        记起密码了？<a th:href="@{/login}" class="font-medium text-[var(--hydro-coral)] hover:underline">返回登录</a>
+      </p>
+    </div>
+  </main>
+</include>
