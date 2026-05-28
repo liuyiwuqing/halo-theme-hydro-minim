@@ -632,8 +632,8 @@ body.hydro-auth-page .divider-wrapper hr {
 }
 
 body.hydro-auth-page .pill-items {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.875rem;
   margin: 0;
   padding: 0;
@@ -641,6 +641,7 @@ body.hydro-auth-page .pill-items {
 }
 
 body.hydro-auth-page .pill-items li {
+  min-width: 0;
   width: 100%;
   overflow: hidden;
   border: 1px solid rgb(var(--hydro-ink-rgb) / 8%);
@@ -649,6 +650,11 @@ body.hydro-auth-page .pill-items li {
   transition:
     background-color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
     border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+body.hydro-auth-page .pill-items li:only-child,
+body.hydro-auth-page .pill-items li:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
 }
 
 body.hydro-auth-page .pill-items li:hover {
@@ -676,7 +682,15 @@ body.hydro-auth-page .pill-items li button {
 body.hydro-auth-page .pill-items li img {
   width: 1.35rem;
   height: 1.35rem;
+  flex: 0 0 auto;
   object-fit: contain;
+}
+
+body.hydro-auth-page .pill-items li span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 body.hydro-auth-page .alert {
