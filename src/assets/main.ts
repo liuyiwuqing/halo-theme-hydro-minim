@@ -2,6 +2,7 @@ import Lenis from "@studio-freight/lenis";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
+import { initCommentWidgetSkin } from "./comment-widget-skin";
 import { runHydroFabAction, type HydroFabActionDependencies } from "./fab-actions";
 
 import "./styles/main.css";
@@ -2312,6 +2313,7 @@ initPostUpvote();
 initPostShare();
 initPostReadingProgress();
 initPostRelatedCards();
+initCommentWidgetSkin();
 
 function initLinkCards() {
   if (!motionEnabled) {

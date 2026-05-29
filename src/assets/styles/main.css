@@ -3802,25 +3802,111 @@ html[data-hydro-motion="off"] .hydro-card:hover .hydro-card__arrow {
   white-space: nowrap;
 }
 
-.hydro-comments {
-  margin-top: 4rem;
-  padding-top: 2rem;
-  border-top: 1px solid rgb(var(--hydro-ink-rgb) / 10%);
+:where(.hydro-comments, .hydro-post-comments, .hydro-plugin-comments, .hydro-links-comments, .hydro-moment__comment) {
+  --hydro-comment-border: rgb(var(--hydro-ink-rgb) / 11%);
+  --hydro-comment-border-soft: rgb(var(--hydro-ink-rgb) / 7%);
+  --hydro-comment-heading-line: rgb(var(--hydro-ink-rgb) / 12%);
+  --hydro-comment-thread-line: rgb(var(--hydro-ink-rgb) / 18%);
+  --hydro-comment-surface: rgb(var(--hydro-paper-rgb) / 30%);
+  --hydro-comment-surface-soft: rgb(var(--hydro-paper-rgb) / 22%);
+  --hydro-comment-reply-surface: rgb(var(--hydro-ink-rgb) / 2.5%);
+  --hydro-comment-accent: rgb(var(--hydro-ink-rgb) / 42%);
+  --halo-cw-primary-1-color: var(--hydro-solid);
+  --halo-cw-primary-2-color: rgb(var(--hydro-ink-rgb) / 82%);
+  --halo-cw-primary-3-color: rgb(var(--hydro-ink-rgb) / 12%);
+  --halo-cw-text-1-color: rgb(var(--hydro-ink-rgb) / 88%);
+  --halo-cw-text-2-color: rgb(var(--hydro-ink-rgb) / 66%);
+  --halo-cw-text-3-color: rgb(var(--hydro-ink-rgb) / 46%);
+  --halo-cw-muted-1-color: rgb(var(--hydro-ink-rgb) / 16%);
+  --halo-cw-muted-2-color: rgb(var(--hydro-ink-rgb) / 9%);
+  --halo-cw-muted-3-color: rgb(var(--hydro-ink-rgb) / 3%);
+  --halo-cw-base-rounded: 0.5rem;
+  --halo-cw-avatar-rounded: 999px;
+  --halo-cw-avatar-size: 2.32rem;
+  --halo-cw-base-font-size: 0.9rem;
+  --halo-cw-base-font-family: "Space Mono", monospace;
+  color: rgb(var(--hydro-ink-rgb) / 84%);
 }
 
-.hydro-comments h2 {
-  margin: 0 0 1.5rem;
+:where(.hydro-comments, .hydro-post-comments, .hydro-plugin-comments) {
+  margin-top: clamp(3rem, 6vw, 4.75rem);
+  padding-top: clamp(1.4rem, 3vw, 2.1rem);
+  border-top: 1px solid var(--hydro-comment-border);
 }
 
-.hydro-plugin-comments {
-  margin-top: clamp(3rem, 7vw, 5rem);
-  padding-top: 2rem;
-  border-top: 1px solid rgb(var(--hydro-ink-rgb) / 12%);
+:where(.hydro-comments, .hydro-post-comments, .hydro-plugin-comments, .hydro-links-comments, .hydro-moment__comment)
+  h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin: 0 0 clamp(0.95rem, 2vw, 1.35rem);
+  color: rgb(var(--hydro-ink-rgb) / 72%);
+  font-size: clamp(0.9rem, 1.35vw, 1.05rem);
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1.2;
+  text-wrap: balance;
 }
 
-.hydro-plugin-comments h2 {
-  margin: 0 0 1.5rem;
-  font-size: clamp(1.2rem, 2vw, 1.6rem);
+:where(.hydro-comments, .hydro-post-comments, .hydro-plugin-comments, .hydro-links-comments, .hydro-moment__comment)
+  h2::after {
+  flex: 1 1 auto;
+  height: 1px;
+  min-width: 2rem;
+  background: linear-gradient(90deg, var(--hydro-comment-heading-line), transparent);
+  content: "";
+}
+
+:where(.hydro-comments, .hydro-post-comments, .hydro-plugin-comments, .hydro-links-comments, .hydro-moment__comment)
+  :where(halo-comment-widget, comment-widget) {
+  display: block;
+  width: 100%;
+}
+
+:where(.hydro-comments, .hydro-post-comments, .hydro-plugin-comments, .hydro-links-comments, .hydro-moment__comment)
+  :where(
+    comment-form,
+    comment-list,
+    comment-item,
+    comment-replies,
+    reply-item,
+    base-comment-item,
+    reply-form,
+    comment-pagination
+  ) {
+  display: block;
+  max-width: 100%;
+}
+
+:where(.hydro-comments, .hydro-post-comments, .hydro-plugin-comments, .hydro-links-comments, .hydro-moment__comment)
+  :where(comment-form) {
+  margin-bottom: clamp(1.2rem, 2.5vw, 1.8rem);
+  padding-bottom: clamp(1rem, 2.2vw, 1.45rem);
+  border-bottom: 1px solid var(--hydro-comment-border-soft);
+}
+
+:where(.hydro-comments, .hydro-post-comments, .hydro-plugin-comments, .hydro-links-comments, .hydro-moment__comment)
+  :where(comment-item + comment-item) {
+  margin-top: 0;
+}
+
+:where(.hydro-comments, .hydro-post-comments, .hydro-plugin-comments, .hydro-links-comments, .hydro-moment__comment)
+  :where(comment-replies) {
+  margin-top: 0.8rem;
+  margin-left: clamp(1.75rem, 4.4vw, 3rem);
+  padding-left: clamp(0.7rem, 1.8vw, 0.95rem);
+  border-left: 1px solid var(--hydro-comment-thread-line);
+}
+
+:where(.hydro-comments, .hydro-post-comments, .hydro-plugin-comments, .hydro-links-comments, .hydro-moment__comment)
+  :where(reply-item + reply-item) {
+  margin-top: 0.45rem;
+}
+
+:where(.hydro-comments, .hydro-post-comments, .hydro-plugin-comments, .hydro-links-comments, .hydro-moment__comment)
+  :where([class*="halo-comment"], [class*="comment-widget"]) {
+  max-width: 100%;
+  font-family: "Space Mono", monospace;
 }
 
 .hydro-archive-page {
@@ -5344,13 +5430,7 @@ html.lenis body {
 }
 
 .hydro-links-comments {
-  padding: 4rem 0 7rem;
-}
-
-.hydro-links-comments h2 {
-  margin: 0 0 2rem;
-  font-size: 1.5rem;
-  font-weight: 700;
+  padding: clamp(3.25rem, 6vw, 5rem) 0 clamp(5.5rem, 8vw, 7rem);
 }
 
 @media (max-width: 64rem) {
@@ -5594,12 +5674,6 @@ html.lenis body {
 
 .hydro-moment__comment--detail {
   margin-top: 1.4rem;
-}
-
-.hydro-moment__comment--detail h2 {
-  margin: 0 0 1rem;
-  color: var(--hydro-solid);
-  font-size: 1.15rem;
 }
 
 .hydro-moments-hero {
@@ -6135,125 +6209,8 @@ html.lenis body {
 
 .hydro-moment__comment {
   margin-top: 1rem;
-  border-top: 1px solid rgb(var(--hydro-ink-rgb) / 8%);
+  border-top: 1px solid var(--hydro-comment-border-soft);
   padding-top: 1rem;
-  --halo-cw-primary-1-color: var(--hydro-solid);
-  --halo-cw-primary-2-color: var(--hydro-solid);
-  --halo-cw-primary-3-color: rgb(var(--hydro-ink-rgb) / 72%);
-  --halo-cw-text-1-color: rgb(var(--hydro-ink-rgb) / 86%);
-  --halo-cw-text-2-color: rgb(var(--hydro-ink-rgb) / 66%);
-  --halo-cw-text-3-color: rgb(var(--hydro-ink-rgb) / 46%);
-  --halo-cw-muted-1-color: rgb(var(--hydro-ink-rgb) / 18%);
-  --halo-cw-muted-2-color: rgb(var(--hydro-ink-rgb) / 10%);
-  --halo-cw-muted-3-color: rgb(var(--hydro-paper-rgb) / 34%);
-}
-
-.hydro-moment__comment > div,
-.hydro-moment__comment [class*="halo-comment"],
-.hydro-moment__comment form,
-.hydro-moment__comment textarea,
-.hydro-moment__comment input,
-.hydro-moment__comment button {
-  font-family: "Space Mono", monospace;
-}
-
-.hydro-moment__comment > div {
-  width: 100%;
-}
-
-.hydro-moment__comment form,
-.hydro-moment__comment form.form,
-.hydro-moment__comment form.w-full {
-  display: grid;
-  gap: 0.75rem;
-  width: 100%;
-  max-width: none;
-  border: 1px solid rgb(var(--hydro-ink-rgb) / 9%);
-  border-radius: 1rem;
-  padding: 1rem;
-  background: rgb(var(--hydro-paper-rgb) / 28%);
-  box-shadow: inset 0 1px 0 rgb(var(--hydro-paper-rgb) / 36%);
-}
-
-.hydro-moment__comment textarea,
-.hydro-moment__comment textarea.textarea,
-.hydro-moment__comment input:not([type="checkbox"]):not([type="radio"]),
-.hydro-moment__comment input.input:not([type="checkbox"]):not([type="radio"]) {
-  width: 100%;
-  border: 1px solid rgb(var(--hydro-ink-rgb) / 10%);
-  border-radius: 0.85rem;
-  padding: 0.75rem 0.9rem;
-  background: rgb(var(--hydro-paper-rgb) / 22%);
-  color: rgb(var(--hydro-ink-rgb) / 82%);
-  font-size: 0.9rem;
-  line-height: 1.6;
-  outline: none;
-  transition:
-    border-color 0.25s ease,
-    box-shadow 0.25s ease,
-    background 0.25s ease;
-}
-
-.hydro-moment__comment textarea,
-.hydro-moment__comment textarea.textarea {
-  min-height: 7rem;
-  resize: vertical;
-}
-
-.hydro-moment__comment textarea:focus,
-.hydro-moment__comment textarea.textarea:focus,
-.hydro-moment__comment input:not([type="checkbox"]):not([type="radio"]):focus,
-.hydro-moment__comment input.input:not([type="checkbox"]):not([type="radio"]):focus {
-  border-color: rgb(var(--hydro-ink-rgb) / 24%);
-  background: rgb(var(--hydro-paper-rgb) / 48%);
-  box-shadow: 0 0 0 3px rgb(var(--hydro-ink-rgb) / 5%);
-}
-
-.hydro-moment__comment button,
-.hydro-moment__comment button.btn,
-.hydro-moment__comment a[class*="button"],
-.hydro-moment__comment [type="submit"],
-.hydro-moment__comment .btn {
-  display: inline-flex;
-  min-height: 2.35rem;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid rgb(var(--hydro-ink-rgb) / 12%);
-  border-radius: 999px;
-  padding: 0.55rem 0.95rem;
-  background: rgb(var(--hydro-paper-rgb) / 42%);
-  color: rgb(var(--hydro-ink-rgb) / 68%);
-  cursor: pointer;
-  font-size: 0.82rem;
-  font-weight: 700;
-  line-height: 1;
-  transition:
-    background 0.25s ease,
-    border-color 0.25s ease,
-    color 0.25s ease,
-    transform 0.25s ease;
-}
-
-.hydro-moment__comment button:hover,
-.hydro-moment__comment button:focus-visible,
-.hydro-moment__comment button.btn:hover,
-.hydro-moment__comment button.btn:focus-visible,
-.hydro-moment__comment a[class*="button"]:hover,
-.hydro-moment__comment a[class*="button"]:focus-visible,
-.hydro-moment__comment [type="submit"]:hover,
-.hydro-moment__comment [type="submit"]:focus-visible,
-.hydro-moment__comment .btn:hover,
-.hydro-moment__comment .btn:focus-visible {
-  border-color: var(--hydro-solid);
-  background: var(--hydro-solid);
-  color: var(--hydro-solid-contrast);
-  transform: translateY(-0.08rem);
-}
-
-.hydro-moment__comment .form-control,
-.hydro-moment__comment .field,
-.hydro-moment__comment .join {
-  gap: 0.65rem;
 }
 
 .hydro-moment__images {
@@ -8018,6 +7975,35 @@ html[data-hydro-lightbox="false"] .hydro-lightbox {
 
   .hydro-links-comments {
     padding: 3rem 0 4.5rem;
+  }
+
+  :where(.hydro-comments, .hydro-post-comments, .hydro-plugin-comments) {
+    margin-top: 2.75rem;
+    padding-top: 1.35rem;
+  }
+
+  :where(.hydro-comments, .hydro-post-comments, .hydro-plugin-comments, .hydro-links-comments, .hydro-moment__comment) {
+    --halo-cw-avatar-size: 2.08rem;
+    --halo-cw-base-font-size: 0.86rem;
+  }
+
+  :where(.hydro-comments, .hydro-post-comments, .hydro-plugin-comments, .hydro-links-comments, .hydro-moment__comment)
+    :where(comment-form) {
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+  }
+
+  :where(.hydro-comments, .hydro-post-comments, .hydro-plugin-comments, .hydro-links-comments, .hydro-moment__comment)
+    :where(comment-replies) {
+    margin-left: 0.65rem;
+    padding-left: 0.7rem;
+  }
+
+  :where(.hydro-comments, .hydro-post-comments, .hydro-plugin-comments, .hydro-links-comments, .hydro-moment__comment)
+    h2 {
+    gap: 0.55rem;
+    margin-bottom: 0.9rem;
+    font-size: 0.95rem;
   }
 
   .hydro-moments-section,
@@ -9811,17 +9797,6 @@ html[data-hydro-lightbox="false"] .hydro-lightbox {
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   overflow: hidden;
-}
-
-.hydro-post-comments {
-  margin-top: 3rem;
-  border-top: 1px solid rgb(var(--hydro-ink-rgb) / 10%);
-  padding-top: 2rem;
-}
-
-.hydro-post-comments h2 {
-  margin: 0 0 1.25rem;
-  font-size: 1.2rem;
 }
 
 .hydro-post-aside {
