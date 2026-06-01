@@ -17,6 +17,6 @@
 - Tag data remains sourced from Halo's `tags` route variable. Visual changes must not alter Finder/API semantics, routes, or taxonomy settings.
 - The tag sky must not use a visible border, rectangular card background, or rectangular focus/hover block around individual clouds.
 - Tag cloud motion uses `transform` and `opacity` only. Ambient sky drift and cloud floating must respect `prefers-reduced-motion`.
-- Cloud motion layers include a soft arrival, slow orbital drifting, and subtle SVG cloud breathing. Avoid bounce or elastic motion; the material is mist, not rubber.
+- Cloud motion layers include a soft arrival, inner SVG cloud mist reveal, cloud outline drawing, delayed text/count reveal, and slow orbital drifting. Avoid bounce or elastic motion; the material is mist, not rubber.
 - The `src/assets/tag-cloud.ts` module owns desktop cloud placement. Thymeleaf still outputs semantic tag links and CSS sizing variables; JavaScript refines coordinates after real styles are available.
 - Cloud tag hover and focus feedback must keep the outer link hit area stable. Do not move the anchor itself on hover; emphasize the inner SVG cloud, text color, stroke, and shadow instead.

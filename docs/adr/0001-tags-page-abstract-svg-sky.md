@@ -18,6 +18,8 @@ Desktop placement is refined by `src/assets/tag-cloud.ts`. The module hashes lab
 
 Hover and focus feedback must not move the outer tag anchor. The anchor remains responsible for the stable hit area and ambient floating path; the inner SVG cloud handles emphasis through scale, stroke, fill, and shadow. This avoids hover churn where the element moves away from the cursor and repeatedly enters and leaves hover state.
 
+Cloud entry motion is layered inside the tag: the cloud silhouette emerges from blur, the SVG outline draws in, then the label and count fade upward. This keeps the arrival visible while preserving the stable anchor position required for hover and focus.
+
 ## Consequences
 
 - The page gets a distinct tag-cloud identity without adding image assets or new configuration fields.
@@ -28,4 +30,5 @@ Hover and focus feedback must not move the outer tag anchor. The anchor remains 
 - The template gains a decorative SVG layer, so it must remain `aria-hidden` and pointer-events free.
 - The tags sky container must avoid visible borders, card backgrounds, and rectangular focus or hover blocks around cloud tags.
 - Hover and focus states should feel closer and clearer without changing the anchor's position in the sky field.
+- Entry motion should remain visible in normal motion environments but must be disabled by `prefers-reduced-motion: reduce`.
 - Future changes to the tags page should preserve the tag-sky and cloud-tag domain language unless a new ADR supersedes this decision.

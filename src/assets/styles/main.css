@@ -3866,6 +3866,7 @@ html[data-hydro-motion="off"] .hydro-card:hover .hydro-card__arrow {
   transform-box: fill-box;
   transform-origin: center;
   transform: scale(var(--tag-hover-cloud-scale));
+  animation: hydro-tag-cloud-enter 0.95s cubic-bezier(0.16, 1, 0.3, 1) var(--tag-arrive-delay) backwards;
   transition:
     filter 0.18s cubic-bezier(0.2, 0, 0, 1),
     transform 0.18s cubic-bezier(0.2, 0, 0, 1);
@@ -3873,9 +3874,14 @@ html[data-hydro-motion="off"] .hydro-card:hover .hydro-card__arrow {
 
 .hydro-tag-chip__cloud path {
   fill: var(--hydro-tag-cloud-fill);
+  fill-opacity: 1;
   stroke: var(--hydro-tag-cloud-line);
+  stroke-dasharray: 174;
+  stroke-dashoffset: 0;
   stroke-width: 1.1;
   vector-effect: non-scaling-stroke;
+  animation: hydro-tag-cloud-line-enter 1.02s cubic-bezier(0.16, 1, 0.3, 1) calc(var(--tag-arrive-delay) + 0.05s)
+    backwards;
   transition:
     fill 0.28s ease,
     stroke 0.28s ease;
@@ -3917,13 +3923,17 @@ html[data-hydro-motion="off"] .hydro-card:hover .hydro-card__arrow {
 }
 
 .hydro-tag-chip__name {
+  display: inline-block;
   overflow-wrap: anywhere;
+  animation: hydro-tag-copy-enter 0.62s cubic-bezier(0.16, 1, 0.3, 1) calc(var(--tag-arrive-delay) + 0.16s) backwards;
 }
 
 .hydro-tag-chip sup {
+  display: inline-block;
   color: rgb(var(--hydro-ink-rgb) / 42%);
   font-size: 0.68em;
   line-height: 1;
+  animation: hydro-tag-copy-enter 0.58s cubic-bezier(0.16, 1, 0.3, 1) calc(var(--tag-arrive-delay) + 0.22s) backwards;
 }
 
 .hydro-tag-chip:hover sup,
@@ -4628,6 +4638,57 @@ html[data-hydro-motion="off"] .hydro-card:hover .hydro-card__arrow {
   to {
     opacity: 1;
     filter: blur(0);
+  }
+}
+
+@keyframes hydro-tag-cloud-enter {
+  from {
+    opacity: 0;
+    filter: blur(0.7rem) drop-shadow(0 22px 36px rgb(var(--hydro-shadow-rgb) / 0%));
+    transform: translate3d(0, 0.55rem, 0) scale(0.86);
+  }
+
+  62% {
+    opacity: 0.86;
+    filter: blur(0.12rem) drop-shadow(0 18px 30px rgb(var(--hydro-shadow-rgb) / 4%));
+    transform: translate3d(0, -0.08rem, 0) scale(1.018);
+  }
+
+  to {
+    opacity: 1;
+    filter: drop-shadow(0 16px 28px rgb(var(--hydro-shadow-rgb) / 5%));
+    transform: scale(var(--tag-hover-cloud-scale));
+  }
+}
+
+@keyframes hydro-tag-cloud-line-enter {
+  from {
+    fill-opacity: 0;
+    stroke-dashoffset: 174;
+    stroke-opacity: 0;
+  }
+
+  58% {
+    fill-opacity: 0.58;
+    stroke-opacity: 0.72;
+  }
+
+  to {
+    fill-opacity: 1;
+    stroke-dashoffset: 0;
+    stroke-opacity: 1;
+  }
+}
+
+@keyframes hydro-tag-copy-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 0.34rem, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
   }
 }
 
@@ -13136,7 +13197,10 @@ html[data-hydro-lightbox="false"] .hydro-lightbox {
   .hydro-tags-sky__lines,
   .hydro-tags-sky__marks,
   .hydro-tags-cloud::before,
-  .hydro-tag-chip__cloud {
+  .hydro-tag-chip__cloud,
+  .hydro-tag-chip__cloud path,
+  .hydro-tag-chip__name,
+  .hydro-tag-chip sup {
     animation: none;
   }
 
@@ -13156,5 +13220,11 @@ html[data-hydro-lightbox="false"] .hydro-lightbox {
 
   .hydro-tag-chip__cloud {
     filter: none;
+    transform: none;
+  }
+
+  .hydro-tag-chip__name,
+  .hydro-tag-chip sup {
+    transform: none;
   }
 }
