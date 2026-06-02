@@ -199,6 +199,118 @@
               把瞬间整理成一张适合保存与转发的轻量海报。
             </p>
 
+            <article
+              class="hydro-poster-card hydro-poster-card--moment"
+              data-hydro-poster-card
+              th:attr="data-share-url=|/moments/${moment.metadata.name}|"
+            >
+              <div class="hydro-poster-card__grain" aria-hidden="true"></div>
+              <div class="hydro-poster-card__mark" aria-hidden="true">
+                <span>HYDRO</span>
+                <span>MOMENT</span>
+              </div>
+
+              <header class="hydro-poster-card__header">
+                <p class="hydro-poster-card__eyebrow" th:text="${theme.config.share?.moment_card_eyebrow ?: 'Moment'}">
+                  Moment
+                </p>
+                <time th:text="${#dates.format(moment.spec.releaseTime, 'yyyy.MM.dd / HH:mm')}"
+                  >2026.05.12 / 12:00</time
+                >
+              </header>
+
+              <div class="hydro-poster-card__body">
+                <div class="hydro-poster-card__hero">
+                  <figure
+                    class="hydro-poster-card__media"
+                    th:if="${content != null and not #lists.isEmpty(content.medium)}"
+                  >
+                    <img
+                      th:each="media : ${content.medium}"
+                      th:if="${media.type.name == 'PHOTO'}"
+                      th:src="${media.url}"
+                      alt=""
+                      loading="eager"
+                      data-hydro-poster-image
+                      data-hydro-poster-export-image
+                    />
+                  </figure>
+                  <div class="hydro-poster-card__no-media" aria-hidden="true">
+                    <span>氢</span>
+                    <span>MINIM</span>
+                  </div>
+                  <div class="hydro-poster-card__hero-shade" aria-hidden="true"></div>
+                  <div class="hydro-poster-card__hero-caption">
+                    <span
+                      data-hydro-poster-caption
+                      th:attr="data-hydro-poster-caption-fallback=${theme.config.share?.moment_card_eyebrow ?: 'Moment'}"
+                      th:text="${not #lists.isEmpty(moment.spec.tags) ? '#' + moment.spec.tags[0] : (theme.config.share?.moment_card_eyebrow ?: 'Moment')}"
+                      >#tag</span
+                    >
+                  </div>
+                </div>
+
+                <div class="hydro-poster-card__copy">
+                  <div
+                    class="hydro-poster-card__copy-source"
+                    data-hydro-poster-copy-source
+                    th:if="${content != null and not #strings.isEmpty(content.html)}"
+                    th:utext="${content.html}"
+                    hidden
+                  ></div>
+                  <p class="hydro-poster-card__kicker" th:text="${theme.config.share?.moment_card_eyebrow ?: 'Moment'}">
+                    Moment
+                  </p>
+                  <div
+                    class="hydro-poster-card__content"
+                    data-hydro-poster-copy-content
+                    th:attr="data-hydro-poster-copy-raw=${content != null and not #strings.isEmpty(content.raw) ? content.raw : ''},data-hydro-poster-copy-fallback=${moment.owner != null ? '来自 ' + moment.owner.displayName + ' 的瞬间' : '一条被认真保存的瞬间'}"
+                  >
+                    <p
+                      th:text="${moment.owner != null ? '来自 ' + moment.owner.displayName + ' 的瞬间' : '一条被认真保存的瞬间'}"
+                    >
+                      把正在发生的此刻，整理成一张值得保存的轻量海报。
+                    </p>
+                  </div>
+                </div>
+
+                <div class="hydro-poster-card__tag-source" th:if="${not #lists.isEmpty(moment.spec.tags)}" hidden>
+                  <span data-hydro-poster-tag th:each="tag : ${moment.spec.tags}" th:text="|#${tag}|">#tag</span>
+                </div>
+              </div>
+
+              <footer class="hydro-poster-card__footer">
+                <div class="hydro-poster-card__seal" aria-hidden="true">
+                  <img
+                    th:if="${moment.owner != null and not #strings.isEmpty(moment.owner.avatar)}"
+                    th:src="${moment.owner.avatar}"
+                    alt=""
+                    loading="eager"
+                    data-hydro-poster-avatar
+                    data-hydro-poster-export-image
+                  />
+                  <span
+                    class="hydro-poster-card__seal-fallback"
+                    th:text="${moment.owner != null and not #strings.isEmpty(moment.owner.displayName) ? #strings.substring(moment.owner.displayName, 0, 1) : 'H'}"
+                    >H</span
+                  >
+                </div>
+                <div class="hydro-poster-site">
+                  <strong
+                    th:text="${moment.owner != null and not #strings.isEmpty(moment.owner.displayName) ? moment.owner.displayName : site.title}"
+                    >Hydro</strong
+                  >
+                  <span
+                    data-hydro-poster-url-text
+                    th:attr="data-url=|/moments/${moment.metadata.name}|"
+                    th:text="|/moments/${moment.metadata.name}|"
+                  >
+                    /moments/name
+                  </span>
+                </div>
+              </footer>
+            </article>
+
             <div class="hydro-moment-poster__tools" aria-label="海报操作">
               <button
                 class="hydro-moment-poster__tool"
@@ -220,62 +332,6 @@
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg>
               </button>
             </div>
-
-            <article
-              class="hydro-poster-card hydro-poster-card--moment"
-              data-hydro-poster-card
-              th:attr="data-share-url=|/moments/${moment.metadata.name}|"
-            >
-              <div class="hydro-poster-card__grain" aria-hidden="true"></div>
-              <div class="hydro-poster-card__mark" aria-hidden="true">
-                <span></span>
-                <span></span>
-                <span></span>
-              </div>
-
-              <header class="hydro-poster-card__header">
-                <p class="hydro-poster-card__eyebrow" th:text="${theme.config.share?.moment_card_eyebrow ?: 'Moment'}">
-                  Moment
-                </p>
-                <time th:text="${#dates.format(moment.spec.releaseTime, 'yyyy.MM.dd / HH:mm')}"
-                  >2026.05.12 / 12:00</time
-                >
-              </header>
-
-              <div class="hydro-poster-card__body">
-                <p class="hydro-poster-card__kicker" th:text="${theme.config.share?.eyebrow ?: 'Hydro-Minim / Poster'}">
-                  Hydro-Minim / Poster
-                </p>
-                <h3 th:text="${moment.owner != null ? moment.owner.displayName : site.title}">瞬间</h3>
-                <div class="hydro-poster-card__quote">
-                  <div
-                    class="hydro-poster-card__excerpt hydro-poster-card__excerpt--html"
-                    th:if="${content != null and not #strings.isEmpty(content.html)}"
-                    th:utext="${content.html}"
-                  ></div>
-                </div>
-
-                <div class="hydro-poster-card__chips" th:if="${not #lists.isEmpty(moment.spec.tags)}">
-                  <span th:each="tag : ${moment.spec.tags}" th:text="|#${tag}|">#tag</span>
-                </div>
-              </div>
-
-              <footer class="hydro-poster-card__footer">
-                <div class="hydro-poster-card__seal" aria-hidden="true">
-                  <span>H</span>
-                </div>
-                <div class="hydro-poster-site">
-                  <strong th:text="${site.title}">Hydro-Minim</strong>
-                  <span
-                    data-hydro-poster-url-text
-                    th:attr="data-url=|/moments/${moment.metadata.name}|"
-                    th:text="|/moments/${moment.metadata.name}|"
-                  >
-                    /moments/name
-                  </span>
-                </div>
-              </footer>
-            </article>
           </div>
         </section>
       </div>

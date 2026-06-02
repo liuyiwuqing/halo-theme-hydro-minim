@@ -6227,9 +6227,9 @@ html.lenis body {
 .hydro-moment-poster__dialog {
   position: relative;
   display: grid;
-  width: min(30rem, 100%);
+  width: min(31rem, 100%);
   place-items: center;
-  padding-top: 3rem;
+  gap: 0.85rem;
   overflow: visible;
   border: 0;
   background: transparent;
@@ -6246,25 +6246,33 @@ html.lenis body {
 }
 
 .hydro-moment-poster__tools {
-  position: absolute;
-  top: 0;
-  right: 0;
-  display: flex;
-  gap: 0.5rem;
+  position: relative;
   z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  border: 1px solid rgb(var(--hydro-ink-rgb) / 12%);
+  border-radius: 999px;
+  background: rgb(var(--hydro-paper-rgb) / 86%);
+  padding: 0.34rem;
+  box-shadow:
+    0 1rem 2.2rem rgb(var(--hydro-shadow-rgb) / 18%),
+    inset 0 1px 0 rgb(var(--hydro-paper-rgb) / 72%);
+  backdrop-filter: blur(1rem);
 }
 
 .hydro-moment-poster__tool {
   display: grid;
-  width: 2.45rem;
-  height: 2.45rem;
+  width: 2.6rem;
+  height: 2.6rem;
   flex: 0 0 auto;
   place-items: center;
-  border: 1px solid rgb(var(--hydro-ink-rgb) / 12%);
+  border: 1px solid transparent;
   border-radius: 999px;
-  background: rgb(var(--hydro-paper-rgb) / 92%);
-  color: rgb(var(--hydro-ink-rgb) / 68%);
-  box-shadow: 0 0.75rem 2rem rgb(var(--hydro-shadow-rgb) / 18%);
+  background: transparent;
+  color: rgb(var(--hydro-ink-rgb) / 70%);
+  box-shadow: none;
   cursor: pointer;
   transition:
     border-color 0.2s ease,
@@ -6276,10 +6284,10 @@ html.lenis body {
 
 .hydro-moment-poster__tool:hover,
 .hydro-moment-poster__tool:focus-visible {
-  border-color: var(--hydro-solid);
+  border-color: rgb(var(--hydro-ink-rgb) / 14%);
   background: var(--hydro-solid);
   color: var(--hydro-solid-contrast);
-  transform: translateY(-0.08rem);
+  transform: translateY(-0.06rem);
 }
 
 .hydro-moment-poster__tool:disabled {
@@ -9373,16 +9381,16 @@ html[data-hydro-lightbox="false"] .hydro-lightbox {
   isolation: isolate;
   display: grid;
   grid-template-rows: auto 1fr auto;
-  width: min(26rem, calc(100vw - 2rem));
-  min-height: min(38.5rem, calc(100dvh - 7rem));
-  aspect-ratio: 4 / 5.7;
+  width: min(27rem, calc(100vw - 2rem));
+  min-height: min(40rem, calc(100dvh - 8.2rem));
+  aspect-ratio: 4 / 5.95;
   overflow: hidden;
   border: 1px solid rgb(var(--hydro-ink-rgb) / 16%);
-  border-radius: 0.72rem;
+  border-radius: 0.86rem;
   background:
-    radial-gradient(circle at 82% 14%, rgb(var(--hydro-accent-rgb) / 15%), transparent 18%),
-    radial-gradient(circle at 8% 88%, rgb(var(--hydro-teal-rgb) / 10%), transparent 22%),
-    linear-gradient(180deg, rgb(var(--hydro-paper-rgb) / 96%), rgb(var(--hydro-paper-rgb) / 84%)), var(--hydro-bg);
+    radial-gradient(circle at 90% 14%, rgb(var(--hydro-accent-rgb) / 17%), transparent 20%),
+    radial-gradient(circle at 9% 84%, rgb(var(--hydro-teal-rgb) / 11%), transparent 24%),
+    linear-gradient(145deg, rgb(var(--hydro-paper-rgb) / 98%), rgb(var(--hydro-paper-rgb) / 88%)), var(--hydro-bg);
   box-shadow:
     0 2.2rem 4.8rem rgb(var(--hydro-shadow-rgb) / 28%),
     0 0 0 0.5rem rgb(var(--hydro-paper-rgb) / 14%);
@@ -9391,7 +9399,7 @@ html[data-hydro-lightbox="false"] .hydro-lightbox {
 .hydro-poster-card::before,
 .hydro-poster-card::after {
   position: absolute;
-  inset: clamp(1rem, 4vw, 1.4rem);
+  inset: 1.05rem;
   z-index: -1;
   content: "";
   pointer-events: none;
@@ -9403,11 +9411,11 @@ html[data-hydro-lightbox="false"] .hydro-lightbox {
 
 .hydro-poster-card::after {
   background-image:
-    linear-gradient(rgb(var(--hydro-ink-rgb) / 5%) 1px, transparent 1px),
-    linear-gradient(90deg, rgb(var(--hydro-ink-rgb) / 4%) 1px, transparent 1px);
-  background-size: 1.35rem 1.35rem;
+    linear-gradient(rgb(var(--hydro-ink-rgb) / 4.5%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(var(--hydro-ink-rgb) / 3.5%) 1px, transparent 1px);
+  background-size: 1.18rem 1.18rem;
   mask-image: linear-gradient(180deg, transparent, #000 18%, #000 78%, transparent);
-  opacity: 0.52;
+  opacity: 0.42;
 }
 
 .hydro-poster-card__grain {
@@ -9425,32 +9433,33 @@ html[data-hydro-lightbox="false"] .hydro-lightbox {
 
 .hydro-poster-card__mark {
   position: absolute;
-  right: 2rem;
-  bottom: 7.5rem;
+  right: -1.4rem;
+  bottom: 7.9rem;
   z-index: -1;
   display: grid;
-  gap: 0.42rem;
-  opacity: 0.7;
+  gap: 0.25rem;
+  color: rgb(var(--hydro-ink-rgb) / 7%);
+  font-size: 2.8rem;
+  font-weight: 700;
+  line-height: 0.86;
+  opacity: 0.9;
+  text-align: right;
+  transform: rotate(-90deg);
+  transform-origin: center;
 }
 
 .hydro-poster-card__mark span {
   display: block;
-  width: clamp(4.5rem, 20vw, 6.8rem);
-  height: 0.42rem;
-  border: 1px solid rgb(var(--hydro-ink-rgb) / 12%);
-  border-radius: 999px;
-  transform: rotate(-12deg);
+  width: auto;
+  height: auto;
+  border: 0;
+  border-radius: 0;
+  letter-spacing: 0.04em;
+  transform: none;
 }
 
 .hydro-poster-card__mark span:nth-child(2) {
-  width: clamp(3.2rem, 15vw, 5rem);
-  margin-left: 1.2rem;
-  opacity: 0.72;
-}
-
-.hydro-poster-card__mark span:nth-child(3) {
-  width: clamp(5rem, 22vw, 7.6rem);
-  opacity: 0.46;
+  opacity: 0.6;
 }
 
 .hydro-poster-card__header {
@@ -9458,7 +9467,7 @@ html[data-hydro-lightbox="false"] .hydro-lightbox {
   align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
-  padding: clamp(1.55rem, 5vw, 2rem) clamp(1.55rem, 5vw, 2rem) 0;
+  padding: 1.2rem 1.22rem 0;
 }
 
 .hydro-poster-card__eyebrow {
@@ -9479,9 +9488,155 @@ html[data-hydro-lightbox="false"] .hydro-lightbox {
   display: flex;
   min-height: 0;
   flex-direction: column;
-  justify-content: center;
-  gap: clamp(0.8rem, 2.8vw, 1.15rem);
-  padding: clamp(1.2rem, 4.5vw, 1.85rem) clamp(1.55rem, 5vw, 2rem);
+  justify-content: flex-start;
+  gap: 0.92rem;
+  padding: 1rem 1.22rem 1.05rem;
+}
+
+.hydro-poster-card__hero {
+  position: relative;
+  min-height: 13.7rem;
+  overflow: hidden;
+  border: 1px solid rgb(var(--hydro-ink-rgb) / 14%);
+  border-radius: 0.64rem;
+  background:
+    radial-gradient(circle at 18% 22%, rgb(var(--hydro-paper-rgb) / 86%), transparent 24%),
+    linear-gradient(135deg, rgb(var(--hydro-accent-rgb) / 17%), transparent 36%),
+    linear-gradient(160deg, rgb(var(--hydro-ink-rgb) / 8%), rgb(var(--hydro-paper-rgb) / 36%));
+}
+
+.hydro-poster-card__hero::before,
+.hydro-poster-card__hero::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  pointer-events: none;
+}
+
+.hydro-poster-card__hero::before {
+  background:
+    linear-gradient(rgb(var(--hydro-ink-rgb) / 7%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(var(--hydro-ink-rgb) / 6%) 1px, transparent 1px);
+  background-size: 1.05rem 1.05rem;
+  opacity: 0.32;
+}
+
+.hydro-poster-card__hero::after {
+  border: 1px solid rgb(var(--hydro-paper-rgb) / 42%);
+  margin: 0.65rem;
+}
+
+.hydro-poster-card__media {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: none;
+  margin: 0;
+  background: rgb(var(--hydro-ink-rgb) / 8%);
+}
+
+.hydro-poster-card.has-poster-image .hydro-poster-card__media {
+  display: block;
+}
+
+.hydro-poster-card__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hydro-poster-card__media img[hidden],
+.hydro-poster-card__media img:not(:first-of-type) {
+  display: none;
+}
+
+.hydro-poster-card__no-media {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  color: rgb(var(--hydro-ink-rgb) / 78%);
+}
+
+.hydro-poster-card.has-poster-image .hydro-poster-card__no-media {
+  display: none;
+}
+
+.hydro-poster-card__no-media span:first-child {
+  color: rgb(var(--hydro-ink-rgb) / 82%);
+  font-family: ui-serif, Georgia, "Times New Roman", serif;
+  font-size: 8.8rem;
+  line-height: 1;
+}
+
+.hydro-poster-card__no-media span:last-child {
+  position: absolute;
+  right: 1rem;
+  bottom: 0.72rem;
+  color: rgb(var(--hydro-ink-rgb) / 28%);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.hydro-poster-card__hero-shade {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background:
+    linear-gradient(180deg, rgb(var(--hydro-shadow-rgb) / 4%), rgb(var(--hydro-shadow-rgb) / 54%)),
+    radial-gradient(circle at 18% 16%, rgb(var(--hydro-paper-rgb) / 26%), transparent 26%);
+  pointer-events: none;
+}
+
+.hydro-poster-card:not(.has-poster-image) .hydro-poster-card__hero-shade {
+  background:
+    linear-gradient(180deg, transparent, rgb(var(--hydro-paper-rgb) / 30%)),
+    radial-gradient(circle at 76% 12%, rgb(var(--hydro-teal-rgb) / 14%), transparent 30%);
+}
+
+.hydro-poster-card__hero-caption {
+  position: absolute;
+  right: 1rem;
+  bottom: 0.92rem;
+  left: 1rem;
+  z-index: 3;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+  color: rgb(var(--hydro-paper-rgb) / 92%);
+}
+
+.hydro-poster-card:not(.has-poster-image) .hydro-poster-card__hero-caption {
+  color: rgb(var(--hydro-ink-rgb) / 68%);
+}
+
+.hydro-poster-card__hero-caption span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hydro-poster-card__hero-caption span {
+  max-width: 13rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.hydro-poster-card__copy {
+  display: grid;
+  gap: 0.62rem;
+  margin-inline: 0.34rem;
+  border-top: 1px solid rgb(var(--hydro-ink-rgb) / 13%);
+  padding: 1rem 0.62rem 0;
+}
+
+.hydro-poster-card__copy-source {
+  display: none;
 }
 
 .hydro-poster-card__kicker {
@@ -9489,39 +9644,9 @@ html[data-hydro-lightbox="false"] .hydro-lightbox {
   font-size: 0.66rem;
 }
 
-.hydro-poster-card h3 {
-  margin: 0;
-  color: var(--hydro-solid);
-  font-size: clamp(1.7rem, 7vw, 3rem);
-  line-height: 0.96;
-  overflow-wrap: anywhere;
-}
-
-.hydro-poster-card__quote {
-  position: relative;
-  border-top: 1px solid rgb(var(--hydro-ink-rgb) / 14%);
-  border-bottom: 1px solid rgb(var(--hydro-ink-rgb) / 14%);
-  padding: clamp(1rem, 4vw, 1.35rem) 0;
-}
-
-.hydro-poster-card__quote::before {
-  position: absolute;
-  top: -0.42rem;
-  left: 0;
-  width: 1.9rem;
-  height: 0.42rem;
-  border: 1px solid rgb(var(--hydro-accent-rgb) / 44%);
-  border-radius: 999px;
-  background: rgb(var(--hydro-paper-rgb) / 92%);
-  content: "";
-}
-
-.hydro-poster-card__excerpt {
-  display: -webkit-box;
-  max-height: 13.2rem;
+.hydro-poster-card__content {
+  max-height: 8.7rem;
   overflow: hidden;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 7;
   color: rgb(var(--hydro-ink-rgb) / 72%);
   font-family:
     ui-sans-serif,
@@ -9530,52 +9655,68 @@ html[data-hydro-lightbox="false"] .hydro-lightbox {
     BlinkMacSystemFont,
     "Segoe UI",
     sans-serif;
-  font-size: clamp(0.98rem, 3vw, 1.14rem);
-  line-height: 1.72;
+  font-size: 0.88rem;
+  line-height: 1.68;
+  overflow-wrap: anywhere;
 }
 
-.hydro-poster-card__excerpt--html > * {
-  margin-top: 0;
-  margin-bottom: 0;
+.hydro-poster-card__content > * {
+  margin: 0;
 }
 
-.hydro-poster-card__excerpt--html > * + * {
-  margin-top: 0.6rem;
+.hydro-poster-card__content > * + * {
+  margin-top: 0.46rem;
 }
 
-.hydro-poster-card__excerpt--html :where(img, video, audio, iframe, figure) {
-  display: none;
+.hydro-poster-card__content > :first-child {
+  display: -webkit-box;
+  color: var(--hydro-solid);
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  font-size: 1.6rem;
+  font-weight: 650;
+  line-height: 1.16;
+  letter-spacing: 0;
 }
 
-.hydro-poster-card__excerpt--html :where(a) {
+.hydro-poster-card__content > :not(:first-child) {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.hydro-poster-card__content :where(strong, b) {
+  color: var(--hydro-solid);
+  font-weight: 700;
+}
+
+.hydro-poster-card__content :where(a) {
   color: inherit;
   text-decoration: underline;
-  text-decoration-color: rgb(var(--hydro-ink-rgb) / 24%);
+  text-decoration-color: rgb(var(--hydro-ink-rgb) / 22%);
   text-underline-offset: 0.18em;
 }
 
-.hydro-poster-card__chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  max-height: 4rem;
-  overflow: hidden;
+.hydro-poster-card__content :where(ul, ol) {
+  padding-left: 1.1rem;
 }
 
-.hydro-poster-card__chips span {
-  border: 1px solid rgb(var(--hydro-ink-rgb) / 14%);
-  border-radius: 999px;
-  background: rgb(var(--hydro-paper-rgb) / 42%);
-  padding: 0.25rem 0.52rem;
-  color: rgb(var(--hydro-ink-rgb) / 56%);
-  font-size: 0.7rem;
+.hydro-poster-card__content :where(li + li) {
+  margin-top: 0.2rem;
+}
+
+.hydro-poster-card__tag-source {
+  display: none;
 }
 
 .hydro-poster-card__footer {
   display: flex;
   align-items: center;
   gap: 0.8rem;
-  padding: 0 clamp(1.55rem, 5vw, 2rem) clamp(1.55rem, 5vw, 2rem);
+  border-top: 1px solid rgb(var(--hydro-ink-rgb) / 10%);
+  padding: 0.92rem 1.22rem 1.2rem;
 }
 
 .hydro-poster-card__seal {
@@ -9589,6 +9730,18 @@ html[data-hydro-lightbox="false"] .hydro-lightbox {
   color: rgb(var(--hydro-ink-rgb) / 78%);
   font-size: 1rem;
   font-weight: 700;
+  overflow: hidden;
+}
+
+.hydro-poster-card__seal img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.hydro-poster-card__seal img + .hydro-poster-card__seal-fallback {
+  display: none;
 }
 
 .hydro-poster-site {
@@ -9633,10 +9786,53 @@ html[data-hydro-lightbox="false"] .hydro-lightbox {
 @media (max-width: 860px) {
   .hydro-moment-poster {
     align-items: center;
+    padding-block: max(0.8rem, env(safe-area-inset-top)) max(0.9rem, env(safe-area-inset-bottom));
+  }
+
+  .hydro-moment-poster__dialog {
+    gap: 0.68rem;
   }
 
   .hydro-poster-card {
-    min-height: min(35rem, calc(100dvh - 7rem));
+    width: min(24.5rem, calc(100vw - 1.4rem));
+    min-height: min(34.4rem, calc(100dvh - 6.5rem));
+  }
+
+  .hydro-poster-card__header {
+    padding: 1rem 1rem 0;
+  }
+
+  .hydro-poster-card__body {
+    gap: 0.72rem;
+    padding: 0.82rem 1rem 0.9rem;
+  }
+
+  .hydro-poster-card__hero {
+    min-height: 10.6rem;
+  }
+
+  .hydro-poster-card__no-media span:first-child {
+    font-size: 7rem;
+  }
+
+  .hydro-poster-card__content {
+    max-height: 7.5rem;
+    font-size: 0.82rem;
+    line-height: 1.58;
+  }
+
+  .hydro-poster-card__content > :first-child {
+    font-size: 1.34rem;
+    line-height: 1.18;
+  }
+
+  .hydro-poster-card__footer {
+    padding: 0.76rem 1rem 1rem;
+  }
+
+  .hydro-moment-poster__tool {
+    width: 2.45rem;
+    height: 2.45rem;
   }
 }
 

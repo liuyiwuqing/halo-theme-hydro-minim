@@ -2672,14 +2672,241 @@ function inlinePosterComputedStyles(source: Element, target: Element) {
   });
 }
 
-function createPosterExportClone(card: HTMLElement, width: number, height: number) {
-  const clone = card.cloneNode(true) as HTMLElement;
-  inlinePosterComputedStyles(card, clone);
-  clone
-    .querySelectorAll("audio, canvas, embed, iframe, img, object, picture, script, source, style, video")
+function readBlobAsDataUrl(blob: Blob) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        resolve(reader.result);
+        return;
+      }
+      reject(new Error("Poster image reader returned no data URL"));
+    };
+    reader.onerror = () => reject(reader.error ?? new Error("Poster image reader failed"));
+    reader.readAsDataURL(blob);
+  });
+}
+
+async function imageToDataUrl(image: HTMLImageElement) {
+  const source = image.currentSrc || image.src || image.getAttribute("src") || "";
+  if (!source) {
+    throw new Error("Poster image has no source");
+  }
+  if (source.startsWith("data:")) {
+    return source;
+  }
+
+  const absoluteUrl = new URL(source, window.location.href).href;
+  const response = await fetch(absoluteUrl, {
+    credentials: new URL(absoluteUrl).origin === window.location.origin ? "same-origin" : "omit",
+    mode: "cors",
+  });
+  if (!response.ok) {
+    throw new Error(`Poster image fetch failed with ${response.status}`);
+  }
+  return readBlobAsDataUrl(await response.blob());
+}
+
+function normalizePosterText(value: string) {
+  return value
+    .replace(/\u00a0/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function htmlToPosterText(value: string) {
+  const wrapper = document.createElement("div");
+  wrapper.innerHTML = value;
+  return normalizePosterText(wrapper.textContent || "");
+}
+
+function createPosterFallbackParagraph(text: string) {
+  const paragraph = document.createElement("p");
+  paragraph.textContent = text;
+  return paragraph;
+}
+
+function isMomentTagLink(element: Element) {
+  if (!(element instanceof HTMLAnchorElement)) {
+    return false;
+  }
+  const href = element.getAttribute("href") || "";
+  return element.classList.contains("tag") || href.includes("/moments?tag=");
+}
+
+function removeEmptyPosterContentBlocks(root: HTMLElement) {
+  Array.from(root.querySelectorAll<HTMLElement>("p, div, section, article, blockquote, li")).forEach((element) => {
+    const hasMedia = Boolean(element.querySelector("img, video, audio, iframe, canvas, svg"));
+    if (!hasMedia && normalizePosterText(element.textContent || "") === "") {
+      element.remove();
+    }
+  });
+}
+
+function buildPosterContentFragment(source: HTMLElement | null, rawText: string, fallbackText: string) {
+  const wrapper = document.createElement("div");
+  if (source) {
+    wrapper.innerHTML = source.innerHTML;
+  }
+
+  wrapper
+    .querySelectorAll(
+      "audio, button, canvas, embed, figure, iframe, img, object, picture, script, source, style, svg, video",
+    )
     .forEach((node) => {
       node.remove();
     });
+
+  Array.from(wrapper.querySelectorAll("a")).forEach((link) => {
+    if (isMomentTagLink(link)) {
+      link.remove();
+      return;
+    }
+    link.removeAttribute("href");
+    link.removeAttribute("target");
+    link.removeAttribute("rel");
+  });
+
+  removeEmptyPosterContentBlocks(wrapper);
+
+  if (normalizePosterText(wrapper.textContent || "")) {
+    return wrapper;
+  }
+
+  const rawTextContent = htmlToPosterText(rawText);
+  wrapper.append(createPosterFallbackParagraph(rawTextContent || fallbackText || "一条被认真保存的瞬间"));
+  return wrapper;
+}
+
+function syncPosterCardMediaState(card: HTMLElement) {
+  const images = Array.from(card.querySelectorAll<HTMLImageElement>("[data-hydro-poster-image]"));
+  const firstImage = images.find((image) => Boolean(image.currentSrc || image.src || image.getAttribute("src")));
+  const media = card.querySelector<HTMLElement>(".hydro-poster-card__media");
+
+  images.forEach((image) => {
+    const isActive = image === firstImage;
+    image.hidden = !isActive;
+    image.toggleAttribute("aria-hidden", !isActive);
+  });
+
+  if (media) {
+    media.hidden = !firstImage;
+    media.toggleAttribute("aria-hidden", !firstImage);
+  }
+
+  card.classList.toggle("has-poster-image", Boolean(firstImage));
+  return firstImage ?? null;
+}
+
+function syncPosterCardCopyState(card: HTMLElement) {
+  const target = card.querySelector<HTMLElement>("[data-hydro-poster-copy-content]");
+  if (!target) {
+    return;
+  }
+
+  const source = card.querySelector<HTMLElement>("[data-hydro-poster-copy-source]");
+  const fallbackText = normalizePosterText(target.dataset.hydroPosterCopyFallback || target.textContent || "");
+  const content = buildPosterContentFragment(source, target.dataset.hydroPosterCopyRaw || "", fallbackText);
+
+  target.innerHTML = "";
+  Array.from(content.children).forEach((child) => {
+    target.append(child.cloneNode(true));
+  });
+
+  if (target.children.length === 0) {
+    target.append(createPosterFallbackParagraph(normalizePosterText(content.textContent || "") || fallbackText));
+  }
+}
+
+function syncPosterCardCaptionState(card: HTMLElement) {
+  const caption = card.querySelector<HTMLElement>("[data-hydro-poster-caption]");
+  if (!caption) {
+    return;
+  }
+
+  const tags = Array.from(card.querySelectorAll<HTMLElement>("[data-hydro-poster-tag]"))
+    .map((tag) => normalizePosterText(tag.textContent || ""))
+    .filter(Boolean);
+  caption.textContent =
+    tags.slice(0, 2).join(" / ") ||
+    normalizePosterText(caption.dataset.hydroPosterCaptionFallback || caption.textContent || "");
+}
+
+function syncPosterCardState(card: HTMLElement) {
+  syncPosterCardCopyState(card);
+  syncPosterCardCaptionState(card);
+  return syncPosterCardMediaState(card);
+}
+
+async function getPosterExportImageDataUrls(card: HTMLElement) {
+  const dataUrls = new Map<string, string>();
+  const images = Array.from(card.querySelectorAll<HTMLImageElement>("[data-hydro-poster-export-image]"));
+
+  await Promise.all(
+    images.map(async (image, index) => {
+      try {
+        dataUrls.set(String(index), await imageToDataUrl(image));
+      } catch (error) {
+        console.warn("[Hydro] Poster image export failed, using local render fallback.", error);
+      }
+    }),
+  );
+
+  return dataUrls;
+}
+
+async function createPosterExportClone(card: HTMLElement, width: number, height: number) {
+  const posterImage = syncPosterCardState(card);
+  const posterImageDataUrls = await getPosterExportImageDataUrls(card);
+
+  const clone = card.cloneNode(true) as HTMLElement;
+  inlinePosterComputedStyles(card, clone);
+  clone
+    .querySelectorAll("audio, canvas, embed, iframe, object, picture, script, source, style, video")
+    .forEach((node) => {
+      node.remove();
+    });
+
+  const cloneImages = Array.from(clone.querySelectorAll<HTMLImageElement>("[data-hydro-poster-image]"));
+  cloneImages.forEach((image, index) => {
+    const dataUrl = posterImageDataUrls.get(String(index));
+    if (posterImage && dataUrl && index === 0) {
+      image.src = dataUrl;
+      image.hidden = false;
+      image.removeAttribute("aria-hidden");
+      image.style.display = "block";
+      return;
+    }
+    image.remove();
+  });
+
+  Array.from(
+    clone.querySelectorAll<HTMLImageElement>("[data-hydro-poster-export-image]:not([data-hydro-poster-image])"),
+  ).forEach((image, index) => {
+    const dataUrl = posterImageDataUrls.get(String(cloneImages.length + index));
+    if (dataUrl) {
+      image.src = dataUrl;
+      return;
+    }
+    const fallback = image.nextElementSibling;
+    image.remove();
+    if (fallback instanceof HTMLElement && fallback.classList.contains("hydro-poster-card__seal-fallback")) {
+      fallback.style.removeProperty("display");
+    }
+  });
+
+  const cloneMedia = clone.querySelector<HTMLElement>(".hydro-poster-card__media");
+  const cloneNoMedia = clone.querySelector<HTMLElement>(".hydro-poster-card__no-media");
+  if (posterImage && posterImageDataUrls.get("0")) {
+    clone.classList.add("has-poster-image");
+    if (cloneMedia) cloneMedia.style.display = "block";
+    if (cloneNoMedia) cloneNoMedia.style.display = "none";
+  } else {
+    clone.classList.remove("has-poster-image");
+    if (cloneMedia) cloneMedia.style.display = "none";
+    if (cloneNoMedia) cloneNoMedia.style.display = "grid";
+  }
+
   clone.setAttribute("xmlns", "http://www.w3.org/1999/xhtml");
   clone.style.width = `${width}px`;
   clone.style.height = `${height}px`;
@@ -2729,15 +2956,590 @@ function canvasToPngBlob(canvas: HTMLCanvasElement) {
   });
 }
 
-async function downloadPosterCard(card: HTMLElement, filename: string) {
-  const rect = card.getBoundingClientRect();
-  const width = Math.ceil(rect.width || card.offsetWidth);
-  const height = Math.ceil(rect.height || card.offsetHeight);
-  if (width <= 0 || height <= 0) {
-    throw new Error("Poster card has no exportable size");
+type PosterCanvasRect = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
+type PosterRgb = [number, number, number];
+
+function parsePosterPixels(value: string | null | undefined, fallback: number) {
+  const parsed = Number.parseFloat(value || "");
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function getPosterCssRgb(element: HTMLElement, property: string, fallback: PosterRgb): PosterRgb {
+  const raw = window.getComputedStyle(element).getPropertyValue(property);
+  const values = raw
+    .match(/[\d.]+/g)
+    ?.slice(0, 3)
+    .map((value) => Number.parseFloat(value));
+  if (!values || values.length < 3 || values.some((value) => !Number.isFinite(value))) {
+    return fallback;
+  }
+  return [values[0], values[1], values[2]];
+}
+
+function posterRgba(rgb: PosterRgb, alpha: number) {
+  return `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${alpha})`;
+}
+
+function getPosterCanvasScale() {
+  return Math.min(3, Math.max(2, window.devicePixelRatio || 2));
+}
+
+function getPosterRelativeRect(root: HTMLElement, element: Element | null): PosterCanvasRect | null {
+  if (!element) {
+    return null;
+  }
+  const rootRect = root.getBoundingClientRect();
+  const rect = element.getBoundingClientRect();
+  if (rect.width <= 0 || rect.height <= 0) {
+    return null;
+  }
+  return {
+    x: rect.left - rootRect.left,
+    y: rect.top - rootRect.top,
+    width: rect.width,
+    height: rect.height,
+  };
+}
+
+function getPosterSelectorRect(root: HTMLElement, selector: string): PosterCanvasRect | null {
+  return getPosterRelativeRect(root, root.querySelector(selector));
+}
+
+function drawPosterRoundedPath(
+  context: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number,
+) {
+  const safeRadius = Math.max(0, Math.min(radius, width / 2, height / 2));
+  context.beginPath();
+  context.moveTo(x + safeRadius, y);
+  context.lineTo(x + width - safeRadius, y);
+  context.quadraticCurveTo(x + width, y, x + width, y + safeRadius);
+  context.lineTo(x + width, y + height - safeRadius);
+  context.quadraticCurveTo(x + width, y + height, x + width - safeRadius, y + height);
+  context.lineTo(x + safeRadius, y + height);
+  context.quadraticCurveTo(x, y + height, x, y + height - safeRadius);
+  context.lineTo(x, y + safeRadius);
+  context.quadraticCurveTo(x, y, x + safeRadius, y);
+  context.closePath();
+}
+
+function strokePosterRoundedRect(
+  context: CanvasRenderingContext2D,
+  rect: PosterCanvasRect,
+  radius: number,
+  strokeStyle: string,
+  lineWidth = 1,
+) {
+  drawPosterRoundedPath(context, rect.x, rect.y, rect.width, rect.height, radius);
+  context.strokeStyle = strokeStyle;
+  context.lineWidth = lineWidth;
+  context.stroke();
+}
+
+function drawPosterGrid(
+  context: CanvasRenderingContext2D,
+  rect: PosterCanvasRect,
+  step: number,
+  strokeStyle: string,
+  radius = 0,
+) {
+  context.save();
+  drawPosterRoundedPath(context, rect.x, rect.y, rect.width, rect.height, radius);
+  context.clip();
+  context.strokeStyle = strokeStyle;
+  context.lineWidth = 1;
+  for (let y = rect.y; y <= rect.y + rect.height; y += step) {
+    context.beginPath();
+    context.moveTo(rect.x, y);
+    context.lineTo(rect.x + rect.width, y);
+    context.stroke();
+  }
+  for (let x = rect.x; x <= rect.x + rect.width; x += step) {
+    context.beginPath();
+    context.moveTo(x, rect.y);
+    context.lineTo(x, rect.y + rect.height);
+    context.stroke();
+  }
+  context.restore();
+}
+
+function drawPosterImageCover(context: CanvasRenderingContext2D, image: HTMLImageElement, rect: PosterCanvasRect) {
+  const imageWidth = image.naturalWidth || image.width;
+  const imageHeight = image.naturalHeight || image.height;
+  if (imageWidth <= 0 || imageHeight <= 0) {
+    return;
   }
 
-  const clone = createPosterExportClone(card, width, height);
+  const scale = Math.max(rect.width / imageWidth, rect.height / imageHeight);
+  const sourceWidth = rect.width / scale;
+  const sourceHeight = rect.height / scale;
+  const sourceX = (imageWidth - sourceWidth) / 2;
+  const sourceY = (imageHeight - sourceHeight) / 2;
+  context.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, rect.x, rect.y, rect.width, rect.height);
+}
+
+function getPosterComputedFont(element: Element | null, fallback: string) {
+  if (!element) {
+    return fallback;
+  }
+  const font = window.getComputedStyle(element).font;
+  return font || fallback;
+}
+
+function getPosterComputedColor(element: Element | null, fallback: string) {
+  if (!element) {
+    return fallback;
+  }
+  const color = window.getComputedStyle(element).color;
+  return color || fallback;
+}
+
+function getPosterLineHeight(element: Element | null, fallback: number) {
+  if (!element) {
+    return fallback;
+  }
+  return parsePosterPixels(window.getComputedStyle(element).lineHeight, fallback);
+}
+
+function ellipsizePosterLine(context: CanvasRenderingContext2D, value: string, maxWidth: number) {
+  const ellipsis = "...";
+  if (context.measureText(value).width <= maxWidth) {
+    return value;
+  }
+  const chars = Array.from(value);
+  while (chars.length > 0 && context.measureText(`${chars.join("")}${ellipsis}`).width > maxWidth) {
+    chars.pop();
+  }
+  return `${chars.join("").trimEnd()}${ellipsis}`;
+}
+
+function wrapPosterText(context: CanvasRenderingContext2D, value: string, maxWidth: number, maxLines: number) {
+  const normalized = normalizePosterText(value);
+  if (!normalized || maxLines <= 0) {
+    return [];
+  }
+
+  const chars = Array.from(normalized);
+  const lines: string[] = [];
+  let index = 0;
+  while (index < chars.length && lines.length < maxLines) {
+    let line = "";
+    while (index < chars.length) {
+      const next = `${line}${chars[index]}`;
+      if (!line || context.measureText(next).width <= maxWidth) {
+        line = next;
+        index += 1;
+        continue;
+      }
+      break;
+    }
+    lines.push(line.trimStart());
+  }
+
+  if (index < chars.length && lines.length > 0) {
+    lines[lines.length - 1] = ellipsizePosterLine(context, lines[lines.length - 1], maxWidth);
+  }
+  return lines;
+}
+
+function drawPosterSingleLine(
+  context: CanvasRenderingContext2D,
+  value: string,
+  x: number,
+  y: number,
+  maxWidth: number,
+  align: CanvasTextAlign = "left",
+) {
+  const text = ellipsizePosterLine(context, normalizePosterText(value), maxWidth);
+  context.textAlign = align;
+  context.textBaseline = "top";
+  context.fillText(text, x, y);
+}
+
+function drawPosterWrappedText(
+  context: CanvasRenderingContext2D,
+  value: string,
+  x: number,
+  y: number,
+  maxWidth: number,
+  lineHeight: number,
+  maxLines: number,
+) {
+  const lines = wrapPosterText(context, value, maxWidth, maxLines);
+  lines.forEach((line, index) => {
+    context.fillText(line, x, y + index * lineHeight);
+  });
+  return lines.length * lineHeight;
+}
+
+function readPosterContentBlocks(content: HTMLElement | null) {
+  if (!content) {
+    return [];
+  }
+
+  const blocks: string[] = [];
+  Array.from(content.children).forEach((child) => {
+    if (!(child instanceof HTMLElement)) {
+      return;
+    }
+    if (child.matches("ul, ol")) {
+      const ordered = child.matches("ol");
+      Array.from(child.querySelectorAll("li")).forEach((item, index) => {
+        const text = normalizePosterText(item.textContent || "");
+        if (text) {
+          blocks.push(`${ordered ? `${index + 1}.` : "-"} ${text}`);
+        }
+      });
+      return;
+    }
+    const text = normalizePosterText(child.textContent || "");
+    if (text) {
+      blocks.push(text);
+    }
+  });
+
+  if (blocks.length === 0) {
+    const text = normalizePosterText(content.textContent || "");
+    if (text) {
+      blocks.push(text);
+    }
+  }
+  return blocks;
+}
+
+async function loadPosterCanvasImage(image: HTMLImageElement | null) {
+  if (!image) {
+    return null;
+  }
+  try {
+    return loadImageFromUrl(await imageToDataUrl(image));
+  } catch (error) {
+    console.debug("[Hydro] Poster image skipped in canvas renderer.", error);
+    return null;
+  }
+}
+
+function drawPosterCardBackground(context: CanvasRenderingContext2D, card: HTMLElement, width: number, height: number) {
+  const cardStyle = window.getComputedStyle(card);
+  const paper = getPosterCssRgb(card, "--hydro-paper-rgb", [245, 243, 237]);
+  const bg = getPosterCssRgb(card, "--hydro-bg-rgb", paper);
+  const ink = getPosterCssRgb(card, "--hydro-ink-rgb", [22, 22, 20]);
+  const accent = getPosterCssRgb(card, "--hydro-accent-rgb", [129, 160, 150]);
+  const teal = getPosterCssRgb(card, "--hydro-teal-rgb", [80, 139, 126]);
+  const radius = parsePosterPixels(cardStyle.borderRadius, 14);
+  const cardRect = { x: 0, y: 0, width, height };
+
+  context.save();
+  drawPosterRoundedPath(context, 0, 0, width, height, radius);
+  context.clip();
+
+  const base = context.createLinearGradient(0, 0, width, height);
+  base.addColorStop(0, posterRgba(paper, 0.98));
+  base.addColorStop(0.64, posterRgba(paper, 0.9));
+  base.addColorStop(1, posterRgba(bg, 1));
+  context.fillStyle = base;
+  context.fillRect(0, 0, width, height);
+
+  const accentGlow = context.createRadialGradient(
+    width * 0.9,
+    height * 0.14,
+    0,
+    width * 0.9,
+    height * 0.14,
+    width * 0.26,
+  );
+  accentGlow.addColorStop(0, posterRgba(accent, 0.18));
+  accentGlow.addColorStop(1, posterRgba(accent, 0));
+  context.fillStyle = accentGlow;
+  context.fillRect(0, 0, width, height);
+
+  const tealGlow = context.createRadialGradient(
+    width * 0.1,
+    height * 0.84,
+    0,
+    width * 0.1,
+    height * 0.84,
+    width * 0.28,
+  );
+  tealGlow.addColorStop(0, posterRgba(teal, 0.12));
+  tealGlow.addColorStop(1, posterRgba(teal, 0));
+  context.fillStyle = tealGlow;
+  context.fillRect(0, 0, width, height);
+
+  drawPosterGrid(context, { x: 18, y: 18, width: width - 36, height: height - 36 }, 19, posterRgba(ink, 0.035));
+  context.strokeStyle = posterRgba(ink, 0.12);
+  context.lineWidth = 1;
+  context.strokeRect(17.5, 17.5, Math.max(0, width - 35), Math.max(0, height - 35));
+
+  context.save();
+  context.translate(width - 23, height - 125);
+  context.rotate(-Math.PI / 2);
+  context.fillStyle = posterRgba(ink, 0.07);
+  context.font = "700 45px Space Mono, monospace";
+  context.textBaseline = "top";
+  context.fillText("HYDRO", 0, 0);
+  context.globalAlpha = 0.6;
+  context.fillText("MOMENT", 0, 39);
+  context.restore();
+
+  strokePosterRoundedRect(context, cardRect, radius, posterRgba(ink, 0.16));
+  context.restore();
+}
+
+async function drawPosterHero(
+  context: CanvasRenderingContext2D,
+  card: HTMLElement,
+  rect: PosterCanvasRect,
+  posterImage: HTMLImageElement | null,
+) {
+  const paper = getPosterCssRgb(card, "--hydro-paper-rgb", [245, 243, 237]);
+  const ink = getPosterCssRgb(card, "--hydro-ink-rgb", [22, 22, 20]);
+  const accent = getPosterCssRgb(card, "--hydro-accent-rgb", [129, 160, 150]);
+  const radius = parsePosterPixels(
+    window.getComputedStyle(card.querySelector(".hydro-poster-card__hero") || card).borderRadius,
+    10,
+  );
+  const image = await loadPosterCanvasImage(posterImage);
+
+  context.save();
+  drawPosterRoundedPath(context, rect.x, rect.y, rect.width, rect.height, radius);
+  context.clip();
+
+  const background = context.createLinearGradient(rect.x, rect.y, rect.x + rect.width, rect.y + rect.height);
+  background.addColorStop(0, posterRgba(accent, 0.18));
+  background.addColorStop(0.55, posterRgba(ink, 0.08));
+  background.addColorStop(1, posterRgba(paper, 0.4));
+  context.fillStyle = background;
+  context.fillRect(rect.x, rect.y, rect.width, rect.height);
+
+  if (image) {
+    drawPosterImageCover(context, image, rect);
+    const shade = context.createLinearGradient(rect.x, rect.y, rect.x, rect.y + rect.height);
+    shade.addColorStop(0, posterRgba(ink, 0.04));
+    shade.addColorStop(1, posterRgba(ink, 0.55));
+    context.fillStyle = shade;
+    context.fillRect(rect.x, rect.y, rect.width, rect.height);
+  } else {
+    drawPosterGrid(context, rect, 17, posterRgba(ink, 0.06), radius);
+    context.fillStyle = posterRgba(ink, 0.82);
+    context.font = `400 ${Math.min(138, rect.height * 0.64)}px ui-serif, Georgia, serif`;
+    context.textAlign = "center";
+    context.textBaseline = "middle";
+    context.fillText("氢", rect.x + rect.width / 2, rect.y + rect.height / 2);
+    context.fillStyle = posterRgba(ink, 0.28);
+    context.font = "700 12px Space Mono, monospace";
+    context.textAlign = "right";
+    context.textBaseline = "top";
+    context.fillText("MINIM", rect.x + rect.width - 16, rect.y + rect.height - 27);
+  }
+
+  context.restore();
+
+  strokePosterRoundedRect(context, rect, radius, posterRgba(ink, 0.14));
+  context.strokeStyle = posterRgba(paper, 0.42);
+  context.lineWidth = 1;
+  context.strokeRect(rect.x + 10.5, rect.y + 10.5, Math.max(0, rect.width - 21), Math.max(0, rect.height - 21));
+
+  const caption = card.querySelector<HTMLElement>("[data-hydro-poster-caption]");
+  if (caption) {
+    context.fillStyle = image ? posterRgba(paper, 0.92) : posterRgba(ink, 0.68);
+    context.font = getPosterComputedFont(caption, "700 10px Space Mono, monospace");
+    drawPosterSingleLine(
+      context,
+      caption.textContent || "",
+      rect.x + 16,
+      rect.y + rect.height - 29,
+      Math.max(0, rect.width - 32),
+    );
+  }
+}
+
+function drawPosterCopy(context: CanvasRenderingContext2D, card: HTMLElement) {
+  const copyRect = getPosterSelectorRect(card, ".hydro-poster-card__copy");
+  const content = card.querySelector<HTMLElement>("[data-hydro-poster-copy-content]");
+  const contentRect = getPosterRelativeRect(card, content);
+  const kicker = card.querySelector<HTMLElement>(".hydro-poster-card__kicker");
+  const kickerRect = getPosterRelativeRect(card, kicker);
+  if (!copyRect || !content || !contentRect) {
+    return;
+  }
+
+  const ink = getPosterCssRgb(card, "--hydro-ink-rgb", [22, 22, 20]);
+  context.strokeStyle = posterRgba(ink, 0.13);
+  context.lineWidth = 1;
+  context.beginPath();
+  context.moveTo(copyRect.x, copyRect.y + 0.5);
+  context.lineTo(copyRect.x + copyRect.width, copyRect.y + 0.5);
+  context.stroke();
+
+  if (kicker && kickerRect) {
+    context.fillStyle = getPosterComputedColor(kicker, posterRgba(ink, 0.44));
+    context.font = getPosterComputedFont(kicker, "700 11px Space Mono, monospace");
+    drawPosterSingleLine(context, kicker.textContent || "", kickerRect.x, kickerRect.y, kickerRect.width);
+  }
+
+  const blocks = readPosterContentBlocks(content);
+  const firstChild = content.firstElementChild;
+  const contentStyle = window.getComputedStyle(content);
+  const fallbackColor = contentStyle.color || posterRgba(ink, 0.72);
+  let y = contentRect.y;
+  const bottom = contentRect.y + contentRect.height;
+
+  blocks.forEach((block, index) => {
+    if (y >= bottom - 6) {
+      return;
+    }
+    const sourceElement = index === 0 ? firstChild : content;
+    const font =
+      index === 0
+        ? getPosterComputedFont(sourceElement, "650 25px system-ui, sans-serif")
+        : getPosterComputedFont(content, "400 14px system-ui, sans-serif");
+    const lineHeight = index === 0 ? getPosterLineHeight(sourceElement, 29) : getPosterLineHeight(content, 23);
+    const maxLines = Math.max(1, Math.min(index === 0 ? 3 : 2, Math.floor((bottom - y) / lineHeight)));
+    context.fillStyle = index === 0 ? getPosterComputedColor(sourceElement, posterRgba(ink, 0.94)) : fallbackColor;
+    context.font = font;
+    context.textAlign = "left";
+    context.textBaseline = "top";
+    const used = drawPosterWrappedText(context, block, contentRect.x, y, contentRect.width, lineHeight, maxLines);
+    y += used + (index === 0 ? 8 : 7);
+  });
+}
+
+async function drawPosterFooter(context: CanvasRenderingContext2D, card: HTMLElement) {
+  const footerRect = getPosterSelectorRect(card, ".hydro-poster-card__footer");
+  const sealRect = getPosterSelectorRect(card, ".hydro-poster-card__seal");
+  const siteRect = getPosterSelectorRect(card, ".hydro-poster-site");
+  if (!footerRect || !sealRect || !siteRect) {
+    return;
+  }
+
+  const ink = getPosterCssRgb(card, "--hydro-ink-rgb", [22, 22, 20]);
+  context.strokeStyle = posterRgba(ink, 0.1);
+  context.lineWidth = 1;
+  context.beginPath();
+  context.moveTo(footerRect.x, footerRect.y + 0.5);
+  context.lineTo(footerRect.x + footerRect.width, footerRect.y + 0.5);
+  context.stroke();
+
+  const avatar = await loadPosterCanvasImage(card.querySelector<HTMLImageElement>("[data-hydro-poster-avatar]"));
+  const sealCenterX = sealRect.x + sealRect.width / 2;
+  const sealCenterY = sealRect.y + sealRect.height / 2;
+  const sealRadius = Math.min(sealRect.width, sealRect.height) / 2;
+
+  context.save();
+  context.beginPath();
+  context.arc(sealCenterX, sealCenterY, sealRadius, 0, Math.PI * 2);
+  context.clip();
+  context.fillStyle = posterRgba(ink, 0.05);
+  context.fillRect(sealRect.x, sealRect.y, sealRect.width, sealRect.height);
+  if (avatar) {
+    drawPosterImageCover(context, avatar, sealRect);
+  }
+  context.restore();
+
+  context.beginPath();
+  context.arc(sealCenterX, sealCenterY, sealRadius - 0.5, 0, Math.PI * 2);
+  context.strokeStyle = posterRgba(ink, 0.18);
+  context.stroke();
+
+  if (!avatar) {
+    const fallback = card.querySelector<HTMLElement>(".hydro-poster-card__seal-fallback");
+    context.fillStyle = getPosterComputedColor(fallback, posterRgba(ink, 0.78));
+    context.font = getPosterComputedFont(fallback, "700 16px system-ui, sans-serif");
+    context.textAlign = "center";
+    context.textBaseline = "middle";
+    context.fillText(normalizePosterText(fallback?.textContent || "H"), sealCenterX, sealCenterY);
+  }
+
+  context.strokeStyle = posterRgba(ink, 0.12);
+  context.beginPath();
+  context.moveTo(siteRect.x + 0.5, siteRect.y);
+  context.lineTo(siteRect.x + 0.5, siteRect.y + siteRect.height);
+  context.stroke();
+
+  const siteName = card.querySelector<HTMLElement>(".hydro-poster-site strong");
+  const siteUrl = card.querySelector<HTMLElement>(".hydro-poster-site span");
+  const siteNameRect = getPosterRelativeRect(card, siteName);
+  const siteUrlRect = getPosterRelativeRect(card, siteUrl);
+  if (siteName && siteNameRect) {
+    context.fillStyle = getPosterComputedColor(siteName, posterRgba(ink, 0.95));
+    context.font = getPosterComputedFont(siteName, "700 14px system-ui, sans-serif");
+    drawPosterSingleLine(context, siteName.textContent || "", siteNameRect.x, siteNameRect.y, siteNameRect.width);
+  }
+  if (siteUrl && siteUrlRect) {
+    context.fillStyle = getPosterComputedColor(siteUrl, posterRgba(ink, 0.46));
+    context.font = getPosterComputedFont(siteUrl, "400 11px system-ui, sans-serif");
+    drawPosterSingleLine(context, siteUrl.textContent || "", siteUrlRect.x, siteUrlRect.y, siteUrlRect.width);
+  }
+}
+
+async function renderPosterCardCanvasBlob(card: HTMLElement, width: number, height: number) {
+  syncPosterCardState(card);
+  try {
+    await document.fonts?.ready;
+  } catch {
+    // Font readiness is a polish concern; the PNG renderer can still proceed.
+  }
+
+  const scale = getPosterCanvasScale();
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.ceil(width * scale);
+  canvas.height = Math.ceil(height * scale);
+  const context = canvas.getContext("2d");
+  if (!context) {
+    throw new Error("Poster canvas context is unavailable");
+  }
+
+  context.scale(scale, scale);
+  drawPosterCardBackground(context, card, width, height);
+
+  const header = card.querySelector<HTMLElement>(".hydro-poster-card__header");
+  const eyebrow = card.querySelector<HTMLElement>(".hydro-poster-card__eyebrow");
+  const time = card.querySelector<HTMLElement>(".hydro-poster-card__header time");
+  const headerRect = getPosterRelativeRect(card, header);
+  const eyebrowRect = getPosterRelativeRect(card, eyebrow);
+  const timeRect = getPosterRelativeRect(card, time);
+  if (headerRect && eyebrow && eyebrowRect) {
+    context.fillStyle = getPosterComputedColor(eyebrow, "rgba(22, 22, 20, 0.58)");
+    context.font = getPosterComputedFont(eyebrow, "700 12px Space Mono, monospace");
+    drawPosterSingleLine(context, eyebrow.textContent || "", eyebrowRect.x, eyebrowRect.y, eyebrowRect.width);
+  }
+  if (headerRect && time && timeRect) {
+    context.fillStyle = getPosterComputedColor(time, "rgba(22, 22, 20, 0.46)");
+    context.font = getPosterComputedFont(time, "400 10px Space Mono, monospace");
+    drawPosterSingleLine(
+      context,
+      time.textContent || "",
+      timeRect.x + timeRect.width,
+      timeRect.y,
+      timeRect.width,
+      "right",
+    );
+  }
+
+  const posterImage = syncPosterCardState(card);
+  const heroRect = getPosterSelectorRect(card, ".hydro-poster-card__hero");
+  if (heroRect) {
+    await drawPosterHero(context, card, heroRect, posterImage);
+  }
+  drawPosterCopy(context, card);
+  await drawPosterFooter(context, card);
+
+  return canvasToPngBlob(canvas);
+}
+
+async function renderPosterDomToPngBlob(card: HTMLElement, width: number, height: number) {
+  const clone = await createPosterExportClone(card, width, height);
   const serialized = new XMLSerializer().serializeToString(clone);
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><foreignObject width="100%" height="100%">${serialized}</foreignObject></svg>`;
   const svgBlob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" });
@@ -2755,19 +3557,38 @@ async function downloadPosterCard(card: HTMLElement, filename: string) {
     }
     context.scale(scale, scale);
     context.drawImage(image, 0, 0, width, height);
-    const pngBlob = await canvasToPngBlob(canvas);
-    downloadBlob(pngBlob, filename);
-  } catch (error) {
-    console.warn("[Hydro] Poster PNG export failed, downloading SVG fallback.", error);
-    downloadBlob(svgBlob, filename.replace(/\.png$/i, ".svg"));
+    return await canvasToPngBlob(canvas);
   } finally {
     URL.revokeObjectURL(svgUrl);
   }
 }
 
+async function downloadPosterCard(card: HTMLElement, filename: string) {
+  const rect = card.getBoundingClientRect();
+  const width = Math.ceil(rect.width || card.offsetWidth);
+  const height = Math.ceil(rect.height || card.offsetHeight);
+  if (width <= 0 || height <= 0) {
+    throw new Error("Poster card has no exportable size");
+  }
+
+  const normalizedFilename = normalizePosterFilename(filename);
+  try {
+    downloadBlob(await renderPosterDomToPngBlob(card, width, height), normalizedFilename);
+    return;
+  } catch (error) {
+    console.debug("[Hydro] Poster DOM export failed, using canvas renderer.", error);
+  }
+
+  downloadBlob(await renderPosterCardCanvasBlob(card, width, height), normalizedFilename);
+}
+
 function initPosterShareScope(scope: HTMLElement) {
   scope.querySelectorAll<HTMLElement>("[data-hydro-poster-url-text]").forEach((element) => {
     element.textContent = toAbsoluteShareUrl(element.dataset.url || element.textContent || "");
+  });
+
+  scope.querySelectorAll<HTMLElement>("[data-hydro-poster-card]").forEach((card) => {
+    syncPosterCardState(card);
   });
 
   scope.querySelectorAll<HTMLButtonElement>("[data-hydro-poster-download]").forEach((button) => {
@@ -2782,6 +3603,9 @@ function initPosterShareScope(scope: HTMLElement) {
       button.setAttribute("aria-busy", "true");
       try {
         await downloadPosterCard(card, normalizePosterFilename(button.dataset.filename));
+      } catch (error) {
+        console.warn("[Hydro] Poster PNG export failed.", error);
+        window.alert("海报 PNG 生成失败，请稍后再试。");
       } finally {
         button.disabled = false;
         button.classList.remove("is-downloading");
