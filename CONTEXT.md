@@ -13,6 +13,11 @@
 - Route-free moment poster means the moment detail page owns its own poster modal. The share entry opens an in-page dialog instead of navigating to a synthetic `/posterShare/{type}/{name}` route.
 - Poster scope means a share-poster surface that can render a finished poster card locally and export it as a downloadable image. In Hydro-Minim, moment poster scope lives inside the moment detail modal.
 - Poster image means the visible poster card itself, not a utility panel. Auxiliary controls should stay minimal: download plus an icon-only close affordance for dialog accessibility.
+- Mobile reading bar means the article page's phone-only fixed bottom control surface. It keeps the core thumb actions close: TOC, comments, upvote, and share, with a thin reading-progress line on top.
+- TOC drawer means the phone-only half-height article directory sheet opened from the mobile reading bar. It reuses the same generated `.hydro-post-toc` tree, progress summary, publish date, category, and visit metadata instead of cloning reader logic.
+- Mobile neighbor pills means the phone-only previous/next navigation uses static thumb-sized pill buttons, not a swipe lane. Two available neighbors sit as a two-button grid; a single neighbor spans the available width.
+- Compact reading flow means phone layouts for related posts use horizontal scroll lanes and snap-friendly compact cards, so article completion recommendations do not stretch the page into a long stack.
+- Reader action rail means the desktop/tablet side panel containing reading progress, TOC, post actions, and top action. It remains sticky on PC and becomes the drawer source on phones.
 
 ## Current Decisions
 
@@ -26,3 +31,6 @@
 - Moment share poster must not rely on registering a custom Halo theme route for `/posterShare/moment/{name}`. Use the existing `/moments/{name}` route and reveal the embedded poster dialog there.
 - Embedded moment poster content must stay poster-first: no copy-link, print, close-text, or share-operation panel in the modal.
 - Moment poster download is dependency-free. It exports the rendered poster card through SVG `foreignObject` and canvas to PNG, with an SVG fallback if PNG rendering fails.
+- Article details use two reading-control layouts: PC keeps the sticky reader action rail, while phones use the mobile reading bar plus TOC drawer. Do not let `.hydro-post-aside` fall through as a normal content block at the end of the article on phones.
+- Mobile article controls must reuse existing post action contracts: `data-post-action`, `data-post-reading-progress`, `data-post-upvote-count`, and `data-hydro-poster-open`. Shared state such as reading percent and upvote count should broadcast to all matching elements.
+- Future phone article affordances should attach to the mobile reading bar or TOC drawer semantics before adding another floating utility surface.

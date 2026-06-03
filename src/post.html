@@ -167,14 +167,42 @@
           </a>
         </section>
 
-        <nav class="hydro-post-neighbors" th:if="${showNeighbors}">
-          <a th:if="${postCursor.hasPrevious()}" th:href="@{${postCursor.previous.status.permalink}}">
-            <span th:text="${postConfig?.previous_label ?: '上一篇'}">上一篇</span>
-            <strong th:text="${postCursor.previous.spec.title}">Previous</strong>
+        <nav
+          class="hydro-post-neighbors"
+          th:if="${showNeighbors and (postCursor.hasPrevious() or postCursor.hasNext())}"
+          aria-label="文章上下篇"
+        >
+          <a
+            class="hydro-post-neighbor hydro-post-neighbor--previous"
+            th:if="${postCursor.hasPrevious()}"
+            th:href="@{${postCursor.previous.status.permalink}}"
+            th:attr="aria-label=|${postConfig?.previous_label ?: '上一篇'}：${postCursor.previous.spec.title}|"
+          >
+            <span class="hydro-post-neighbor__rail" aria-hidden="true">
+              <span class="hydro-post-neighbor__arrow">&larr;</span>
+            </span>
+            <span class="hydro-post-neighbor__body">
+              <span class="hydro-post-neighbor__eyebrow" th:text="${postConfig?.previous_label ?: '上一篇'}"
+                >上一篇</span
+              >
+              <strong class="hydro-post-neighbor__title" th:text="${postCursor.previous.spec.title}">Previous</strong>
+              <span class="hydro-post-neighbor__hint" aria-hidden="true">回到前一站</span>
+            </span>
           </a>
-          <a th:if="${postCursor.hasNext()}" th:href="@{${postCursor.next.status.permalink}}">
-            <span th:text="${postConfig?.next_label ?: '下一篇'}">下一篇</span>
-            <strong th:text="${postCursor.next.spec.title}">Next</strong>
+          <a
+            class="hydro-post-neighbor hydro-post-neighbor--next"
+            th:if="${postCursor.hasNext()}"
+            th:href="@{${postCursor.next.status.permalink}}"
+            th:attr="aria-label=|${postConfig?.next_label ?: '下一篇'}：${postCursor.next.spec.title}|"
+          >
+            <span class="hydro-post-neighbor__body">
+              <span class="hydro-post-neighbor__eyebrow" th:text="${postConfig?.next_label ?: '下一篇'}">下一篇</span>
+              <strong class="hydro-post-neighbor__title" th:text="${postCursor.next.spec.title}">Next</strong>
+              <span class="hydro-post-neighbor__hint" aria-hidden="true">继续下一站</span>
+            </span>
+            <span class="hydro-post-neighbor__rail" aria-hidden="true">
+              <span class="hydro-post-neighbor__arrow">&rarr;</span>
+            </span>
           </a>
         </nav>
 
@@ -248,85 +276,190 @@
         </section>
       </section>
 
-      <aside class="hydro-post-aside" th:if="${enableToc or enableActionRail or enableReadingProgress}">
-        <section class="hydro-post-panel hydro-post-panel--reader" th:if="${enableReadingProgress}">
-          <div class="hydro-post-reader__head">
-            <p th:text="${postConfig?.progress_title ?: '阅读进度'}">阅读进度</p>
-            <strong data-post-reading-percent>0%</strong>
-          </div>
-          <div class="hydro-post-progress" aria-hidden="true">
-            <span data-post-reading-progress style="width: 0%"></span>
-          </div>
-          <dl class="hydro-post-reader__meta">
+      <aside
+        id="hydro-post-mobile-drawer"
+        class="hydro-post-aside"
+        aria-hidden="false"
+        aria-label="文章阅读面板"
+        data-post-mobile-drawer
+        th:if="${enableToc or enableActionRail or enableReadingProgress}"
+      >
+        <button
+          type="button"
+          class="hydro-post-mobile-drawer__scrim"
+          data-post-mobile-toc-close
+          aria-label="关闭目录"
+        ></button>
+        <div class="hydro-post-mobile-drawer__sheet" data-lenis-prevent>
+          <header class="hydro-post-mobile-drawer__head">
+            <span class="hydro-post-mobile-drawer__handle" aria-hidden="true"></span>
             <div>
-              <dt>Published</dt>
-              <dd th:text="${#dates.format(post.spec.publishTime, 'MM.dd')}">01.15</dd>
+              <p th:text="${postConfig?.progress_title ?: '阅读进度'}">阅读进度</p>
+              <strong th:text="${postConfig?.toc_title ?: '目录'}">目录</strong>
             </div>
-            <div th:if="${hasCategory}">
-              <dt>Filed</dt>
-              <dd>
-                <a th:href="@{${primaryCategory.status.permalink}}" th:text="${primaryCategory.spec.displayName}">
-                  分类
-                </a>
-              </dd>
-            </div>
-            <div th:if="${showVisit}">
-              <dt th:text="${postConfig?.visit_label ?: '阅读'}">阅读</dt>
-              <dd th:text="${post.stats.visit ?: 0}">0</dd>
-            </div>
-          </dl>
-        </section>
+            <button type="button" data-post-mobile-toc-close aria-label="关闭目录">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+            </button>
+          </header>
 
-        <section class="hydro-post-panel hydro-post-panel--toc" data-post-toc-panel th:if="${enableToc}">
-          <div class="hydro-post-panel__head">
-            <h2 th:text="${postConfig?.toc_title ?: '目录'}">目录</h2>
-            <span
-              data-post-toc-state
-              th:attr="data-empty-text=${postConfig?.toc_empty_text ?: '无目录'},data-count-suffix=${postConfig?.toc_count_suffix ?: '节'}"
-              th:text="${postConfig?.toc_loading_text ?: '加载中'}"
-              >加载中</span
-            >
-          </div>
-          <nav class="hydro-post-toc" data-post-toc></nav>
-        </section>
+          <section class="hydro-post-panel hydro-post-panel--reader" th:if="${enableReadingProgress}">
+            <div class="hydro-post-reader__head">
+              <p th:text="${postConfig?.progress_title ?: '阅读进度'}">阅读进度</p>
+              <strong data-post-reading-percent data-post-mobile-reading-percent>0%</strong>
+            </div>
+            <div class="hydro-post-progress" aria-hidden="true">
+              <span data-post-reading-progress style="width: 0%"></span>
+            </div>
+            <dl class="hydro-post-reader__meta">
+              <div>
+                <dt>Published</dt>
+                <dd th:text="${#dates.format(post.spec.publishTime, 'MM.dd')}">01.15</dd>
+              </div>
+              <div th:if="${hasCategory}">
+                <dt>Filed</dt>
+                <dd>
+                  <a th:href="@{${primaryCategory.status.permalink}}" th:text="${primaryCategory.spec.displayName}">
+                    分类
+                  </a>
+                </dd>
+              </div>
+              <div th:if="${showVisit}">
+                <dt th:text="${postConfig?.visit_label ?: '阅读'}">阅读</dt>
+                <dd th:text="${post.stats.visit ?: 0}">0</dd>
+              </div>
+            </dl>
+          </section>
 
-        <section class="hydro-post-panel hydro-post-panel--actions" th:if="${enableActionRail}">
-          <button
-            type="button"
-            class="hydro-post-action"
-            data-post-action="comment"
-            th:if="${enablePostComment and haloCommentEnabled}"
-          >
-            <span th:text="${postConfig?.action_comment_label ?: '评论'}">评论</span>
-            <strong th:text="${post.stats.comment ?: 0}">0</strong>
-          </button>
-          <button type="button" class="hydro-post-action" data-post-action="upvote" th:if="${enableUpvote}">
-            <span th:text="${postConfig?.action_upvote_label ?: '点赞'}">点赞</span>
-            <strong data-post-upvote-count th:text="${post.stats.upvote ?: 0}">0</strong>
-          </button>
-          <button
-            type="button"
-            class="hydro-post-action"
-            data-post-action="share"
-            data-hydro-poster-open
-            aria-controls="hydro-post-poster"
-            aria-expanded="false"
-            th:if="${enableShare}"
-          >
-            <span th:text="${postConfig?.action_share_label ?: '分享'}">分享</span>
-            <strong
-              th:text="${postConfig?.action_share_value_label ?: 'Poster'}"
-              th:attr="data-copied-text=${postConfig?.share_copied_text ?: '已复制'},data-copy-prompt-title=${postConfig?.copy_prompt_title ?: '复制链接'}"
-              >Poster</strong
+          <section class="hydro-post-panel hydro-post-panel--toc" data-post-toc-panel th:if="${enableToc}">
+            <div class="hydro-post-panel__head">
+              <h2 th:text="${postConfig?.toc_title ?: '目录'}">目录</h2>
+              <span
+                data-post-toc-state
+                th:attr="data-empty-text=${postConfig?.toc_empty_text ?: '无目录'},data-count-suffix=${postConfig?.toc_count_suffix ?: '节'}"
+                th:text="${postConfig?.toc_loading_text ?: '加载中'}"
+                >加载中</span
+              >
+            </div>
+            <nav class="hydro-post-toc" data-post-toc></nav>
+          </section>
+
+          <section class="hydro-post-panel hydro-post-panel--actions" th:if="${enableActionRail}">
+            <button
+              type="button"
+              class="hydro-post-action"
+              data-post-action="comment"
+              th:if="${enablePostComment and haloCommentEnabled}"
             >
-          </button>
-          <button type="button" class="hydro-post-action" data-post-action="top">
-            <span th:text="${postConfig?.action_top_label ?: '回到顶部'}">回到顶部</span>
-            <strong>↑</strong>
-          </button>
-        </section>
+              <span th:text="${postConfig?.action_comment_label ?: '评论'}">评论</span>
+              <strong th:text="${post.stats.comment ?: 0}">0</strong>
+            </button>
+            <button type="button" class="hydro-post-action" data-post-action="upvote" th:if="${enableUpvote}">
+              <span th:text="${postConfig?.action_upvote_label ?: '点赞'}">点赞</span>
+              <strong data-post-upvote-count th:text="${post.stats.upvote ?: 0}">0</strong>
+            </button>
+            <button
+              type="button"
+              class="hydro-post-action"
+              data-post-action="share"
+              data-hydro-poster-open
+              aria-controls="hydro-post-poster"
+              aria-expanded="false"
+              th:if="${enableShare}"
+            >
+              <span th:text="${postConfig?.action_share_label ?: '分享'}">分享</span>
+              <strong
+                th:text="${postConfig?.action_share_value_label ?: 'Poster'}"
+                th:attr="data-copied-text=${postConfig?.share_copied_text ?: '已复制'},data-copy-prompt-title=${postConfig?.copy_prompt_title ?: '复制链接'}"
+                >Poster</strong
+              >
+            </button>
+            <button type="button" class="hydro-post-action" data-post-action="top">
+              <span th:text="${postConfig?.action_top_label ?: '回到顶部'}">回到顶部</span>
+              <strong>↑</strong>
+            </button>
+          </section>
+        </div>
       </aside>
     </div>
+
+    <nav
+      class="hydro-post-mobile-bar"
+      data-post-mobile-bar
+      aria-label="移动端阅读操作"
+      th:if="${enableToc or enableActionRail or enableReadingProgress}"
+    >
+      <div class="hydro-post-mobile-bar__progress" aria-hidden="true" th:if="${enableReadingProgress}">
+        <span data-post-mobile-reading-progress style="width: 0%"></span>
+      </div>
+      <button
+        type="button"
+        class="hydro-post-mobile-bar__action"
+        data-post-mobile-toc-toggle
+        aria-controls="hydro-post-mobile-drawer"
+        aria-expanded="false"
+        th:if="${enableToc}"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M8 6h13M8 12h13M8 18h13"></path>
+          <path d="M3 6h.01M3 12h.01M3 18h.01"></path>
+        </svg>
+        <span th:text="${postConfig?.toc_title ?: '目录'}">目录</span>
+        <strong data-post-mobile-reading-percent th:if="${enableReadingProgress}">0%</strong>
+      </button>
+      <button
+        type="button"
+        class="hydro-post-mobile-bar__action"
+        data-post-action="comment"
+        th:if="${enableActionRail and enablePostComment and haloCommentEnabled}"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"></path>
+        </svg>
+        <span th:text="${postConfig?.action_comment_label ?: '评论'}">评论</span>
+        <strong th:text="${post.stats.comment ?: 0}">0</strong>
+      </button>
+      <button
+        type="button"
+        class="hydro-post-mobile-bar__action"
+        data-post-action="upvote"
+        th:if="${enableActionRail and enableUpvote}"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M7 11v10H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2z"></path>
+          <path d="M7 11l4-8a3 3 0 0 1 3 3v4h5a2 2 0 0 1 2 2.3l-1.1 7A2 2 0 0 1 18 21H7z"></path>
+        </svg>
+        <span th:text="${postConfig?.action_upvote_label ?: '点赞'}">点赞</span>
+        <strong data-post-upvote-count th:text="${post.stats.upvote ?: 0}">0</strong>
+      </button>
+      <button
+        type="button"
+        class="hydro-post-mobile-bar__action"
+        data-post-action="share"
+        data-hydro-poster-open
+        aria-controls="hydro-post-poster"
+        aria-expanded="false"
+        th:if="${enableActionRail and enableShare}"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"></path>
+          <path d="m16 6-4-4-4 4M12 2v14"></path>
+        </svg>
+        <span th:text="${postConfig?.action_share_label ?: '分享'}">分享</span>
+        <strong th:text="${postConfig?.action_share_value_label ?: 'Poster'}">Poster</strong>
+      </button>
+    </nav>
+
+    <button
+      type="button"
+      class="hydro-post-mobile-top"
+      data-post-mobile-top
+      data-post-action="top"
+      aria-label="回到顶部"
+      th:if="${enableActionRail}"
+    >
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 15 6-6 6 6"></path></svg>
+      <span th:text="${postConfig?.action_top_label ?: '回到顶部'}">回到顶部</span>
+    </button>
 
     <div class="hydro-lightbox hydro-lightbox--post" data-lightbox aria-hidden="true" th:if="${enablePostLightbox}">
       <button class="hydro-lightbox__close" data-lightbox-close aria-label="关闭图片灯箱">

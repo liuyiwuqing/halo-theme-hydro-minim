@@ -21,6 +21,7 @@ const scrollTiltEnabled = document.body.dataset.enableScrollTilt !== "false";
 const textScrambleEnabled = document.body.dataset.enableTextScramble !== "false";
 const lightboxEnabled = document.body.dataset.enableLightbox !== "false";
 const smoothScrollEnabled = document.body.dataset.smoothScroll !== "false";
+const mobilePostQuery = window.matchMedia("(max-width: 48rem)");
 const colorSchemeStorageKey = "hydro-color-scheme";
 const momentUpvoteStorageKey = "halo.upvoted.moment.names";
 const postUpvoteStorageKey = "halo.upvoted.post.names";
@@ -1691,10 +1692,12 @@ function initPostToc() {
   if (headings.length === 0) {
     tocPanel.classList.add("is-empty");
     tocState.textContent = tocState.dataset.emptyText || "无目录";
+    tocContainer.dataset.emptyLabel = tocState.textContent;
     return;
   }
 
   tocContainer.innerHTML = "";
+  delete tocContainer.dataset.emptyLabel;
   tocState.textContent = `${headings.length} ${tocState.dataset.countSuffix || "节"}`;
 
   const usedIds = new Set<string>();
@@ -1831,10 +1834,14 @@ function initPostReadingProgress() {
     return;
   }
 
-  const progressBar = page.querySelector<HTMLElement>("[data-post-reading-progress]");
-  const progressPercent = page.querySelector<HTMLElement>("[data-post-reading-percent]");
+  const progressBars = Array.from(
+    page.querySelectorAll<HTMLElement>("[data-post-reading-progress], [data-post-mobile-reading-progress]"),
+  );
+  const progressPercents = Array.from(
+    page.querySelectorAll<HTMLElement>("[data-post-reading-percent], [data-post-mobile-reading-percent]"),
+  );
   const content = page.querySelector<HTMLElement>("#post-content");
-  if (!progressBar || !content) {
+  if (progressBars.length === 0 || !content) {
     return;
   }
 
@@ -1845,15 +1852,160 @@ function initPostReadingProgress() {
     const passed = Math.max(0, Math.min(total, viewportHeight * 0.35 - rect.top));
     const progress = total <= 0 ? 0 : (passed / total) * 100;
     const safeProgress = Math.max(0, Math.min(100, progress));
-    progressBar.style.width = `${safeProgress.toFixed(2)}%`;
-    if (progressPercent) {
-      progressPercent.textContent = `${Math.round(safeProgress)}%`;
-    }
+    progressBars.forEach((bar) => {
+      bar.style.width = `${safeProgress.toFixed(2)}%`;
+    });
+    progressPercents.forEach((percent) => {
+      percent.textContent = `${Math.round(safeProgress)}%`;
+    });
   };
 
   updateProgress();
   window.addEventListener("scroll", updateProgress, { passive: true });
   window.addEventListener("resize", updateProgress);
+}
+
+function initPostMobileReadingControls() {
+  const page = document.querySelector<HTMLElement>(".hydro-post-page");
+  if (!page) {
+    return;
+  }
+
+  const drawer = page.querySelector<HTMLElement>("[data-post-mobile-drawer]");
+  const bar = page.querySelector<HTMLElement>("[data-post-mobile-bar]");
+  if (!drawer && !bar) {
+    return;
+  }
+
+  document.body.classList.add("hydro-post-reading-page");
+
+  const toggle = page.querySelector<HTMLButtonElement>("[data-post-mobile-toc-toggle]");
+  const closeButtons = Array.from(page.querySelectorAll<HTMLButtonElement>("[data-post-mobile-toc-close]"));
+  const topButton = page.querySelector<HTMLButtonElement>("[data-post-mobile-top]");
+  let restoreFocus = false;
+
+  const syncMobileA11y = () => {
+    if (!drawer) {
+      return;
+    }
+    const open = drawer.classList.contains("is-open");
+    drawer.setAttribute("aria-hidden", String(mobilePostQuery.matches && !open));
+  };
+
+  const closeDrawer = (focusToggle = restoreFocus) => {
+    if (!drawer) {
+      return;
+    }
+
+    drawer.classList.remove("is-open");
+    toggle?.classList.remove("is-active");
+    toggle?.setAttribute("aria-expanded", "false");
+    document.body.classList.remove("hydro-post-drawer-lock");
+    if (!document.querySelector(".hydro-moment-poster.is-open, .hydro-mobile-menu.is-open")) {
+      document.body.classList.remove("hydro-menu-lock");
+      getHydroLenis()?.start?.();
+    }
+    syncMobileA11y();
+
+    if (focusToggle) {
+      toggle?.focus({ preventScroll: true });
+    }
+    restoreFocus = false;
+  };
+
+  const openDrawer = () => {
+    if (!drawer || !mobilePostQuery.matches) {
+      return;
+    }
+    if (document.querySelector(".hydro-moment-poster.is-open")) {
+      return;
+    }
+
+    drawer.classList.add("is-open");
+    toggle?.classList.add("is-active");
+    toggle?.setAttribute("aria-expanded", "true");
+    document.body.classList.add("hydro-post-drawer-lock", "hydro-menu-lock");
+    getHydroLenis()?.stop?.();
+    restoreFocus = true;
+    syncMobileA11y();
+
+    window.requestAnimationFrame(() => {
+      const activeLink = drawer.querySelector<HTMLElement>(".hydro-post-toc__link.is-active");
+      activeLink?.scrollIntoView({ block: "nearest" });
+    });
+  };
+
+  toggle?.addEventListener("click", () => {
+    if (drawer?.classList.contains("is-open")) {
+      closeDrawer();
+      return;
+    }
+    openDrawer();
+  });
+
+  closeButtons.forEach((button) => {
+    button.addEventListener("click", () => closeDrawer());
+  });
+
+  drawer?.querySelectorAll<HTMLButtonElement>("[data-hydro-poster-open]").forEach((button) => {
+    button.addEventListener("click", () => {
+      if (mobilePostQuery.matches) {
+        closeDrawer(false);
+      }
+    });
+  });
+
+  drawer?.querySelectorAll<HTMLAnchorElement>(".hydro-post-toc__link").forEach((link) => {
+    link.addEventListener(
+      "click",
+      (event) => {
+        if (!mobilePostQuery.matches) {
+          return;
+        }
+
+        const targetId = link.closest<HTMLElement>(".hydro-post-toc__item")?.dataset.targetId;
+        const target = targetId ? document.getElementById(targetId) : null;
+        if (!target) {
+          closeDrawer(false);
+          return;
+        }
+
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        closeDrawer(false);
+        window.requestAnimationFrame(() => {
+          scrollToElement(target);
+          history.replaceState(null, "", `#${target.id}`);
+          target.classList.add("toc-highlight");
+          window.setTimeout(() => target.classList.remove("toc-highlight"), 1400);
+        });
+      },
+      { capture: true },
+    );
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && drawer?.classList.contains("is-open")) {
+      closeDrawer();
+    }
+  });
+
+  const syncTopButton = () => {
+    topButton?.classList.toggle("is-visible", window.scrollY > window.innerHeight * 0.9);
+  };
+
+  syncMobileA11y();
+  syncTopButton();
+  mobilePostQuery.addEventListener("change", () => {
+    if (!mobilePostQuery.matches) {
+      closeDrawer(false);
+      drawer?.setAttribute("aria-hidden", "false");
+    } else {
+      syncMobileA11y();
+    }
+  });
+  window.addEventListener("scroll", syncTopButton, { passive: true });
+  window.addEventListener("resize", syncTopButton);
 }
 
 function initPostShare() {
@@ -2089,8 +2241,8 @@ function initPostUpvote() {
   }
 
   const upvoteButtons = Array.from(page.querySelectorAll<HTMLButtonElement>("[data-post-action='upvote']"));
-  const upvoteCount = page.querySelector<HTMLElement>("[data-post-upvote-count]");
-  if (upvoteButtons.length === 0 || !upvoteCount) {
+  const upvoteCounts = Array.from(page.querySelectorAll<HTMLElement>("[data-post-upvote-count]"));
+  if (upvoteButtons.length === 0 || upvoteCounts.length === 0) {
     return;
   }
 
@@ -2125,8 +2277,11 @@ function initPostUpvote() {
 
         upvotedNames.add(postName);
         writeJsonArray(postUpvoteStorageKey, Array.from(upvotedNames));
-        const countValue = Number.parseInt(upvoteCount.textContent || "0", 10);
-        upvoteCount.textContent = String(Number.isNaN(countValue) ? 1 : countValue + 1);
+        const countValue = Number.parseInt(upvoteCounts[0]?.textContent || "0", 10);
+        const nextCount = String(Number.isNaN(countValue) ? 1 : countValue + 1);
+        upvoteCounts.forEach((count) => {
+          count.textContent = nextCount;
+        });
         syncState();
       } catch {
         button.disabled = false;
@@ -2703,6 +2858,7 @@ initFooterMarquee();
 initAuthorPage();
 initPostContentEnhancements();
 initPostToc();
+initPostMobileReadingControls();
 initPostActions();
 initPostUpvote();
 initPostShare();
