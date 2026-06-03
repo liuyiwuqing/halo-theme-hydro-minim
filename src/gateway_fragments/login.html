@@ -38,10 +38,9 @@
     <label for="remember-me" th:text="#{form.rememberMe.label}"></label>
   </div>
 
-  <div halo:captcha class="hydro-auth-captcha"></div>
-
   <div class="form-item">
     <button type="submit" data-hydro-login-submit th:text="#{auth.login.submit}"></button>
+    <div halo:captcha class="hydro-auth-captcha"></div>
   </div>
 </form>
 

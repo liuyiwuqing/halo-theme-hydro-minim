@@ -16,6 +16,8 @@ type AuthAltchaAnchor = {
   y: number;
 };
 
+type AuthAltchaStylePriority = "" | "important";
+
 const defaultAuthAltchaAnchorOptions = {
   floatingGap: 8,
   floatingMaxWidth: 224,
@@ -41,11 +43,11 @@ export function computeAuthAltchaFloatingAnchor(
     return null;
   }
 
-  const halfWidth = floatingWidth / 2;
   const unclampedX = buttonRect.left + buttonRect.width / 2;
-  const minX = viewportPadding + halfWidth;
-  const maxX = viewport.width - viewportPadding - halfWidth;
-  const x = Math.min(Math.max(unclampedX, minX), maxX);
+  const x = Math.min(
+    Math.max(unclampedX - floatingWidth / 2, viewportPadding),
+    viewport.width - viewportPadding - floatingWidth,
+  );
   const y = Math.max(buttonRect.bottom + floatingGap, viewportPadding);
 
   return {
@@ -53,6 +55,44 @@ export function computeAuthAltchaFloatingAnchor(
     x: Math.round(x),
     y: Math.round(y),
   };
+}
+
+function setAuthAltchaStyle(
+  element: HTMLElement,
+  property: string,
+  value: string,
+  priority: AuthAltchaStylePriority = "important",
+) {
+  if (element.style.getPropertyValue(property) === value && element.style.getPropertyPriority(property) === priority) {
+    return;
+  }
+
+  element.style.setProperty(property, value, priority);
+}
+
+function applyAuthAltchaFloatingAnchor(root: Document, anchor: AuthAltchaAnchor) {
+  const body = root.body;
+  setAuthAltchaStyle(body, "--hydro-auth-altcha-x", `${anchor.x}px`, "");
+  setAuthAltchaStyle(body, "--hydro-auth-altcha-y", `${anchor.y}px`, "");
+  setAuthAltchaStyle(body, "--hydro-auth-altcha-width", `${anchor.width}px`, "");
+
+  root.querySelectorAll<HTMLElement>(".altcha[data-floating]").forEach((floating) => {
+    if (floating.closest("#login-form .hydro-auth-captcha")) {
+      setAuthAltchaStyle(floating, "position", "static");
+      setAuthAltchaStyle(floating, "inset", "auto");
+      setAuthAltchaStyle(floating, "width", "100%");
+      setAuthAltchaStyle(floating, "max-width", "100%");
+      setAuthAltchaStyle(floating, "transform", "none");
+      setAuthAltchaStyle(floating, "margin", "0");
+      return;
+    }
+
+    setAuthAltchaStyle(floating, "position", "fixed");
+    setAuthAltchaStyle(floating, "inset", `${anchor.y}px auto auto ${anchor.x}px`);
+    setAuthAltchaStyle(floating, "width", `${anchor.width}px`);
+    setAuthAltchaStyle(floating, "max-width", `${anchor.width}px`);
+    setAuthAltchaStyle(floating, "transform", "none");
+  });
 }
 
 export function initAuthAltchaFloatingAnchor(root: Document = document) {
@@ -64,6 +104,7 @@ export function initAuthAltchaFloatingAnchor(root: Document = document) {
   }
 
   let rafId = 0;
+  let followTimer = 0;
 
   const syncAnchor = () => {
     const anchor = computeAuthAltchaFloatingAnchor(submitButton.getBoundingClientRect(), {
@@ -73,9 +114,7 @@ export function initAuthAltchaFloatingAnchor(root: Document = document) {
       return;
     }
 
-    body.style.setProperty("--hydro-auth-altcha-x", `${anchor.x}px`);
-    body.style.setProperty("--hydro-auth-altcha-y", `${anchor.y}px`);
-    body.style.setProperty("--hydro-auth-altcha-width", `${anchor.width}px`);
+    applyAuthAltchaFloatingAnchor(root, anchor);
   };
 
   const scheduleSync = () => {
@@ -89,10 +128,33 @@ export function initAuthAltchaFloatingAnchor(root: Document = document) {
     });
   };
 
+  const followFloatingDuringChallenge = () => {
+    window.clearInterval(followTimer);
+    syncAnchor();
+    followTimer = window.setInterval(syncAnchor, 80);
+    window.setTimeout(() => {
+      window.clearInterval(followTimer);
+      followTimer = 0;
+    }, 8000);
+  };
+
+  const followFloatingFromInteraction = (event: Event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) {
+      return;
+    }
+
+    if (target.closest("#login-form, altcha-widget, .altcha[data-floating]")) {
+      followFloatingDuringChallenge();
+    }
+  };
+
   scheduleSync();
-  submitButton.addEventListener("pointerdown", scheduleSync);
-  submitButton.addEventListener("click", scheduleSync);
-  form.addEventListener("submit", scheduleSync);
+  submitButton.addEventListener("pointerdown", followFloatingDuringChallenge);
+  submitButton.addEventListener("click", followFloatingDuringChallenge);
+  form.addEventListener("submit", followFloatingDuringChallenge);
+  root.addEventListener("pointerdown", followFloatingFromInteraction, true);
+  root.addEventListener("click", followFloatingFromInteraction, true);
   window.addEventListener("load", scheduleSync, { once: true });
   window.addEventListener("resize", scheduleSync, { passive: true });
   window.addEventListener("scroll", scheduleSync, { passive: true });
@@ -104,17 +166,20 @@ export function initAuthAltchaFloatingAnchor(root: Document = document) {
   }
 
   if ("MutationObserver" in window) {
-    const mutationObserver = new MutationObserver(scheduleSync);
-    mutationObserver.observe(form, {
+    const formMutationObserver = new MutationObserver(scheduleSync);
+    formMutationObserver.observe(form, {
       attributeFilter: ["class", "data-floating", "hidden", "style"],
       attributes: true,
       childList: true,
       subtree: true,
     });
-    mutationObserver.observe(body, {
-      attributeFilter: ["class", "style"],
+
+    const floatingMutationObserver = new MutationObserver(scheduleSync);
+    floatingMutationObserver.observe(body, {
+      attributeFilter: ["class", "data-floating", "style"],
       attributes: true,
       childList: true,
+      subtree: true,
     });
   }
 }
