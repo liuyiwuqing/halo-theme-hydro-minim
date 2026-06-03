@@ -718,8 +718,8 @@ body.hydro-auth-page .altcha[data-floating] {
   left: var(--hydro-auth-altcha-x, 50%) !important;
   right: auto !important;
   bottom: auto !important;
-  width: min(14rem, calc(100vw - 2rem)) !important;
-  max-width: min(14rem, calc(100vw - 2rem)) !important;
+  width: var(--hydro-auth-altcha-width, min(14rem, calc(100vw - 2rem))) !important;
+  max-width: var(--hydro-auth-altcha-width, min(14rem, calc(100vw - 2rem))) !important;
   transform: translateX(-50%) !important;
   z-index: 10000;
   box-shadow: 0 1.1rem 2.2rem rgb(var(--hydro-shadow-rgb) / 16%) !important;
