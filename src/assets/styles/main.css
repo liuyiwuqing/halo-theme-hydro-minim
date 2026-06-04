@@ -12160,6 +12160,8 @@ html[data-hydro-lightbox="false"] .hydro-lightbox {
     white-space: nowrap;
   }
 
+  body.hydro-menu-lock .hydro-post-mobile-bar,
+  body.hydro-menu-lock .hydro-post-mobile-top,
   body.hydro-post-drawer-lock .hydro-post-mobile-bar,
   body.hydro-post-drawer-lock .hydro-post-mobile-top {
     opacity: 0;
