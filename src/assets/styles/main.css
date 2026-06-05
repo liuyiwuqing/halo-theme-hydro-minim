@@ -7119,7 +7119,8 @@ html.lenis body {
   gap: clamp(0.75rem, 1.5vw, 1.08rem);
   align-items: flex-end;
   margin-top: 0;
-  max-width: min(100%, 34rem);
+  width: 100%;
+  max-width: none;
   padding: 0.65rem 0.25rem 0.72rem 0;
   overflow-x: auto;
   scrollbar-width: none;
