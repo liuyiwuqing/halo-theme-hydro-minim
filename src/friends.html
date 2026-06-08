@@ -18,7 +18,9 @@
     th:with="
       hasFriendsPlugin=${pluginFinder.available('plugin-friends') or pluginFinder.available('PluginFriends')},
       isSinglePageRoute=${singlePage != null},
-      friendsPageSize=${theme.config.friends?.page_size == null or theme.config.friends.page_size < 1 ? 20 : theme.config.friends.page_size},
+      friendsPageSizeText=${theme.config.friends?.page_size == null ? '' : #strings.trim('' + theme.config.friends.page_size)},
+      friendsPageSizeRaw=${friendsPageSizeText.matches('^[0-9]{1,3}$') ? T(java.lang.Integer).parseInt(friendsPageSizeText) : 20},
+      friendsPageSize=${friendsPageSizeRaw < 1 ? 20 : friendsPageSizeRaw},
       friendsData=${friends != null ? friends : (hasFriendsPlugin and friendFinder != null ? friendFinder.list(1, friendsPageSize) : null)},
       hasFriendsData=${friendsData != null and friendsData.items != null and not #lists.isEmpty(friendsData.items)}"
   >

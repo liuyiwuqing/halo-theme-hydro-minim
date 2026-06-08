@@ -1260,6 +1260,30 @@ function decodeWhenReady(image: HTMLImageElement) {
   image.addEventListener("load", decode, { once: true });
 }
 
+function initFallbackCoverImages() {
+  document.querySelectorAll<HTMLImageElement>("img[data-fallback-cover]").forEach((image) => {
+    const fallbackCover = image.dataset.fallbackCover;
+    if (!fallbackCover) {
+      return;
+    }
+
+    const applyFallbackCover = () => {
+      if (image.dataset.fallbackCoverApplied === "true") {
+        return;
+      }
+
+      image.dataset.fallbackCoverApplied = "true";
+      image.src = fallbackCover;
+    };
+
+    image.addEventListener("error", applyFallbackCover);
+
+    if (image.complete && image.naturalWidth === 0) {
+      applyFallbackCover();
+    }
+  });
+}
+
 function initArticleMediaPrewarm() {
   const section = document.querySelector<HTMLElement>("#articles");
   if (!section) {
@@ -2936,6 +2960,7 @@ initNavigation();
 initScrambleLinks();
 initLenis();
 initHero();
+initFallbackCoverImages();
 initArticleMediaPrewarm();
 initRevealAnimations();
 initTiltCards();

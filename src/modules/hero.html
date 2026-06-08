@@ -2,7 +2,9 @@
   class="hydro-hero"
   th:with="
     heroCover = ${#strings.isEmpty(theme.config.home?.hero_cover) ? #theme.assets('/images/hero-featured.jpg') : theme.config.home.hero_cover},
-    heroFeaturedSize = ${theme.config.home?.hero_featured_size == null or theme.config.home.hero_featured_size < 1 ? 4 : theme.config.home.hero_featured_size},
+    heroFeaturedSizeText = ${theme.config.home?.hero_featured_size == null ? '' : #strings.trim('' + theme.config.home.hero_featured_size)},
+    heroFeaturedSizeRaw = ${heroFeaturedSizeText.matches('^[0-9]{1,3}$') ? T(java.lang.Integer).parseInt(heroFeaturedSizeText) : 4},
+    heroFeaturedSize = ${heroFeaturedSizeRaw < 1 ? 4 : heroFeaturedSizeRaw},
     heroFeaturedPosts = ${theme.config.home?.hero_featured_posts},
     hasHeroFeaturedPosts = ${heroFeaturedPosts != null and not #lists.isEmpty(heroFeaturedPosts)}
   "

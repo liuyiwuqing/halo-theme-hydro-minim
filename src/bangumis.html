@@ -20,7 +20,9 @@
       currentStatus=${param.status != null and not #lists.isEmpty(param.status) ? param.status[0] : 0},
       isSinglePageRoute=${singlePage != null},
       pageBaseUrl=${isSinglePageRoute ? singlePage.status.permalink : '/bangumis'},
-      bangumiLimit=${theme.config.bangumi?.item_limit == null or theme.config.bangumi.item_limit < 1 ? 36 : theme.config.bangumi.item_limit},
+      bangumiLimitText=${theme.config.bangumi?.item_limit == null ? '' : #strings.trim('' + theme.config.bangumi.item_limit)},
+      bangumiLimitRaw=${bangumiLimitText.matches('^[0-9]{1,3}$') ? T(java.lang.Integer).parseInt(bangumiLimitText) : 36},
+      bangumiLimit=${bangumiLimitRaw < 1 ? 36 : bangumiLimitRaw},
       hasBangumiPlugin=${pluginFinder.available('plugin-bilibili-bangumi') or pluginFinder.available('PluginBilibiliBangumi')},
       bangumiData=${hasBangumiPlugin and bangumiFinder != null ? bangumiFinder.getBiliDataAll(currentType, currentStatus) : null},
       hasBangumiData=${bangumiData != null and not #lists.isEmpty(bangumiData)}"

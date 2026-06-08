@@ -21,7 +21,9 @@
         isSinglePageRoute=${singlePage != null},
         pageBaseUrl=${isSinglePageRoute ? singlePage.status.permalink : '/photos'},
         currentGroup=${param.group != null and not #lists.isEmpty(param.group) ? param.group[0] : null},
-        photosPageSize=${theme.config.photos?.page_size == null or theme.config.photos.page_size < 1 ? 30 : theme.config.photos.page_size},
+        photosPageSizeText=${theme.config.photos?.page_size == null ? '' : #strings.trim('' + theme.config.photos.page_size)},
+        photosPageSizeRaw=${photosPageSizeText.matches('^[0-9]{1,3}$') ? T(java.lang.Integer).parseInt(photosPageSizeText) : 30},
+        photosPageSize=${photosPageSizeRaw < 1 ? 30 : photosPageSizeRaw},
         photoGroups=${hasPhotosPlugin and photoFinder != null ? photoFinder.groupBy() : null},
         photosData=${photos != null ? photos : (hasPhotosPlugin and photoFinder != null ? photoFinder.list(1, photosPageSize, currentGroup) : null)},
         hasPhotosData=${photosData != null and photosData.items != null and not #lists.isEmpty(photosData.items)}"

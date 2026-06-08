@@ -16,8 +16,12 @@
       searchHits=${searchResult != null ? searchResult.hits : null},
       hasHits=${searchHits != null and not #lists.isEmpty(searchHits)},
       searchTotal=${searchResult != null ? searchResult.total : 0},
-      searchLimit=${searchConfig == null or searchConfig.limit == null or searchConfig.limit < 1 ? 20 : searchConfig.limit},
-      recommendationSize=${searchConfig == null or searchConfig.recommendation_size == null or searchConfig.recommendation_size < 1 ? 3 : searchConfig.recommendation_size},
+      searchLimitText=${searchConfig == null or searchConfig.limit == null ? '' : #strings.trim('' + searchConfig.limit)},
+      searchLimitRaw=${searchLimitText.matches('^[0-9]{1,3}$') ? T(java.lang.Integer).parseInt(searchLimitText) : 20},
+      searchLimit=${searchLimitRaw < 1 ? 20 : searchLimitRaw},
+      recommendationSizeText=${searchConfig == null or searchConfig.recommendation_size == null ? '' : #strings.trim('' + searchConfig.recommendation_size)},
+      recommendationSizeRaw=${recommendationSizeText.matches('^[0-9]{1,3}$') ? T(java.lang.Integer).parseInt(recommendationSizeText) : 3},
+      recommendationSize=${recommendationSizeRaw < 1 ? 3 : recommendationSizeRaw},
       recommendedPosts=${postFinder.list({page: 1, size: recommendationSize, sort: {'spec.publishTime,desc'}}).items}
     "
   >

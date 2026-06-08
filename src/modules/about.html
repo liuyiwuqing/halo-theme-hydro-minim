@@ -48,7 +48,12 @@
             rel="noreferrer noopener"
           >
             <th:block th:if="${not #strings.isEmpty(item.icon)}" th:utext="${item.icon}" />
-            <svg th:if="${#strings.isEmpty(item.icon)}" viewBox="0 0 24 24" aria-hidden="true">
+            <svg
+              class="hydro-socials__fallback-icon"
+              th:if="${#strings.isEmpty(item.icon)}"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
               <path d="M4 4l16 16M20 4 4 20"></path>
             </svg>
           </a>

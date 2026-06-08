@@ -2836,6 +2836,33 @@ html[data-hydro-motion="off"] .hydro-card:hover .hydro-card__arrow {
   transition: color 0.5s ease;
 }
 
+.hydro-card__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 0 0 0.6rem;
+  color: rgb(var(--hydro-ink-rgb) / 46%);
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.hydro-card__stats span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  min-width: 0;
+}
+
+.hydro-card__stats span + span::before {
+  width: 0.24rem;
+  height: 0.24rem;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: currentColor;
+  content: "";
+  opacity: 0.42;
+}
+
 .hydro-card:hover h3 {
   background: linear-gradient(90deg, var(--hydro-coral), var(--hydro-teal), var(--hydro-yellow));
   -webkit-background-clip: text;
@@ -3196,11 +3223,14 @@ html[data-hydro-motion="off"] .hydro-card:hover .hydro-card__arrow {
 .hydro-socials svg {
   width: 1.25rem;
   height: 1.25rem;
+}
+
+.hydro-socials__fallback-icon {
   fill: none;
   stroke: currentColor;
   stroke-linecap: round;
   stroke-linejoin: round;
-  stroke-width: 2;
+  stroke-width: 1.5;
 }
 
 .hydro-footer {
