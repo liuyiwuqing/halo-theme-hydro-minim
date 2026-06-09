@@ -3950,7 +3950,6 @@ html[data-hydro-motion="off"] .hydro-card:hover .hydro-card__arrow {
 .hydro-tags-sky__lines {
   opacity: 0.44;
   stroke-width: 1.15;
-  transform-box: fill-box;
   transform-origin: center;
   animation: hydro-tags-line-drift 36s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate;
 }
@@ -4073,9 +4072,7 @@ html[data-hydro-motion="off"] .hydro-card:hover .hydro-card__arrow {
   opacity: 1;
   transform: translate(var(--tag-anchor-x), var(--tag-anchor-y)) translate(var(--tag-shift-x), var(--tag-shift-y))
     rotate(var(--tag-tilt)) scale(var(--tag-scale));
-  animation:
-    hydro-tag-arrive 0.9s cubic-bezier(0.16, 1, 0.3, 1) var(--tag-arrive-delay) both,
-    hydro-tag-float var(--tag-duration) cubic-bezier(0.4, 0, 0.2, 1) var(--tag-delay) infinite;
+  animation: hydro-tag-arrive 0.9s cubic-bezier(0.16, 1, 0.3, 1) var(--tag-arrive-delay) both;
   transition:
     color 0.18s cubic-bezier(0.2, 0, 0, 1),
     filter 0.18s cubic-bezier(0.2, 0, 0, 1);
@@ -4083,6 +4080,12 @@ html[data-hydro-motion="off"] .hydro-card:hover .hydro-card__arrow {
   outline: 0;
   box-shadow: none;
   will-change: transform;
+}
+
+.hydro-tags-cloud[data-hydro-tag-cloud-ready="true"] .hydro-tag-chip {
+  animation:
+    hydro-tag-arrive 0.9s cubic-bezier(0.16, 1, 0.3, 1) var(--tag-arrive-delay) both,
+    hydro-tag-float var(--tag-duration) cubic-bezier(0.4, 0, 0.2, 1) var(--tag-delay) infinite;
 }
 
 .hydro-tag-chip__cloud {
@@ -4095,7 +4098,6 @@ html[data-hydro-motion="off"] .hydro-card:hover .hydro-card__arrow {
   overflow: visible;
   pointer-events: none;
   filter: drop-shadow(0 16px 28px rgb(var(--hydro-shadow-rgb) / 5%));
-  transform-box: fill-box;
   transform-origin: center;
   transform: scale(var(--tag-hover-cloud-scale));
   animation: hydro-tag-cloud-enter 0.95s cubic-bezier(0.16, 1, 0.3, 1) var(--tag-arrive-delay) backwards;
@@ -4179,7 +4181,8 @@ html[data-hydro-motion="off"] .hydro-card:hover .hydro-card__arrow {
   gap: 1rem;
 }
 
-.hydro-tag-cloud a {
+.hydro-tag-cloud a,
+.hydro-tags-cloud .hydro-tag-chip {
   display: inline-flex;
   align-items: flex-start;
   gap: 0.35rem;
@@ -4188,16 +4191,23 @@ html[data-hydro-motion="off"] .hydro-card:hover .hydro-card__arrow {
   border-radius: 999px;
   background: rgb(var(--hydro-paper-rgb) / 35%);
   font-weight: 700;
-  transition: all 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease,
+    color 0.3s ease,
+    top 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+    left 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.hydro-tag-cloud a:hover {
+.hydro-tag-cloud a:hover,
+.hydro-tags-cloud .hydro-tag-chip:hover {
   border-color: var(--hydro-solid);
   background: var(--hydro-solid);
   color: var(--hydro-solid-contrast);
 }
 
-.hydro-tag-cloud sup {
+.hydro-tag-cloud sup,
+.hydro-tags-cloud .hydro-tag-chip sup {
   color: rgb(var(--hydro-ink-rgb) / 40%);
 }
 
