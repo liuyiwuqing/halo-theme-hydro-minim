@@ -2701,6 +2701,11 @@ body.hydro-auth-page .returntosite-content a:hover {
   position: relative;
 }
 
+.hydro-hero__image-inner[data-progressive-media] {
+  position: absolute;
+  inset: 0;
+}
+
 [data-progressive-media]::before {
   position: absolute;
   inset: 0;

@@ -693,6 +693,7 @@ spec:
               key: home_hero_media_type
               name: media_type
               label: Hero 媒体类型
+              help: 视频加载时，会先显示图片，加载成功后显示视频。
               value: image
               options:
                 - label: 图片
@@ -700,7 +701,7 @@ spec:
                 - label: 视频
                   value: video
             - $formkit: attachment
-              if: $get(home_hero_enabled).value === true && $get(home_hero_media_type).value === 'image'
+              if: $get(home_hero_enabled).value === true
               name: cover
               key: home_hero_media_image
               label: Hero 封面
