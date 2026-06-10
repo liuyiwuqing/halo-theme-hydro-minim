@@ -87,7 +87,7 @@ function getRegion() {
 
 function createNoticeElement(notice: ReturnType<typeof normalizeNotice>) {
   const element = document.createElement("article");
-  element.className = `hydro-notice hydro-notice--${notice.variant}`;
+  element.className = `hydro-notice hydro-notice--${notice.variant} ${notice.title ? "has-title" : "no-title"}`;
   element.dataset.hydroNotice = notice.id;
   element.setAttribute("role", notice.variant === "error" ? "alert" : "status");
 

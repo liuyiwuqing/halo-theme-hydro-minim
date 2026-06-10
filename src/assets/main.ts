@@ -446,7 +446,7 @@ function initColorScheme() {
 
   const notifyModeChanged = (mode: ColorSchemeMode) => {
     const resolvedMode = resolveMode(mode);
-    showHydroNotice(resolvedMode === "dark" ? "已切换为深色模式" : "已切换为浅色模式", {
+    showHydroNotice(resolvedMode === "dark" ? "深色模式已开启" : "浅色模式已开启", {
       id: "hydro-theme-mode",
       title: "外观",
       variant: "success",
@@ -2189,7 +2189,7 @@ function initPostShare() {
           originalLabel.textContent = previous;
         }
       }, 1200);
-      showHydroNotice("文章链接已复制", { id: "hydro-post-share", title: "分享", variant: "success" });
+      showHydroNotice("链接已复制", { id: "hydro-post-share", title: "分享", variant: "success" });
     } catch {
       window.prompt(button.querySelector<HTMLElement>("strong")?.dataset.copyPromptTitle || copyPromptTitle, url);
     }

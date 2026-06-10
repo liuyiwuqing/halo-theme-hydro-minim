@@ -201,7 +201,7 @@ function showActionNotice(
   if (!text) {
     return;
   }
-  dependencies.notify?.(text, { id: "hydro-fab-action", title: "快捷操作", variant: "success", ...options });
+  dependencies.notify?.(text, { id: "hydro-fab-action", title: "快捷", variant: "success", ...options });
 }
 
 function navigateTo(url: string | undefined, dependencies: HydroFabActionDependencies, win: Window): void {
@@ -384,7 +384,7 @@ async function runBuiltinAction(
   switch (action) {
     case "back-to-top":
       dependencies.scrollToPosition(0);
-      showActionNotice(dependencies, "已回到页面顶部", { id: "hydro-back-to-top", variant: "info" });
+      showActionNotice(dependencies, "已回到顶部", { id: "hydro-back-to-top", variant: "info" });
       return;
     case "copy-current-url":
       await dependencies.copyText(win.location.href);
@@ -408,15 +408,15 @@ async function runBuiltinAction(
     }
     case "print":
       win.print();
-      showActionNotice(dependencies, "已打开打印面板", { id: "hydro-print", variant: "info" });
+      showActionNotice(dependencies, "打印面板已打开", { id: "hydro-print", variant: "info" });
       return;
     case "scroll-comment": {
       const comment = dependencies.root.querySelector<HTMLElement>("#comment");
       if (comment) {
         dependencies.scrollToElement(comment);
-        showActionNotice(dependencies, "已定位到评论区", { id: "hydro-scroll-comment", variant: "info" });
+        showActionNotice(dependencies, "已到评论区", { id: "hydro-scroll-comment", variant: "info" });
       } else {
-        showActionNotice(dependencies, "当前页面没有可定位的评论区", {
+        showActionNotice(dependencies, "当前页没有评论区", {
           id: "hydro-scroll-comment",
           variant: "warning",
         });
@@ -427,12 +427,12 @@ async function runBuiltinAction(
       const searchEntry = findClickable(dependencies.root, "[data-hydro-search-entry]");
       if (searchEntry) {
         searchEntry.click();
-        showActionNotice(dependencies, "搜索已打开", { id: "hydro-search", variant: "info" });
+        showActionNotice(dependencies, "搜索面板已打开", { id: "hydro-search", variant: "info" });
         return;
       }
       if (typeof win.SearchWidget?.open === "function") {
         win.SearchWidget.open();
-        showActionNotice(dependencies, "搜索已打开", { id: "hydro-search", variant: "info" });
+        showActionNotice(dependencies, "搜索面板已打开", { id: "hydro-search", variant: "info" });
         return;
       }
       showActionNotice(dependencies, "搜索插件未就绪", { id: "hydro-search", variant: "warning" });
