@@ -1112,7 +1112,15 @@ function initHero() {
       .join("");
   }
 
-  const setHeroImageY = image ? gsap.quickTo(image, "y", { duration: 0.12, ease: "power1.out" }) : undefined;
+  const setImageX = imageMotion ? gsap.quickTo(imageMotion, "x", { duration: 0.35, ease: "power3.out" }) : undefined;
+  const setImageY = imageMotion ? gsap.quickTo(imageMotion, "y", { duration: 0.18, ease: "power1.out" }) : undefined;
+  let heroScrollY = 0;
+  let heroPointerX = 0;
+  let heroPointerY = 0;
+  const updateHeroMediaTransform = () => {
+    setImageX?.(heroPointerX);
+    setImageY?.(heroScrollY + heroPointerY);
+  };
 
   const ctx = gsap.context(() => {
     gsap.fromTo(
@@ -1137,7 +1145,8 @@ function initHero() {
       end: "bottom top",
       scrub: true,
       onUpdate: (self) => {
-        setHeroImageY?.(self.progress * -50);
+        heroScrollY = self.progress * -50;
+        updateHeroMediaTransform();
       },
     });
   }, hero);
@@ -1146,9 +1155,6 @@ function initHero() {
     window.addEventListener("pagehide", () => ctx.revert(), { once: true });
     return;
   }
-
-  const setImageX = imageMotion ? gsap.quickTo(imageMotion, "x", { duration: 0.35, ease: "power3.out" }) : undefined;
-  const setImageY = imageMotion ? gsap.quickTo(imageMotion, "y", { duration: 0.35, ease: "power3.out" }) : undefined;
 
   const motionTarget = imageFrame ?? imageMotion ?? image;
 
@@ -1169,8 +1175,9 @@ function initHero() {
     }
     const x = Math.max(0, Math.min(1, (motionPointerX - rect.left) / rect.width));
     const y = Math.max(0, Math.min(1, (motionPointerY - rect.top) / rect.height));
-    setImageX?.((x - 0.5) * 22);
-    setImageY?.((y - 0.5) * 22);
+    heroPointerX = (x - 0.5) * 22;
+    heroPointerY = (y - 0.5) * 22;
+    updateHeroMediaTransform();
   };
   const scheduleMotion = (event: PointerEvent) => {
     motionPointerX = event.clientX;
@@ -1192,8 +1199,9 @@ function initHero() {
       window.cancelAnimationFrame(motionRaf);
       motionRaf = 0;
     }
-    setImageX?.(0);
-    setImageY?.(0);
+    heroPointerX = 0;
+    heroPointerY = 0;
+    updateHeroMediaTransform();
   });
   window.addEventListener(
     "resize",

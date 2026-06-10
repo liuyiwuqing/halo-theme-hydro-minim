@@ -2634,6 +2634,7 @@ body.hydro-auth-page .returntosite-content a:hover {
   min-height: 100vh;
   padding-top: 5rem;
   overflow: hidden;
+  --hydro-hero-media-bleed: 5rem;
   --hero-mouse-x: 50%;
   --hero-mouse-y: 50%;
 }
@@ -2653,7 +2654,7 @@ body.hydro-auth-page .returntosite-content a:hover {
 
 .hydro-hero__image-motion {
   position: absolute;
-  inset: -1.5rem;
+  inset: calc(var(--hydro-hero-media-bleed) * -1);
   will-change: transform;
 }
 
@@ -2694,7 +2695,7 @@ body.hydro-auth-page .returntosite-content a:hover {
   position: absolute;
   inset: 0;
   z-index: 3;
-  background: linear-gradient(to bottom, transparent 45%, var(--hydro-bg));
+  background: linear-gradient(to bottom, transparent 78%, rgb(0 0 0 / 10%));
 }
 
 [data-progressive-media] {
@@ -10375,7 +10376,7 @@ html[data-hydro-lightbox="false"] .hydro-lightbox {
   }
 
   .hydro-hero__fade {
-    background: linear-gradient(to bottom, transparent 52%, rgb(var(--hydro-paper-rgb) / 8%) 74%, var(--hydro-bg));
+    background: linear-gradient(to bottom, transparent 82%, rgb(0 0 0 / 9%));
   }
 
   .hydro-hero__label {
@@ -10384,7 +10385,7 @@ html[data-hydro-lightbox="false"] .hydro-lightbox {
   }
 
   .hydro-hero__content {
-    padding: clamp(3rem, 5vw, 5rem) 0 clamp(3.5rem, 5vw, 5rem);
+    padding: clamp(1.5rem, 3vw, 2.75rem) 0 clamp(3.5rem, 5vw, 5rem);
   }
 
   .hydro-hero__grid {
