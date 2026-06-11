@@ -55,6 +55,7 @@
             <time
               class="hydro-card__date"
               aria-label="文章发布时间"
+              th:datetime="${#dates.format(post.spec.publishTime, 'yyyy-MM-dd')}"
               th:text="${#dates.format(post.spec.publishTime, 'yyyy.MM.dd')}"
               >2024.01.15</time
             >
@@ -62,21 +63,22 @@
               <span th:text="|${theme.config.content?.post?.visit_label ?: '阅读'} ${post.stats.visit ?: 0}|"
                 >阅读 0</span
               >
+              <span th:text="|${theme.config.content?.post?.comment_label ?: '评论'} ${post.stats.comment ?: 0}|"
+                >评论 0</span
+              >
               <span th:text="|${theme.config.content?.post?.upvote_label ?: '点赞'} ${post.stats.upvote ?: 0}|"
                 >点赞 0</span
               >
             </div>
+            <span class="hydro-card__arrow" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M7 17 17 7M8 7h9v9"></path>
+              </svg>
+            </span>
           </div>
           <div class="hydro-card__body">
             <h3 th:text="${post.spec.title}">数字设计的未来</h3>
             <p th:text="${post.status.excerpt}">探索 AI 与设计的融合，以及数字创意的新边界。</p>
-            <div class="hydro-card__footer">
-              <span class="hydro-card__arrow" aria-hidden="true">
-                <svg viewBox="0 0 24 24">
-                  <path d="M7 17 17 7M8 7h9v9"></path>
-                </svg>
-              </span>
-            </div>
           </div>
         </a>
       </article>

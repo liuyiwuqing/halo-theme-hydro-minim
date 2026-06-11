@@ -326,7 +326,7 @@ spec:
               key: presentation_motion_enable_card_hover
               name: enable_card_hover
               label: 启用文章卡片 3D Hover
-              help: 作用于桌面端首页和文章列表卡片的倾斜、图片缩放、遮罩、箭头和浮层质感。
+              help: 作用于桌面端首页和文章列表卡片的倾斜、图片缩放等空间动画；关闭后仍保留封面信息层、遮罩、箭头和浮层质感。
               value: true
             - $formkit: switch
               name: enable_lightbox

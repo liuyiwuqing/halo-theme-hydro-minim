@@ -20,14 +20,34 @@
         data-progressive-image
         th:attr="data-fallback-cover=${fallbackCover}"
       />
+      <div class="hydro-card__shade" aria-hidden="true"></div>
+      <span
+        class="hydro-card__badge"
+        th:text="${not #lists.isEmpty(post.categories) ? post.categories[0].spec.displayName : '文章'}"
+      >
+        文章
+      </span>
+      <time
+        class="hydro-card__date"
+        aria-label="文章发布时间"
+        th:datetime="${#dates.format(post.spec.publishTime, 'yyyy-MM-dd')}"
+        th:text="${#dates.format(post.spec.publishTime, 'yyyy.MM.dd')}"
+        >2024.01.15</time
+      >
+      <div class="hydro-card__metrics" aria-label="文章互动统计">
+        <span th:text="|${theme.config.content?.post?.visit_label ?: '阅读'} ${post.stats.visit ?: 0}|">阅读 0</span>
+        <span th:text="|${theme.config.content?.post?.comment_label ?: '评论'} ${post.stats.comment ?: 0}|"
+          >评论 0</span
+        >
+        <span th:text="|${theme.config.content?.post?.upvote_label ?: '点赞'} ${post.stats.upvote ?: 0}|">点赞 0</span>
+      </div>
+      <span class="hydro-card__arrow" aria-hidden="true">
+        <svg viewBox="0 0 24 24">
+          <path d="M7 17 17 7M8 7h9v9"></path>
+        </svg>
+      </span>
     </div>
     <div class="hydro-list-card__body">
-      <div class="hydro-list-card__meta">
-        <time th:text="${#dates.format(post.spec.publishTime, 'yyyy.MM.dd')}">2024.01.15</time>
-        <span th:if="${not #lists.isEmpty(post.categories)}" th:text="${post.categories[0].spec.displayName}">
-          分类
-        </span>
-      </div>
       <h2 th:text="${post.spec.title}">文章标题</h2>
       <p th:text="${post.status.excerpt}">文章摘要</p>
       <div class="hydro-list-card__tags" th:if="${not #lists.isEmpty(post.tags)}">
