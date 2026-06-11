@@ -14,7 +14,7 @@ spec:
   issues: https://github.com/liuyiwuqing/halo-theme-hydro-minim/issues
   settingName: "halo-theme-hydro-minim-setting"
   configMapName: "halo-theme-hydro-minim-configMap"
-  version: 1.0.0-alpha3
+  version: 1.0.0-beta1
   requires: ">=2.20.0"
   customTemplates:
     page:
