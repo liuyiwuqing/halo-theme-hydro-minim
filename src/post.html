@@ -15,6 +15,9 @@
       enablePostLightbox=${theme.config.presentation?.motion == null or theme.config.presentation.motion.enable_lightbox != false},
       enableRelatedPosts=${postConfig == null or postConfig.enable_related_posts != false},
       showCover=${postConfig == null or postConfig.show_cover != false},
+      rawDefaultPostCover=${theme.config.identity?.defaults?.article_cover_1},
+      defaultPostCover=${#strings.isEmpty(rawDefaultPostCover) ? #theme.assets('/images/article-1.jpg') : rawDefaultPostCover},
+      postCover=${#strings.isEmpty(post.spec.cover) ? defaultPostCover : post.spec.cover},
       showVisit=${postConfig == null or postConfig.show_visit != false},
       showUpvoteMeta=${postConfig == null or postConfig.show_upvote_meta != false},
       showCommentMeta=${postConfig == null or postConfig.show_comment_meta != false},
@@ -37,7 +40,7 @@
       data-post-name=${post.metadata.name},
       data-post-title=${post.spec.title},
       data-post-permalink=${post.status.permalink},
-      data-post-cover=${post.spec.cover},
+      data-post-cover=${postCover},
       data-post-enable-toc=${enableToc},
       data-post-enable-action-rail=${enableActionRail},
       data-post-enable-upvote=${enableUpvote},
@@ -50,8 +53,8 @@
   >
     <header
       class="hydro-post-hero hydro-post-hero--cover"
-      th:if="${showCover and not #strings.isEmpty(post.spec.cover)}"
-      th:style="|background-image: url('${post.spec.cover}')|"
+      th:if="${showCover and not #strings.isEmpty(postCover)}"
+      th:style="|background-image: url('${postCover}')|"
     >
       <div class="hydro-post-hero__shade"></div>
       <div class="hydro-post-hero__inner">
@@ -83,10 +86,7 @@
       </div>
     </header>
 
-    <header
-      class="hydro-post-hero hydro-post-hero--plain"
-      th:if="${not showCover or #strings.isEmpty(post.spec.cover)}"
-    >
+    <header class="hydro-post-hero hydro-post-hero--plain" th:if="${not showCover or #strings.isEmpty(postCover)}">
       <div class="hydro-container hydro-post-hero__plain-inner">
         <p class="hydro-post-hero__eyebrow" th:text="${postConfig?.eyebrow ?: 'Post'}">Post</p>
         <h1 th:text="${post.spec.title}">文章标题</h1>
@@ -588,9 +588,9 @@
 
           <div class="hydro-poster-card__body">
             <div class="hydro-poster-card__hero">
-              <figure class="hydro-poster-card__media" th:if="${showCover and not #strings.isEmpty(post.spec.cover)}">
+              <figure class="hydro-poster-card__media" th:if="${showCover and not #strings.isEmpty(postCover)}">
                 <img
-                  th:src="${post.spec.cover}"
+                  th:src="${postCover}"
                   th:alt="${post.spec.title}"
                   loading="eager"
                   data-hydro-poster-image

@@ -82,7 +82,7 @@ spec:
               name: article_cover_1
               key: identity_defaults_article_cover_1
               label: 默认文章封面 1
-              help: 文章没有封面时作为兜底封面之一，会在文章列表中按顺序轮换使用。
+              help: 文章没有封面时作为详情页顶部封面；在文章列表中也会作为兜底封面之一轮换使用。
               accepts:
                 - image/*
               value: /themes/halo-theme-hydro-minim/assets/images/article-1.jpg
