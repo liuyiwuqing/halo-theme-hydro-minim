@@ -192,10 +192,18 @@ spec:
               value: 艺术的生活家。在结构化与自由之间，寻找设计的平衡。
             - $formkit: switch
               name: show_nav
+              id: identity_footer_show_nav
               key: identity_footer_show_nav
               label: 显示页脚导航
-              help: 开启后页脚展示主菜单；没有主菜单时展示默认导航配置。
+              help: 开启后页脚展示指定菜单；留空时会回退到 Halo 主菜单，没有主菜单时再展示默认导航配置。
               value: true
+            - $formkit: menuSelect
+              if: $get(identity_footer_show_nav).value === true
+              name: menu
+              key: identity_footer_menu
+              label: 页脚导航菜单
+              help: 选择页脚使用的菜单；留空时页脚继续使用 Halo 主菜单。
+              value: ""
             - $formkit: switch
               name: show_social
               key: identity_footer_show_social

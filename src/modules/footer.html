@@ -1,8 +1,10 @@
 <footer
   class="hydro-footer"
   th:with="
-    menu = ${menuFinder.getPrimary()},
     footerConfig = ${theme.config.identity?.footer},
+    footerMenuName = ${footerConfig == null ? '' : (footerConfig.menu ?: '')},
+    footerMenu = ${#strings.isEmpty(footerMenuName) ? null : menuFinder.getByName(footerMenuName)},
+    menu = ${footerMenu != null ? footerMenu : menuFinder.getPrimary()},
     footerMarqueeText = ${footerConfig == null or #strings.isEmpty(footerConfig.marquee_text) ? '氢' : footerConfig.marquee_text},
     footerBrandText = ${footerConfig == null or #strings.isEmpty(footerConfig.brand_text) ? '氢' : footerConfig.brand_text},
     footerDescription = ${footerConfig == null or #strings.isEmpty(footerConfig.description) ? (site.subtitle ?: '艺术的生活家。在结构化与自由之间，寻找设计的平衡。') : footerConfig.description},
