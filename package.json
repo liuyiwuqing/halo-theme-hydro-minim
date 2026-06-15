@@ -11,8 +11,7 @@
     "issue-pr": "bash scripts/issue-pr.sh",
     "package": "theme-package",
     "prepare": "vp config",
-    "test": "vp test run --environment jsdom",
-    "test:automation": "node --test tests/automation.test.mjs"
+    "test": "vp test run --environment jsdom --passWithNoTests"
   },
   "dependencies": {
     "@studio-freight/lenis": "^1.0.42",

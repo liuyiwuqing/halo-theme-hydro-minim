@@ -36,7 +36,7 @@ dist/halo-theme-hydro-minim-1.0.0.zip
 
 ## 自动化流程
 
-- `CI`：在 `master` / `main` 分支推送、面向 `master` / `main` 的 Pull Request 和手动触发时运行，依次执行 `pnpm install --frozen-lockfile`、`pnpm run test:automation`、`pnpm run check:ci`、`pnpm test`、`pnpm run build`。非 PR 触发会临时上传构建出的主题 zip，便于回溯。
+- `CI`：在 `master` / `main` 分支推送、面向 `master` / `main` 的 Pull Request 和手动触发时运行，依次执行 `pnpm install --frozen-lockfile`、`pnpm run check:ci`、`pnpm test`、`pnpm run build`。非 PR 触发会临时上传构建出的主题 zip，便于回溯。
 - `CD`：在 GitHub Release 发布后触发，调用 `halo-sigs/reusable-workflows/.github/workflows/theme-cd.yaml@v4`，把 `dist` 产物上传到 GitHub Release 和 Halo 应用市场。
 - 发布所需的 `app-id` 已写入 `.github/workflows/cd.yaml`；Halo 应用市场令牌通过仓库 Secret `HALO_PAT` 注入。
 

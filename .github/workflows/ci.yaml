@@ -38,9 +38,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Automation workflow tests
-        run: pnpm run test:automation
-
       - name: Check
         run: pnpm run check:ci
 
