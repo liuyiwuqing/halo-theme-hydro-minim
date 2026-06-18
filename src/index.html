@@ -8,7 +8,9 @@
       heroCover=${#strings.isEmpty(heroConfig?.cover) ? #theme.assets('/images/hero-featured.jpg') : heroConfig.cover}
     "
   >
-    <title th:text="|${site.title} - Hydro-Minim|">Hydro-Minim</title>
+    <title th:text="${#strings.isEmpty(site.subtitle) ? site.title : site.title + ' - ' + site.subtitle}">
+      站点标题
+    </title>
     <link th:if="${showHero}" rel="preload" th:href="${heroCover}" as="image" fetchpriority="high" />
   </template>
 

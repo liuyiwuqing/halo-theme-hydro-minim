@@ -4,6 +4,7 @@ type HydroCommentWidgetElement = HTMLElement & {
 };
 
 const hydroCommentSkinElementNames = [
+  "halo-comment-widget",
   "comment-widget",
   "comment-form",
   "base-form",
@@ -31,11 +32,22 @@ const hydroCommentLenisPreventWheelSelector = [
 const hydroCommentObservedRoots = new WeakSet<ShadowRoot>();
 const hydroCommentUpdateQueued = new WeakSet<HydroCommentWidgetElement>();
 const hydroScrollableOverflowPattern = /\b(auto|scroll|overlay)\b/;
+const hydroCommentLenisBoundaryCss = `
+  :where([data-lenis-prevent], [data-lenis-prevent-wheel], [data-lenis-prevent-touch]) {
+    overscroll-behavior: contain !important;
+  }
+
+  :where(.comment-next-emote-tabs, .comment-next-emote-grid, .comment-emote-tabs, .comment-emote-grid, .emote-tabs, .emote-grid) {
+    overscroll-behavior: contain !important;
+  }
+`;
 
 function getHydroCommentShadowCss(localName: string) {
-  switch (localName) {
-    case "comment-widget":
-      return `
+  const css = (() => {
+    switch (localName) {
+      case "halo-comment-widget":
+      case "comment-widget":
+        return `
         :host {
           display: block !important;
           width: 100% !important;
@@ -51,18 +63,10 @@ function getHydroCommentShadowCss(localName: string) {
         comment-list {
           display: block !important;
         }
-
-        :where([data-lenis-prevent], [data-lenis-prevent-wheel], [data-lenis-prevent-touch]) {
-          overscroll-behavior: contain !important;
-        }
-
-        :where(.comment-next-emote-tabs, .comment-next-emote-grid, .comment-emote-tabs, .comment-emote-grid, .emote-tabs, .emote-grid) {
-          overscroll-behavior: contain !important;
-        }
       `;
-    case "comment-form":
-    case "reply-form":
-      return `
+      case "comment-form":
+      case "reply-form":
+        return `
         :host {
           display: block !important;
           width: 100% !important;
@@ -72,8 +76,8 @@ function getHydroCommentShadowCss(localName: string) {
           display: block !important;
         }
       `;
-    case "base-form":
-      return `
+      case "base-form":
+        return `
         :host {
           display: block !important;
           width: 100% !important;
@@ -142,8 +146,8 @@ function getHydroCommentShadowCss(localName: string) {
           transform: translateY(1px) !important;
         }
       `;
-    case "comment-list":
-      return `
+      case "comment-list":
+        return `
         :host {
           display: block !important;
           width: 100% !important;
@@ -186,8 +190,8 @@ function getHydroCommentShadowCss(localName: string) {
           display: block !important;
         }
       `;
-    case "comment-item":
-      return `
+      case "comment-item":
+        return `
         :host {
           display: block !important;
         }
@@ -234,8 +238,8 @@ function getHydroCommentShadowCss(localName: string) {
           font-weight: 700 !important;
         }
       `;
-    case "comment-replies":
-      return `
+      case "comment-replies":
+        return `
         :host {
           display: block !important;
           margin: clamp(0.7rem, 1.8vw, 0.95rem) 0 0 clamp(2.05rem, 5vw, 3.1rem) !important;
@@ -292,8 +296,8 @@ function getHydroCommentShadowCss(localName: string) {
           }
         }
       `;
-    case "reply-item":
-      return `
+      case "reply-item":
+        return `
         :host {
           display: block !important;
         }
@@ -339,8 +343,8 @@ function getHydroCommentShadowCss(localName: string) {
           font-weight: 700 !important;
         }
       `;
-    case "base-comment-item":
-      return `
+      case "base-comment-item":
+        return `
         :host {
           display: block !important;
           width: 100% !important;
@@ -417,8 +421,8 @@ function getHydroCommentShadowCss(localName: string) {
           }
         }
       `;
-    case "comment-content":
-      return `
+      case "comment-content":
+        return `
         .content {
           color: rgb(var(--hydro-ink-rgb) / 82%) !important;
           font-size: var(--hydro-cw-content-size, 0.9rem) !important;
@@ -446,8 +450,8 @@ function getHydroCommentShadowCss(localName: string) {
           background: rgb(var(--hydro-ink-rgb) / 4%) !important;
         }
       `;
-    case "comment-editor":
-      return `
+      case "comment-editor":
+        return `
         :host {
           display: block !important;
           width: 100% !important;
@@ -484,8 +488,8 @@ function getHydroCommentShadowCss(localName: string) {
           border-radius: 0.45rem !important;
         }
       `;
-    case "commenter-ua-bar":
-      return `
+      case "commenter-ua-bar":
+        return `
         :host {
           display: inline-flex !important;
           max-width: 100% !important;
@@ -516,8 +520,8 @@ function getHydroCommentShadowCss(localName: string) {
           filter: saturate(0.82) contrast(0.98) !important;
         }
       `;
-    case "user-avatar":
-      return `
+      case "user-avatar":
+        return `
         .avatar {
           border: 1px solid rgb(var(--hydro-ink-rgb) / 12%) !important;
           background: rgb(var(--hydro-paper-rgb) / 56%) !important;
@@ -528,16 +532,19 @@ function getHydroCommentShadowCss(localName: string) {
           filter: saturate(0.92) contrast(1.03) !important;
         }
       `;
-    case "comment-pagination":
-      return `
+      case "comment-pagination":
+        return `
         :host {
           display: block !important;
           margin-top: 1rem !important;
         }
       `;
-    default:
-      return "";
-  }
+      default:
+        return "";
+    }
+  })();
+
+  return `${css}\n${hydroCommentLenisBoundaryCss}`;
 }
 
 function isHydroCommentScrollableArea(element: HTMLElement) {
