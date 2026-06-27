@@ -1,0 +1,15 @@
+apiVersion: v1alpha1
+kind: AnnotationSetting
+metadata:
+  name: halo-theme-hydro-minim-menuitem-icon-b7q4m
+spec:
+  targetRef:
+    group: ""
+    kind: MenuItem
+  formSchema:
+    - $formkit: iconify
+      name: icon
+      label: 导航图标（氢·简）
+      help: 可选的 Iconify SVG 图标；为空时保持主题默认菜单样式。
+      format: svg
+      value-only: true

@@ -47,8 +47,14 @@
         <h2>导航</h2>
         <ul>
           <th:block th:if="${menu != null} and ${not #lists.isEmpty(menu.menuItems)}">
-            <li th:each="item : ${menu.menuItems}">
+            <li th:each="item : ${menu.menuItems}" th:with="menuIcon=${#annotations.getOrDefault(item, 'icon', '')}">
               <a class="hydro-wavy-link" th:href="@{${item.status.href}}" th:target="${item.spec.target?.value}">
+                <span
+                  class="hydro-menu-icon hydro-footer-menu__icon"
+                  th:if="${not #strings.isEmpty(menuIcon)}"
+                  th:utext="${menuIcon}"
+                  aria-hidden="true"
+                ></span>
                 <span th:text="${item.status.displayName}">Menu</span>
                 <include src="wavy-line.html" />
               </a>

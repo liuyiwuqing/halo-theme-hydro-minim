@@ -14,38 +14,38 @@ spec:
   issues: https://github.com/liuyiwuqing/halo-theme-hydro-minim/issues
   settingName: "halo-theme-hydro-minim-setting"
   configMapName: "halo-theme-hydro-minim-configMap"
-  version: 1.0.0-beta4
+  version: 1.0.0-beta5
   requires: ">=2.25.0"
   customTemplates:
     page:
-      - name: Hydro 关于页
+      - name: 氢·简 关于页
         description: 氢风格关于页，展示站点统计、正文和社交链接
         file: page_about.html
-      - name: Hydro 友链页
+      - name: 氢·简 友链页
         description: 友链页面模板；支持站点信息、友链列表、申请说明和在线提交入口
         file: links.html
-      - name: Hydro 追番页
+      - name: 氢·简 追番页
         description: 追番插件页面模板；未安装插件时显示安装提示
         file: bangumis.html
-      - name: Hydro 文档中心
+      - name: 氢·简 文档中心
         description: Docsme 文档中心入口模板；文档详情仍由 Docsme 路由提供
         file: docs.html
-      - name: Hydro 装备页
+      - name: 氢·简 装备页
         description: 装备插件页面模板；未安装插件时显示安装提示
         file: equipments.html
-      - name: Hydro 朋友圈页
+      - name: 氢·简 朋友圈页
         description: 朋友圈插件页面模板；未安装插件时显示安装提示
         file: friends.html
-      - name: Hydro 瞬间页
+      - name: 氢·简 瞬间页
         description: 瞬间插件页面模板；未安装插件时显示安装提示
         file: moments.html
-      - name: Hydro 图库页
+      - name: 氢·简 图库页
         description: 图库插件页面模板；未安装插件时显示安装提示
         file: photos.html
-      - name: Hydro Steam 页
+      - name: 氢·简 Steam 页
         description: Steam 插件页面模板；未安装插件时显示安装提示
         file: steam.html
-      - name: Hydro 项目集
+      - name: 氢·简 项目集
         description: 项目集插件页面模板；未安装插件时显示安装提示
         file: projects.html
   license:

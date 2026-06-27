@@ -62,23 +62,47 @@
         <th:block th:each="item : ${menu.menuItems}">
           <a
             th:if="${#lists.isEmpty(item.children)}"
+            th:with="menuIcon=${#annotations.getOrDefault(item, 'icon', '')}"
             th:href="@{${item.status.href}}"
-            th:text="${item.status.displayName}"
             th:target="${item.spec.target?.value}"
-          ></a>
+          >
+            <span
+              class="hydro-menu-icon hydro-nav-menu__icon"
+              th:if="${not #strings.isEmpty(menuIcon)}"
+              th:utext="${menuIcon}"
+              aria-hidden="true"
+            ></span>
+            <span class="hydro-nav-menu__label" th:text="${item.status.displayName}"></span>
+          </a>
           <div th:unless="${#lists.isEmpty(item.children)}" class="hydro-dropdown" data-hydro-dropdown>
             <a
+              th:with="menuIcon=${#annotations.getOrDefault(item, 'icon', '')}"
               th:href="@{${item.status.href}}"
-              th:text="${item.status.displayName}"
               th:target="${item.spec.target?.value}"
-            ></a>
+            >
+              <span
+                class="hydro-menu-icon hydro-nav-menu__icon"
+                th:if="${not #strings.isEmpty(menuIcon)}"
+                th:utext="${menuIcon}"
+                aria-hidden="true"
+              ></span>
+              <span class="hydro-nav-menu__label" th:text="${item.status.displayName}"></span>
+            </a>
             <ul class="hydro-dropdown__menu">
               <li th:each="child : ${item.children}">
                 <a
+                  th:with="menuIcon=${#annotations.getOrDefault(child, 'icon', '')}"
                   th:href="@{${child.status.href}}"
-                  th:text="${child.status.displayName}"
                   th:target="${child.spec.target?.value}"
-                ></a>
+                >
+                  <span
+                    class="hydro-menu-icon hydro-nav-menu__icon"
+                    th:if="${not #strings.isEmpty(menuIcon)}"
+                    th:utext="${menuIcon}"
+                    aria-hidden="true"
+                  ></span>
+                  <span class="hydro-nav-menu__label" th:text="${child.status.displayName}"></span>
+                </a>
               </li>
             </ul>
           </div>
@@ -292,27 +316,36 @@
             class="hydro-mobile-menu__item"
             th:classappend="${#lists.isEmpty(item.children)} ? '' : ' hydro-mobile-menu__item--branch'"
           >
-            <div class="hydro-mobile-menu__row">
-              <a
-                class="hydro-mobile-menu__link hydro-mobile-menu__link--level-1"
-                th:href="@{${item.status.href}}"
-                th:target="${item.spec.target?.value}"
-              >
-                <span class="hydro-mobile-menu__label" th:text="${item.status.displayName}"></span>
-              </a>
-              <button
-                th:if="${not #lists.isEmpty(item.children)}"
-                class="hydro-mobile-menu__toggle"
-                type="button"
-                data-hydro-mobile-submenu-toggle
-                aria-expanded="false"
-                th:attr="aria-label=|展开 ${item.status.displayName}|"
-              >
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="m6 9 6 6 6-6"></path>
-                </svg>
-              </button>
-            </div>
+            <th:block th:with="menuIcon=${#annotations.getOrDefault(item, 'icon', '')}">
+              <div class="hydro-mobile-menu__row">
+                <a
+                  class="hydro-mobile-menu__link hydro-mobile-menu__link--level-1"
+                  th:classappend="${#strings.isEmpty(menuIcon)} ? '' : ' hydro-mobile-menu__link--with-icon'"
+                  th:href="@{${item.status.href}}"
+                  th:target="${item.spec.target?.value}"
+                >
+                  <span
+                    class="hydro-menu-icon hydro-mobile-menu__icon"
+                    th:if="${not #strings.isEmpty(menuIcon)}"
+                    th:utext="${menuIcon}"
+                    aria-hidden="true"
+                  ></span>
+                  <span class="hydro-mobile-menu__label" th:text="${item.status.displayName}"></span>
+                </a>
+                <button
+                  th:if="${not #lists.isEmpty(item.children)}"
+                  class="hydro-mobile-menu__toggle"
+                  type="button"
+                  data-hydro-mobile-submenu-toggle
+                  aria-expanded="false"
+                  th:attr="aria-label=|展开 ${item.status.displayName}|"
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="m6 9 6 6 6-6"></path>
+                  </svg>
+                </button>
+              </div>
+            </th:block>
 
             <ol
               class="hydro-mobile-menu__children hydro-mobile-menu__children--level-2"
@@ -323,27 +356,36 @@
                 class="hydro-mobile-menu__item hydro-mobile-menu__item--child"
                 th:classappend="${#lists.isEmpty(child.children)} ? '' : ' hydro-mobile-menu__item--branch'"
               >
-                <div class="hydro-mobile-menu__row hydro-mobile-menu__row--child">
-                  <a
-                    class="hydro-mobile-menu__link hydro-mobile-menu__link--level-2"
-                    th:href="@{${child.status.href}}"
-                    th:target="${child.spec.target?.value}"
-                  >
-                    <span class="hydro-mobile-menu__label" th:text="${child.status.displayName}"></span>
-                  </a>
-                  <button
-                    th:if="${not #lists.isEmpty(child.children)}"
-                    class="hydro-mobile-menu__toggle hydro-mobile-menu__toggle--child"
-                    type="button"
-                    data-hydro-mobile-submenu-toggle
-                    aria-expanded="false"
-                    th:attr="aria-label=|展开 ${child.status.displayName}|"
-                  >
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="m6 9 6 6 6-6"></path>
-                    </svg>
-                  </button>
-                </div>
+                <th:block th:with="menuIcon=${#annotations.getOrDefault(child, 'icon', '')}">
+                  <div class="hydro-mobile-menu__row hydro-mobile-menu__row--child">
+                    <a
+                      class="hydro-mobile-menu__link hydro-mobile-menu__link--level-2"
+                      th:classappend="${#strings.isEmpty(menuIcon)} ? '' : ' hydro-mobile-menu__link--with-icon'"
+                      th:href="@{${child.status.href}}"
+                      th:target="${child.spec.target?.value}"
+                    >
+                      <span
+                        class="hydro-menu-icon hydro-mobile-menu__icon"
+                        th:if="${not #strings.isEmpty(menuIcon)}"
+                        th:utext="${menuIcon}"
+                        aria-hidden="true"
+                      ></span>
+                      <span class="hydro-mobile-menu__label" th:text="${child.status.displayName}"></span>
+                    </a>
+                    <button
+                      th:if="${not #lists.isEmpty(child.children)}"
+                      class="hydro-mobile-menu__toggle hydro-mobile-menu__toggle--child"
+                      type="button"
+                      data-hydro-mobile-submenu-toggle
+                      aria-expanded="false"
+                      th:attr="aria-label=|展开 ${child.status.displayName}|"
+                    >
+                      <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="m6 9 6 6 6-6"></path>
+                      </svg>
+                    </button>
+                  </div>
+                </th:block>
 
                 <ol
                   class="hydro-mobile-menu__children hydro-mobile-menu__children--level-3"
@@ -353,13 +395,22 @@
                     th:each="grandchild : ${child.children}"
                     class="hydro-mobile-menu__item hydro-mobile-menu__item--child"
                   >
-                    <a
-                      class="hydro-mobile-menu__link hydro-mobile-menu__link--level-3"
-                      th:href="@{${grandchild.status.href}}"
-                      th:target="${grandchild.spec.target?.value}"
-                    >
-                      <span class="hydro-mobile-menu__label" th:text="${grandchild.status.displayName}"></span>
-                    </a>
+                    <th:block th:with="menuIcon=${#annotations.getOrDefault(grandchild, 'icon', '')}">
+                      <a
+                        class="hydro-mobile-menu__link hydro-mobile-menu__link--level-3"
+                        th:classappend="${#strings.isEmpty(menuIcon)} ? '' : ' hydro-mobile-menu__link--with-icon'"
+                        th:href="@{${grandchild.status.href}}"
+                        th:target="${grandchild.spec.target?.value}"
+                      >
+                        <span
+                          class="hydro-menu-icon hydro-mobile-menu__icon"
+                          th:if="${not #strings.isEmpty(menuIcon)}"
+                          th:utext="${menuIcon}"
+                          aria-hidden="true"
+                        ></span>
+                        <span class="hydro-mobile-menu__label" th:text="${grandchild.status.displayName}"></span>
+                      </a>
+                    </th:block>
                   </li>
                 </ol>
               </li>
