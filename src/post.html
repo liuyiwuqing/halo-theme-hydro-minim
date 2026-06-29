@@ -201,9 +201,9 @@
         >
           <a
             class="hydro-post-neighbor hydro-post-neighbor--previous"
-            th:if="${postCursor.hasPrevious()}"
-            th:href="@{${postCursor.previous.status.permalink}}"
-            th:attr="aria-label=|${postConfig?.previous_label ?: '上一篇'}：${postCursor.previous.spec.title}|"
+            th:if="${postCursor.hasNext()}"
+            th:href="@{${postCursor.next.status.permalink}}"
+            th:attr="aria-label=|${postConfig?.previous_label ?: '上一篇'}：${postCursor.next.spec.title}|"
           >
             <span class="hydro-post-neighbor__rail" aria-hidden="true">
               <span class="hydro-post-neighbor__arrow">&larr;</span>
@@ -212,19 +212,19 @@
               <span class="hydro-post-neighbor__eyebrow" th:text="${postConfig?.previous_label ?: '上一篇'}"
                 >上一篇</span
               >
-              <strong class="hydro-post-neighbor__title" th:text="${postCursor.previous.spec.title}">Previous</strong>
+              <strong class="hydro-post-neighbor__title" th:text="${postCursor.next.spec.title}">Previous</strong>
               <span class="hydro-post-neighbor__hint" aria-hidden="true">回到前一站</span>
             </span>
           </a>
           <a
             class="hydro-post-neighbor hydro-post-neighbor--next"
-            th:if="${postCursor.hasNext()}"
-            th:href="@{${postCursor.next.status.permalink}}"
-            th:attr="aria-label=|${postConfig?.next_label ?: '下一篇'}：${postCursor.next.spec.title}|"
+            th:if="${postCursor.hasPrevious()}"
+            th:href="@{${postCursor.previous.status.permalink}}"
+            th:attr="aria-label=|${postConfig?.next_label ?: '下一篇'}：${postCursor.previous.spec.title}|"
           >
             <span class="hydro-post-neighbor__body">
               <span class="hydro-post-neighbor__eyebrow" th:text="${postConfig?.next_label ?: '下一篇'}">下一篇</span>
-              <strong class="hydro-post-neighbor__title" th:text="${postCursor.next.spec.title}">Next</strong>
+              <strong class="hydro-post-neighbor__title" th:text="${postCursor.previous.spec.title}">Next</strong>
               <span class="hydro-post-neighbor__hint" aria-hidden="true">继续下一站</span>
             </span>
             <span class="hydro-post-neighbor__rail" aria-hidden="true">
