@@ -29,16 +29,16 @@
       <b th:text="${category.postCount ?: 0}" aria-label="文章数">24</b>
     </a>
 
-    <a class="hydro-category-slice hydro-category-slice--all" th:href="@{/archives}">
-      <strong>全部</strong>
-      <em>浏览所有文章内容</em>
+    <a class="hydro-category-slice hydro-category-slice--all" th:href="@{/categories}">
+      <strong>全部分类</strong>
+      <em>浏览所有分类目录</em>
       <span class="hydro-category-slice__cta">
         <span>探索</span>
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M5 12h14M13 5l7 7-7 7"></path>
         </svg>
       </span>
-      <b th:text="${posts.total ?: 0}" aria-label="文章数">63</b>
+      <b th:text="${#lists.size(categories)}" aria-label="分类数">12</b>
     </a>
   </div>
 
