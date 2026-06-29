@@ -11,6 +11,11 @@ import { initLenisScrollBoundaries } from "./lenis-scroll-boundaries";
 import { createMediaLoadController } from "./media-loading";
 import { createHydroQrSvg, createHydroQrSvgDataUrl } from "./poster-qr";
 import { initProductStore } from "./product-store";
+import {
+  createHydroProgrammaticScrollPlan,
+  type HydroLenisScrollOptions,
+  type HydroProgrammaticScrollProfile,
+} from "./scroll-behavior";
 import { initSearchWidgetSkin } from "./search-widget-skin";
 import { initHydroTagCloud } from "./tag-cloud";
 
@@ -26,6 +31,7 @@ const cardHoverEnabled = document.body.dataset.enableCardHover !== "false";
 const lightboxEnabled = document.body.dataset.enableLightbox !== "false";
 const smoothScrollEnabled = document.body.dataset.smoothScroll !== "false";
 const mobilePostQuery = window.matchMedia("(max-width: 48rem)");
+const programmaticScrollMobileQuery = window.matchMedia("(max-width: 48rem), (pointer: coarse)");
 const colorSchemeStorageKey = "hydro-color-scheme";
 const momentUpvoteStorageKey = "halo.upvoted.moment.names";
 const postUpvoteStorageKey = "halo.upvoted.post.names";
@@ -34,7 +40,7 @@ type HydroLenis = {
   animatedScroll?: number;
   resize?: () => void;
   scroll?: number;
-  scrollTo?: (target: number, options?: { force?: boolean; immediate?: boolean }) => void;
+  scrollTo?: (target: number, options?: HydroLenisScrollOptions) => void;
   start?: () => void;
   stop?: () => void;
   targetScroll?: number;
@@ -172,6 +178,30 @@ function getHydroLenis() {
 
 initInitialScrollGuard(window, { getLenis: getHydroLenis });
 
+let programmaticScrollSyncTimer: number | null = null;
+
+function syncAfterProgrammaticScroll() {
+  getHydroLenis()?.resize?.();
+  ScrollTrigger.update();
+}
+
+function scheduleProgrammaticScrollSync(delayMs: number) {
+  if (programmaticScrollSyncTimer !== null) {
+    window.clearTimeout(programmaticScrollSyncTimer);
+    programmaticScrollSyncTimer = null;
+  }
+
+  if (delayMs <= 0) {
+    window.requestAnimationFrame(syncAfterProgrammaticScroll);
+    return;
+  }
+
+  programmaticScrollSyncTimer = window.setTimeout(() => {
+    programmaticScrollSyncTimer = null;
+    syncAfterProgrammaticScroll();
+  }, delayMs);
+}
+
 function readBooleanData(value: string | undefined, fallback = true) {
   if (value == null || value === "") {
     return fallback;
@@ -248,19 +278,42 @@ function initAppearanceState() {
   }
 }
 
-function scrollToPosition(top: number) {
+function scrollToPosition(top: number, profile?: HydroProgrammaticScrollProfile) {
   const safeTop = Math.max(0, top);
   const lenis = getHydroLenis();
+  const plan = createHydroProgrammaticScrollPlan({
+    currentTop: typeof lenis?.scroll === "number" ? lenis.scroll : window.scrollY,
+    mobileViewport: programmaticScrollMobileQuery.matches,
+    motionEnabled,
+    prefersReducedMotion: prefersReducedMotion.matches,
+    profile: profile ?? (safeTop === 0 ? "back-to-top" : "default"),
+    smoothScrollEnabled,
+    targetTop: safeTop,
+    viewportHeight: window.innerHeight,
+  });
+
   if (lenis?.scrollTo) {
-    lenis.scrollTo(safeTop);
+    const lenisOptions = plan.lenisOptions
+      ? {
+          ...plan.lenisOptions,
+          onComplete: syncAfterProgrammaticScroll,
+        }
+      : undefined;
+
+    lenis.scrollTo(safeTop, lenisOptions);
+    if (plan.completionDelayMs > 0) {
+      scheduleProgrammaticScrollSync(plan.completionDelayMs);
+    }
     return;
   }
-  window.scrollTo({ top: safeTop, behavior: smoothScrollEnabled && motionEnabled ? "smooth" : "auto" });
+
+  window.scrollTo({ top: safeTop, behavior: plan.nativeBehavior });
+  scheduleProgrammaticScrollSync(plan.completionDelayMs);
 }
 
 function scrollToElement(element: HTMLElement, offset = -92) {
   const top = window.scrollY + element.getBoundingClientRect().top + offset;
-  scrollToPosition(top);
+  scrollToPosition(top, "default");
 }
 
 async function copyTextToClipboard(text: string, promptTitle = "复制链接") {
