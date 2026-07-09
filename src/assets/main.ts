@@ -4,7 +4,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 import { initAuthAltchaFloatingAnchor } from "./auth-altcha";
 import { initCommentWidgetSkin } from "./comment-widget-skin";
-import { enhanceContentTables } from "./content-tables";
+import { initHydroRichContentEnhancements } from "./content-enhancements";
 import { runHydroFabAction, type HydroFabActionDependencies } from "./fab-actions";
 import { initHydroNotice, type HydroNoticeApi } from "./hydro-notice";
 import { initInitialScrollGuard } from "./initial-scroll-guard";
@@ -1892,193 +1892,6 @@ function initPostToc() {
   headings.forEach((heading) => observer.observe(heading));
 }
 
-function initPostContentEnhancements() {
-  const page = document.querySelector<HTMLElement>(".hydro-post-page");
-  const content = page?.querySelector<HTMLElement>("[data-post-content]");
-  if (!page || !content) {
-    return;
-  }
-
-  enhanceContentBasics(content);
-  lockRichContentTaskListCheckboxes(content);
-  normalizeRichContentColumns(content);
-
-  if (!readBooleanData(page.dataset.postEnableLightbox, lightboxEnabled)) {
-    return;
-  }
-
-  enhanceContentLightboxImages(content);
-}
-
-function enhanceContentLightboxImages(content: HTMLElement) {
-  const lightboxImages = Array.from(content.querySelectorAll<HTMLImageElement>("img")).filter((image) => {
-    return !image.closest("a") && !image.classList.contains("icon") && !image.classList.contains("no-lightbox");
-  });
-
-  lightboxImages.forEach((image) => {
-    image.dataset.lightboxTrigger = "";
-    image.dataset.src = image.currentSrc || image.src || image.getAttribute("src") || "";
-    image.dataset.alt = image.alt || "";
-    const caption = image.closest("figure")?.querySelector("figcaption")?.textContent?.trim();
-    if (caption) {
-      image.dataset.caption = caption;
-    }
-    image.setAttribute("role", "button");
-    image.setAttribute("tabindex", "0");
-    image.setAttribute("aria-label", image.alt ? `查看图片：${image.alt}` : "查看图片");
-    image.addEventListener("keydown", (event) => {
-      if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
-        image.click();
-      }
-    });
-  });
-}
-
-type HydroContentAlign = "center" | "left" | "right";
-
-function parseContentDimensionAttribute(value: string | null) {
-  const normalized = value?.trim();
-  if (!normalized || !/^\d+(\.\d+)?(?:px|%)?$/i.test(normalized)) {
-    return null;
-  }
-
-  const parsed = Number.parseFloat(normalized);
-  if (!Number.isFinite(parsed) || parsed <= 0) {
-    return null;
-  }
-
-  if (normalized.endsWith("%") || normalized.toLowerCase().endsWith("px")) {
-    return normalized;
-  }
-
-  return `${parsed}px`;
-}
-
-function readContentAlign(element: HTMLElement): HydroContentAlign | null {
-  const alignItems = element.style.alignItems?.trim().toLowerCase();
-  const textAlign = element.style.textAlign?.trim().toLowerCase();
-  const justifyContent = element.style.justifyContent?.trim().toLowerCase();
-  const value = alignItems || textAlign || justifyContent;
-
-  if (value === "start" || value === "flex-start" || value === "left") {
-    return "left";
-  }
-
-  if (value === "end" || value === "flex-end" || value === "right") {
-    return "right";
-  }
-
-  if (value === "center") {
-    return "center";
-  }
-
-  return null;
-}
-
-function preserveExplicitContentMediaSize(media: HTMLImageElement | HTMLVideoElement) {
-  const width = parseContentDimensionAttribute(media.getAttribute("width"));
-  const height = parseContentDimensionAttribute(media.getAttribute("height"));
-
-  if (width != null) {
-    media.dataset.hydroExplicitWidth = "";
-    media.style.setProperty("--hydro-content-media-width", width);
-  }
-
-  if (height != null) {
-    media.dataset.hydroExplicitHeight = "";
-    media.style.setProperty("--hydro-content-media-height", height);
-  }
-}
-
-function enhanceContentBasics(content: HTMLElement, tableWrapClass = "hydro-post-table-wrap") {
-  content.querySelectorAll<HTMLImageElement>("img").forEach((image) => {
-    preserveExplicitContentMediaSize(image);
-
-    if (!image.hasAttribute("loading")) {
-      image.loading = "lazy";
-    }
-    if (!image.hasAttribute("decoding")) {
-      image.decoding = "async";
-    }
-    if (!image.classList.contains("icon") && !image.classList.contains("no-progressive-image")) {
-      image.dataset.progressiveImage = "";
-      image.closest<HTMLElement>("figure")?.setAttribute("data-progressive-media", "");
-    }
-  });
-
-  content.querySelectorAll<HTMLVideoElement>("video").forEach((video) => {
-    preserveExplicitContentMediaSize(video);
-  });
-
-  content.querySelectorAll<HTMLElement>("[data-aspect-ratio]").forEach((item) => {
-    const aspectRatio = Number.parseFloat(item.dataset.aspectRatio || "");
-    if (Number.isFinite(aspectRatio) && aspectRatio > 0) {
-      item.style.setProperty("--hydro-gallery-aspect-ratio", String(aspectRatio));
-    }
-  });
-
-  content.querySelectorAll<HTMLElement>("figure").forEach((figure) => {
-    const align = readContentAlign(figure);
-    if (align) {
-      figure.dataset.hydroAlign = align;
-    }
-  });
-
-  content.querySelectorAll<HTMLPreElement>("pre").forEach((pre) => {
-    const code = pre.querySelector<HTMLElement>("code");
-    const languageClass = Array.from(code?.classList ?? []).find((className) => className.startsWith("language-"));
-    const language = pre.dataset.language || languageClass?.replace("language-", "");
-    if (language && !pre.dataset.language) {
-      pre.dataset.language = language;
-    }
-    pre.setAttribute("tabindex", "0");
-  });
-
-  enhanceContentTables(content, tableWrapClass);
-
-  content.querySelectorAll<HTMLAnchorElement>("a[href]").forEach((link) => {
-    const href = link.getAttribute("href") || "";
-    const isExternal =
-      /^https?:\/\//i.test(href) && new URL(href, window.location.href).origin !== window.location.origin;
-    if (isExternal) {
-      link.target = link.target || "_blank";
-      link.rel = link.rel || "noopener noreferrer";
-    }
-  });
-}
-
-function lockRichContentTaskListCheckboxes(content: HTMLElement) {
-  content
-    .querySelectorAll<HTMLInputElement>(
-      'ul[data-type="taskList"] input[type="checkbox"], ul.contains-task-list input[type="checkbox"], li[data-type="taskItem"] input[type="checkbox"]',
-    )
-    .forEach((checkbox) => {
-      checkbox.disabled = true;
-      checkbox.tabIndex = -1;
-      checkbox.dataset.hydroTaskCheckbox = "readonly";
-      checkbox.setAttribute("aria-disabled", "true");
-    });
-}
-
-function normalizeRichContentColumns(content: HTMLElement) {
-  content.querySelectorAll<HTMLElement>(".columns").forEach((columns) => {
-    const configuredCount = Number.parseInt(columns.getAttribute("cols") || "", 10);
-    const childCount = columns.querySelectorAll(":scope > .column").length;
-    const resolvedCount = Number.isFinite(configuredCount) && configuredCount > 0 ? configuredCount : childCount || 2;
-    const columnCount = Math.min(Math.max(resolvedCount, 1), 4);
-
-    columns.dataset.hydroColumns = String(columnCount);
-    columns.style.setProperty("--hydro-columns-count", String(columnCount));
-  });
-}
-
-function initHydroDocContentEnhancements() {
-  document.querySelectorAll<HTMLElement>("[data-hydro-doc-content]").forEach((content) => {
-    enhanceContentBasics(content, "hydro-post-table-wrap hydro-doc-table-wrap");
-  });
-}
-
 function initPostReadingProgress() {
   const page = document.querySelector<HTMLElement>(".hydro-post-page");
   if (!page || !readBooleanData(page.dataset.postEnableReadingProgress)) {
@@ -3366,8 +3179,7 @@ initTiltCards();
 initCategoryCursor();
 initFooterMarquee();
 initAuthorPage();
-initPostContentEnhancements();
-initMomentsContent();
+initHydroRichContentEnhancements(document, { lightboxEnabled });
 initMediaLoadingExperience();
 initPostToc();
 initPostMobileReadingControls();
@@ -3513,25 +3325,6 @@ function initMomentsReveal() {
         });
       },
     });
-  });
-}
-
-function initMomentsContent() {
-  document.querySelectorAll<HTMLElement>("[data-hydro-moment-content]").forEach((content) => {
-    content.querySelectorAll<HTMLAnchorElement>("a.tag").forEach((tag) => tag.remove());
-    content.querySelectorAll<HTMLElement>("p").forEach((paragraph) => {
-      if (paragraph.textContent?.trim() === "" && paragraph.children.length === 0) {
-        paragraph.remove();
-      }
-    });
-
-    enhanceContentBasics(content, "hydro-post-table-wrap hydro-moment-table-wrap");
-    lockRichContentTaskListCheckboxes(content);
-    normalizeRichContentColumns(content);
-
-    if (lightboxEnabled) {
-      enhanceContentLightboxImages(content);
-    }
   });
 }
 
@@ -5160,7 +4953,6 @@ initPosterShare();
 initHydroPluginFilters();
 initProductStore();
 initHydroDocTreeLevels();
-initHydroDocContentEnhancements();
 initHydroDocsToc();
 initHydroSteamPage();
 

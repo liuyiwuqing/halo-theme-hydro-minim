@@ -31,7 +31,7 @@ pnpm run build
 `pnpm run build` 会生成可安装主题包：
 
 ```text
-dist/halo-theme-hydro-minim-1.0.0.zip
+dist/halo-theme-hydro-minim-1.0.0-beta9.zip
 ```
 
 ## 自动化流程
@@ -46,6 +46,26 @@ dist/halo-theme-hydro-minim-1.0.0.zip
 - [主题使用教程](./docs/theme-usage-guide.md)：面向站长后台配置，按“品牌与站点 / 视觉与动效 / 导航与结构 / 首页 / 内容页面 / 插件页面 / 高级设置”分组说明。
 - [宣传图源文件](./docs/promotion/index.html)：可维护的宣传图 HTML 设计稿。
 - 宣传图 PNG：位于 `docs/promotion/`，包括主视觉、功能矩阵、配置导览和插件生态四张图。
+
+## 自定义页面模板
+
+主题在 `theme.yaml` 中声明了这些可在 Halo 独立页面里选择的自定义模板：
+
+| 模板名称       | 模板文件          | 推荐 slug    | 用途                             |
+| -------------- | ----------------- | ------------ | -------------------------------- |
+| 氢·简 关于页   | `page_about.html` | `about`      | 展示站点统计、正文和社交链接     |
+| 氢·简 留言页   | `guestbook.html`  | `guestbook`  | 使用独立页面评论组件承载访客留言 |
+| 氢·简 友链页   | `links.html`      | `links`      | 友链列表、站点信息和在线申请     |
+| 氢·简 追番页   | `bangumis.html`   | `bangumis`   | 追番插件页面                     |
+| 氢·简 文档中心 | `docs.html`       | `docs`       | Docsme 文档中心入口              |
+| 氢·简 装备页   | `equipments.html` | `equipments` | 装备插件页面                     |
+| 氢·简 朋友圈页 | `friends.html`    | `friends`    | 朋友圈插件页面                   |
+| 氢·简 瞬间页   | `moments.html`    | `moments`    | 瞬间插件页面                     |
+| 氢·简 图库页   | `photos.html`     | `photos`     | 图库插件页面                     |
+| 氢·简 Steam 页 | `steam.html`      | `steam`      | Steam 插件页面                   |
+| 氢·简 项目集   | `portfolio.html`  | `portfolio`  | 项目集插件页面                   |
+
+留言页推荐创建独立页面，标题可用“留言”，slug 使用 `guestbook`，页面模板选择 `氢·简 留言页`，前台永久链接即 `/guestbook`。它不自己存留言，只渲染 Halo 的 `SinglePage` 评论组件；需要在“内容页面 / 独立页面”开启评论区，并安装、启用站点的评论组件或评论插件。评论能力没开时，页面会显示提示，别把这当故障现场，先把依赖补齐。
 
 ## 快捷操作按钮
 

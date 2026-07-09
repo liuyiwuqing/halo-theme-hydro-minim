@@ -8,11 +8,12 @@
 - 英文名：Hydro-Minim
 - 项目标识：`halo-theme-hydro-minim`
 - Halo 主题标识：`metadata.name: halo-theme-hydro-minim`
-- 兼容目标：Halo `>=2.20.0`
+- 当前版本：`1.0.0-beta9`
+- 兼容目标：Halo `>=2.25.0`
 
 ## 项目地图
 
-- 当前主题：`/Users/lywq/Personalspace/blog/halo_theme_dev/halo-theme-hydro-vite/halo-theme-hydro-minim`
+- 当前主题：`/Users/lywq/Personalspace/blog/halo_theme_dev/halo-theme-hydro-minim`
 - 开发源文件：`src/`、`public/`、`theme.yaml`、`settings.yaml`、配置和文档源文件。
 - 生成产物：`templates/` 和 `dist/`，只能由构建命令生成。
 - 旧目标名 `halo-theme-hydro-mini` 已废弃，不要继续使用。

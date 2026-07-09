@@ -8,7 +8,7 @@
 
 ### 兼容版本
 
-Hydro-Minim 要求 Halo `>=2.20.0`。
+Hydro-Minim 要求 Halo `>=2.25.0`。
 
 ### 构建主题包
 
@@ -23,7 +23,7 @@ pnpm run build
 构建成功后会生成：
 
 ```text
-dist/halo-theme-hydro-minim-1.0.0.zip
+dist/halo-theme-hydro-minim-1.0.0-beta9.zip
 ```
 
 在 Halo Console 上传并启用该主题包即可。
@@ -284,11 +284,18 @@ categories
 tags
 search
 page_about
-docs
-photos
-moments
-projects
+guestbook
 links
+moments
+moment
+photos
+docs
+equipments
+friends
+bangumis
+steam
+portfolio
+product
 ```
 
 永久链接示例：
@@ -422,15 +429,27 @@ window.HydroMinimActions = {
 - 关于页显示统计。
 - 关于页启用评论。
 
-普通独立页使用 `page.html`，Hydro 关于页使用自定义模板 `page_about.html`。
+普通独立页使用 `page.html`，氢·简关于页使用自定义模板 `page_about.html`，氢·简留言页使用自定义模板 `guestbook.html`。
 
-创建 Hydro 关于页：
+创建氢·简关于页：
 
 1. 进入 `Halo Console -> 内容 -> 页面`。
 2. 新建页面，例如“关于”。
-3. 页面模板选择 `Hydro 关于页`。
+3. 页面模板选择 `氢·简 关于页`。
 4. 填写正文、封面和发布状态。
 5. 在菜单中添加该页面入口。
+
+创建氢·简留言页：
+
+1. 进入 `Halo Console -> 内容 -> 页面`。
+2. 新建页面，标题建议使用“留言”或“留言板”。
+3. slug 推荐填写 `guestbook`，对应前台永久链接 `/guestbook`。
+4. 页面模板选择 `氢·简 留言页`。
+5. 页面正文可作为留言区前的说明；不填时使用主题默认说明。
+6. 在“内容页面 -> 独立页面”开启“启用评论区”，并安装、启用 Halo 评论组件或兼容评论插件。
+7. 在菜单中添加该页面入口。
+
+留言页的核心用途是给访客打招呼、反馈问题、勘误和留下合作想法。它复用 Halo 独立页面的 `SinglePage` 评论组件，不是单独的数据表，也不是客服工单系统，别指望它替你干 CRM 的活儿。评论区关闭或评论插件不可用时，留言页会显示依赖提示。
 
 ### 归档
 
@@ -707,21 +726,24 @@ notice?.close();
 
 在 Halo 页面中可选择这些自定义模板：
 
-| 模板名称       | 用途                |
-| -------------- | ------------------- |
-| Hydro 关于页   | 氢风格关于页        |
-| Hydro 追番页   | 追番插件页面        |
-| Hydro 文档中心 | Docsme 文档中心入口 |
-| Hydro 装备页   | 装备插件页面        |
-| Hydro 朋友圈页 | 朋友圈插件页面      |
-| Hydro 瞬间页   | 瞬间插件页面        |
-| Hydro 图库页   | 图库插件页面        |
-| Hydro Steam 页 | Steam 插件页面      |
-| Hydro 项目集   | 项目集插件页面      |
+| 模板名称       | 模板文件          | 推荐 slug    | 用途与依赖                                       |
+| -------------- | ----------------- | ------------ | ------------------------------------------------ |
+| 氢·简 关于页   | `page_about.html` | `about`      | 氢风格关于页，可选评论区                         |
+| 氢·简 留言页   | `guestbook.html`  | `guestbook`  | 留言板；依赖独立页面评论区和评论插件             |
+| 氢·简 友链页   | `links.html`      | `links`      | 友链页面；依赖友链插件，在线申请依赖 LinksSubmit |
+| 氢·简 追番页   | `bangumis.html`   | `bangumis`   | 追番插件页面                                     |
+| 氢·简 文档中心 | `docs.html`       | `docs`       | Docsme 文档中心入口                              |
+| 氢·简 装备页   | `equipments.html` | `equipments` | 装备插件页面                                     |
+| 氢·简 朋友圈页 | `friends.html`    | `friends`    | 朋友圈插件页面                                   |
+| 氢·简 瞬间页   | `moments.html`    | `moments`    | 瞬间插件页面                                     |
+| 氢·简 图库页   | `photos.html`     | `photos`     | 图库插件页面                                     |
+| 氢·简 Steam 页 | `steam.html`      | `steam`      | Steam 插件页面                                   |
+| 氢·简 项目集   | `portfolio.html`  | `portfolio`  | 项目集插件页面                                   |
 
 建议：
 
 - 插件原生路由和独立页面 slug 不要冲突。
+- 留言页推荐固定用 `/guestbook`；它只是评论组件的承载页，开启方式是“新建独立页面 -> 选择 `氢·简 留言页` -> 开启独立页面评论 -> 启用评论插件”。
 - `/portfolio` 归项目集插件，`/product` 归产品管理插件；别再把项目集放到 `/projects`，这名字看着像小事，撞起路由来挺要命。
 - 如果插件已经占用 `/moments`、`/photos`、`/docs`，独立页面可以用 `/my-moments`、`/gallery`、`/notes` 这类路径。
 - 修改 `theme.yaml` 自定义模板声明后，需要在主题管理中重新加载主题配置。
@@ -730,7 +752,7 @@ notice?.close();
 
 上线前至少检查：
 
-- 主题已启用，Halo 版本满足 `>=2.20.0`。
+- 主题已启用，Halo 版本满足 `>=2.25.0`。
 - 站点标题、URL、favicon、SEO 描述已配置。
 - Header 主菜单已配置；无主菜单时默认导航可用。
 - Logo、默认封面、Hero 封面已替换为真实素材。
