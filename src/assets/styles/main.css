@@ -14052,8 +14052,7 @@ body.hydro-reward-lock {
 }
 
 .hydro-post-toc__row {
-  display: grid;
-  grid-template-columns: 1rem minmax(0, 1fr);
+  display: flex;
   align-items: start;
   gap: 0.12rem;
 }
@@ -14061,6 +14060,7 @@ body.hydro-reward-lock {
 .hydro-post-toc__toggle {
   display: grid;
   place-items: center;
+  flex: 0 0 1rem;
   width: 1rem;
   height: 1.8rem;
   border: 0;
@@ -14099,7 +14099,9 @@ body.hydro-reward-lock {
 
 .hydro-post-toc__link {
   position: relative;
+  flex: 1 1 auto;
   display: -webkit-box;
+  min-width: 0;
   min-height: 1.8rem;
   border-radius: 0;
   padding: 0.28rem 0.35rem 0.28rem 0.52rem;
