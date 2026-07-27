@@ -121,7 +121,7 @@
 
         <div
           class="hydro-links-apply__inner"
-          th:if="${not #strings.isEmpty(singlePage.content.content) or theme.config.plugins?.links?.enable_submit}"
+          th:if="${not #strings.isEmpty(singlePage.content.content) or theme.config.plugins?.links?.enable_submit == true}"
         >
           <div class="hydro-links-apply__header">
             <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -476,7 +476,7 @@
 
   <!-- 在线修改弹窗 -->
   <div
-    th:if="${theme.config.plugins?.links?.enable_submit and theme.config.plugins?.links?.enable_update}"
+    th:if="${theme.config.plugins?.links?.enable_submit == true and theme.config.plugins?.links?.enable_update == true}"
     id="hydro-link-update-modal"
     class="hydro-link-submit-modal"
     aria-hidden="true"
