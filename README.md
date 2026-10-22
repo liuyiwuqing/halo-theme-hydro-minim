@@ -2,9 +2,9 @@
 
 Hydro-Minim 是“氢”系列的首款 Halo 主题，项目标识为 `halo-theme-hydro-minim`。主题运行时采用 Halo 原生 Thymeleaf 模板 + Vite TypeScript 交互，不依赖 React。
 
-主题已支持浅色、深色和跟随系统三种默认配色，并提供访客侧深浅色切换按钮。主题设置中的“全局外观 / 强调色”会统一驱动文字选中、正文链接、输入焦点、光标、搜索命中和轻量高亮，默认保持低饱和的氢风格，不建议改成高对比霓虹色。
+主题已支持浅色、深色和跟随系统三种默认配色，并提供访客侧深浅色切换按钮。主题设置中的“视觉与动效 / 配色”会统一驱动文字选中、正文链接、输入焦点、光标、搜索命中和轻量高亮，默认保持低饱和的氢风格，不建议改成高对比霓虹色。
 
-搜索入口依赖官方 `PluginSearchWidget` 插件，主题设置可在“全局组件 / 搜索入口方式”中选择弹窗搜索或页面搜索；未安装插件时主题不会展示无效搜索入口。
+搜索入口依赖官方 `PluginSearchWidget` 插件，主题设置可在“导航与结构 / Header 与搜索”中选择弹窗搜索或页面搜索；未安装插件时主题不会展示无效搜索入口。
 
 ## 交流群
 
@@ -36,7 +36,7 @@ dist/halo-theme-hydro-minim-1.0.0.zip
 
 ## 自动化流程
 
-- `CI`：在 `master` / `main` 分支推送、面向 `master` / `main` 的 Pull Request 和手动触发时运行，依次执行 `pnpm install --frozen-lockfile`、`pnpm run check:ci`、`pnpm test`、`pnpm run build`。非 PR 触发会临时上传构建出的主题 zip，便于回溯。
+- `CI`：在 `master` 分支推送、面向 `master` 的 Pull Request 和手动触发时运行，依次执行 `pnpm install --frozen-lockfile`、`pnpm run check:ci`、`pnpm test`、`pnpm run build`。非 PR 触发会临时上传构建出的主题 zip，便于回溯。
 - `CD`：在 GitHub Release 发布后触发，调用 `halo-sigs/reusable-workflows/.github/workflows/theme-cd.yaml@v4`，把 `dist` 产物上传到 GitHub Release 和 Halo 应用市场。
 - 发布所需的 `app-id` 已写入 `.github/workflows/cd.yaml`；Halo 应用市场令牌通过仓库 Secret `HALO_PAT` 注入。
 
@@ -71,7 +71,7 @@ dist/halo-theme-hydro-minim-1.0.0.zip
 
 ## 快捷操作按钮
 
-主题设置中的“全局组件 / 快捷项”支持两层配置：
+主题设置中的“导航与结构 / 浮动操作”支持两层快捷项配置：
 
 - `全局默认快捷项`：所有页面都没有命中专属规则时使用。
 - `页面快捷配置`：按永久链接或模板 ID 命中后覆盖全局默认配置，永久链接规则优先于模板 ID 规则，`所有页面` 规则作为兜底；永久链接支持 `/about`、`/about/` 或完整 URL，并兼容当前请求路径；如果命中的页面配置是空的，会回退到全局默认快捷项。
