@@ -31,7 +31,7 @@ pnpm run build
 `pnpm run build` 会生成可安装主题包：
 
 ```text
-dist/halo-theme-hydro-minim-1.0.0-beta9.zip
+dist/halo-theme-hydro-minim-1.0.0.zip
 ```
 
 ## 自动化流程
@@ -64,6 +64,8 @@ dist/halo-theme-hydro-minim-1.0.0-beta9.zip
 | 氢·简 图库页   | `photos.html`     | `photos`     | 图库插件页面                     |
 | 氢·简 Steam 页 | `steam.html`      | `steam`      | Steam 插件页面                   |
 | 氢·简 项目集   | `portfolio.html`  | `portfolio`  | 项目集插件页面                   |
+
+产品商城与保险箱使用插件原生路由，不在自定义模板列表中：产品商城由主题的 `product.html`、`product-detail.html` 覆写 `/product` 与 `/product/{key}`；保险箱由 `safebox-unlock.html` 提供受保护资源解锁页，样式与说明受主题设置中的“插件页面 / 保险箱”控制。
 
 留言页推荐创建独立页面，标题可用“留言”，slug 使用 `guestbook`，页面模板选择 `氢·简 留言页`，前台永久链接即 `/guestbook`。它不自己存留言，只渲染 Halo 的 `SinglePage` 评论组件；需要在“内容页面 / 独立页面”开启评论区，并安装、启用站点的评论组件或评论插件。评论能力没开时，页面会显示提示，别把这当故障现场，先把依赖补齐。
 

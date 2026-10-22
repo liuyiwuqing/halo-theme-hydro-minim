@@ -211,7 +211,7 @@ def poster_hero() -> None:
     x = 76
     for value in ["Halo >= 2.25.0", "深浅色切换", "阅读进度", "插件页适配"]:
         x += chip(d, x, 658, value) + 12
-    label(d, 72, 802, "Version 1.0.0-beta9")
+    label(d, 72, 802, "Version 1.0.0")
     draw_browser(d, 750, 120, 760, 480)
     draw_mobile(d, 1250, 340, 250, 510)
     text(d, (1278, 842), "halo-theme-hydro-minim", mono(14), (16, 17, 18, 108))

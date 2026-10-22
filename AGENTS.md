@@ -8,7 +8,7 @@
 - 英文名：Hydro-Minim
 - 项目标识：`halo-theme-hydro-minim`
 - Halo 主题标识：`metadata.name: halo-theme-hydro-minim`
-- 当前版本：`1.0.0-beta9`
+- 当前版本：`1.0.0`
 - 兼容目标：Halo `>=2.25.0`
 
 ## 项目地图
